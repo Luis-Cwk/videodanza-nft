@@ -5,20 +5,21 @@ import { WalletConnect } from './WalletConnect'
 
 export const Header = () => {
   return (
-    <nav className="minimal-nav" style={{ marginBottom: '40px' }}>
+    <nav className="minimal-nav">
       <Link href="/" className="brand">
-        PETRA
+        VIDEODANZA
       </Link>
 
       <div className="nav-links">
-        <Link href="/">Arte</Link>
+        <Link href="/">Inicio</Link>
         <Link href="/gallery">Galería</Link>
         <Link href="/mint" className="featured">
-          Mint NFT
+          Crear NFT
         </Link>
-        <div style={{ marginLeft: '15px', borderLeft: '1px solid #000', paddingLeft: '15px' }}>
-          <WalletConnect />
-        </div>
+      </div>
+
+      <div style={{ paddingLeft: '1.5vw', borderLeft: '1px solid #000' }}>
+        <WalletConnect />
       </div>
     </nav>
   )

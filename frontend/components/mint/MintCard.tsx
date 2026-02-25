@@ -12,12 +12,13 @@ interface MintFormData {
 }
 
 export const MintCard = () => {
-  const { isConnected } = useAccount()
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<MintFormData>()
+  const { isConnected, address } = useAccount()
+  const { register, handleSubmit, watch } = useForm<MintFormData>()
   const [seed, setSeed] = useState<`0x${string}` | null>(null)
   const [selectedVideo, setSelectedVideo] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [hoveredVideo, setHoveredVideo] = useState<string | null>(null)
 
   const { videos, loading: videosLoading } = useIPFSLookupTable()
   const { mint, isPending, isSuccess, hash, error: mintError, status } = useMintNFT()
@@ -43,7 +44,7 @@ export const MintCard = () => {
   // Handle successful mint
   useEffect(() => {
     if (isSuccess) {
-      setSuccess(`NFT minted successfully! TX: ${hash}`)
+      setSuccess(`✓ NFT acuñado exitosamente! TX: ${hash}`)
       setTimeout(() => setSuccess(null), 5000)
     }
   }, [isSuccess, hash])
@@ -53,36 +54,36 @@ export const MintCard = () => {
       setError(null)
 
       if (!isConnected) {
-        setError('— Por favor conecta tu wallet primero')
+        setError('Conecta tu wallet para continuar')
         return
       }
 
       if (!seed) {
-        setError('— Ingresa una seed phrase válida')
+        setError('Ingresa una seed phrase válida')
         return
       }
 
       if (isSeedMinted) {
-        setError('— Esta seed ya ha sido acuñada')
+        setError('Esta seed ya ha sido acuñada')
         return
       }
 
       if (!selectedVideo) {
-        setError('— Selecciona un video')
+        setError('Selecciona un video')
         return
       }
 
       // Get the IPFS metadata URI for the selected video
       const videoData = videos[selectedVideo]
       if (!videoData) {
-        setError('— No se encontró la metadata del video')
+        setError('No se encontró la metadata del video')
         return
       }
 
       // Use the IPFS URI (ipfs://Qm...) for the contract
       const metadataURI = videoData.ipfs
       if (!metadataURI) {
-        setError('— No se encontró la URI IPFS del video')
+        setError('No se encontró la URI IPFS del video')
         return
       }
 
@@ -90,124 +91,208 @@ export const MintCard = () => {
       await mint(seed, metadataURI, mintPrice)
     } catch (err) {
       console.error('Submit error:', err)
-      setError(err instanceof Error ? `— ${err.message}` : '— Error al acuñar')
+      setError(err instanceof Error ? err.message : 'Error al acuñar')
     }
   }
 
-  const formattedPrice = mintPrice ? (Number(mintPrice) / 1e18).toFixed(4) : '0.001'
+  const formattedPrice = mintPrice ? (Number(mintPrice) / 1e18).toFixed(3) : '0.001'
+  const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null
 
   return (
-    <div className="mint-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <form onSubmit={handleSubmit(onSubmit)} className="mint-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '4vw', alignItems: 'start' }}>
-        {/* COLUMNA IZQUIERDA: Información */}
-        <div className="mint-info">
-          <h2 style={{ fontSize: '1.4rem', textTransform: 'uppercase', marginBottom: '20px' }}>
-            Mint Your VideoDanza
-          </h2>
-
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.95rem', fontWeight: '300', marginBottom: '15px' }}>
-            Cada seed genera una composición única y determinística. El mismo seed siempre produce el mismo video, permitiendo reproducibilidad y verificación en la cadena de bloques.
-          </p>
-
-          <div className="separator"></div>
-
-          {/* Detalles */}
-          <div style={{ marginTop: '30px' }}>
-            <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Red</span>
-              <span>Sepolia Testnet</span>
+    <div style={{ marginBottom: '8vh' }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* STATUS BANNER */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          gap: '1.5vw',
+          marginBottom: '6vh',
+          padding: '0'
+        }}>
+          <div style={{
+            padding: '2vh 2vw',
+            border: '1px solid #e8e8e8',
+            background: isConnected ? '#f5f5f5' : '#fff',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+              Wallet
             </div>
-            <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Precio</span>
-              <span>{formattedPrice} ETH</span>
+            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
+              {isConnected ? (shortAddress || 'Conectado') : 'Desconectado'}
             </div>
-            <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Royalties</span>
-              <span>7.5%</span>
+          </div>
+
+          <div style={{
+            padding: '2vh 2vw',
+            border: '1px solid #e8e8e8',
+            background: '#f5f5f5',
+          }}>
+            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+              Red
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Estado</span>
-              <span>
-                {!isConnected ? 'wallet no conectado' : !seed ? 'ingresa seed' : 'listo'}
-              </span>
+            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
+              Sepolia
+            </div>
+          </div>
+
+          <div style={{
+            padding: '2vh 2vw',
+            border: '1px solid #e8e8e8',
+            background: '#f5f5f5',
+          }}>
+            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+              Precio
+            </div>
+            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
+              {formattedPrice} ETH
+            </div>
+          </div>
+
+          <div style={{
+            padding: '2vh 2vw',
+            border: '1px solid #e8e8e8',
+            background: seed ? '#f5f5f5' : '#fff',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+              Estado
+            </div>
+            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
+              {!isConnected ? 'conectar' : !seed ? 'seed' : selectedVideo ? 'listo' : 'video'}
             </div>
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Formulario */}
-        <div className="mint-form-inputs">
-          {/* Conectar Wallet */}
-          {!isConnected && (
-            <div className="message info">
-              Conecta tu wallet para continuar
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1.2fr',
+          gap: '5vw',
+          alignItems: 'start',
+          borderTop: '1px solid #000',
+          paddingTop: '6vh'
+        }}>
+          {/* LEFT: SEED INPUT */}
+          <div>
+            <div style={{ marginBottom: '4vh' }}>
+              <label htmlFor="seedPhrase">Tu Semilla</label>
+              <p style={{ fontSize: '0.9rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666', marginBottom: '1.5vh' }}>
+                Una palabra, frase o concepto que defina tu creación.
+              </p>
+              <input
+                id="seedPhrase"
+                type="text"
+                placeholder="tu nombre, coordenadas, un recuerdo..."
+                {...register('seedPhrase', { required: 'Requerido' })}
+                style={{ fontSize: '1rem' }}
+              />
+              {seed && (
+                <div style={{
+                  marginTop: '1.5vh',
+                  padding: '1.5vh 1.5vw',
+                  background: '#f5f5f5',
+                  border: '1px solid #e8e8e8',
+                  fontSize: '0.8rem',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: '#666',
+                  wordBreak: 'break-all'
+                }}>
+                  <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', marginBottom: '0.5vh' }}>Hash generado</div>
+                  {seed}
+                </div>
+              )}
             </div>
-          )}
-
-          {/* Seed Phrase Input */}
-          <div style={{ marginBottom: '25px' }}>
-            <label htmlFor="seedPhrase">Seed Phrase</label>
-            <input
-              id="seedPhrase"
-              type="text"
-              placeholder="Tu nombre, coordenadas, un recuerdo..."
-              {...register('seedPhrase', { required: 'Requerido' })}
-            />
-            {errors.seedPhrase && (
-              <div className="message error" style={{ marginTop: '5px', fontSize: '0.75rem' }}>
-                {errors.seedPhrase.message}
-              </div>
-            )}
-            {seed && (
-              <div style={{ marginTop: '8px', fontSize: '0.75rem', fontFamily: "'Space Grotesk', sans-serif", fontWeight: '300', color: '#666' }}>
-                Seed hash: {seed.slice(0, 16)}...
-              </div>
-            )}
           </div>
 
-          <div className="separator"></div>
+          {/* RIGHT: VIDEO SELECT */}
+          <div>
+            <div style={{ marginBottom: '2vh' }}>
+              <label>Selecciona Video</label>
+              <p style={{ fontSize: '0.9rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666', marginBottom: '1.5vh' }}>
+                Elige la composición que acompañará tu semilla.
+              </p>
+            </div>
 
-          {/* Video Selection */}
-          <div style={{ marginTop: '25px', marginBottom: '25px' }}>
-            <label htmlFor="video">Selecciona Video</label>
             {videosLoading ? (
-              <div style={{ fontSize: '0.9rem', color: '#666' }}>Cargando videos...</div>
+              <div style={{
+                padding: '4vh 2vw',
+                textAlign: 'center',
+                color: '#666',
+                fontFamily: "'Space Grotesk', sans-serif"
+              }}>
+                Cargando videos...
+              </div>
             ) : (
-              <select
-                id="video"
-                value={selectedVideo}
-                onChange={(e) => setSelectedVideo(e.target.value)}
-              >
-                <option value="">— Elige un video —</option>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '1.5vw'
+              }}>
                 {Object.keys(videos).map((videoName) => (
-                  <option key={videoName} value={videoName}>
-                    {videoName.replace(/\.mp4/, '').slice(0, 50)}
-                  </option>
+                  <button
+                    key={videoName}
+                    type="button"
+                    onClick={() => setSelectedVideo(videoName)}
+                    onMouseEnter={() => setHoveredVideo(videoName)}
+                    onMouseLeave={() => setHoveredVideo(null)}
+                    style={{
+                      padding: '2vh 1.5vw',
+                      border: selectedVideo === videoName ? '2px solid #000' : '1px solid #e8e8e8',
+                      background: selectedVideo === videoName || hoveredVideo === videoName ? '#f5f5f5' : '#fff',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontSize: '0.85rem',
+                      fontWeight: 300,
+                      transition: 'all 0.3s ease',
+                      color: '#000',
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    {videoName.replace(/\.mp4/, '').slice(0, 30)}
+                  </button>
                 ))}
-              </select>
+              </div>
             )}
           </div>
+        </div>
 
-          <div className="separator"></div>
-
-          {/* Error/Success Messages */}
-          {error && <div className="message error">{error}</div>}
-          {mintError && <div className="message error">— {mintError.message || 'Error desconocido'}</div>}
-          {status && status !== 'idle' && (
-            <div className="message info">
-              → Estado: {status}
-              {hash && <div style={{ marginTop: '5px' }}>TX: {hash}</div>}
+        {/* MESSAGES & BUTTON */}
+        <div style={{ marginTop: '6vh', borderTop: '1px solid #000', paddingTop: '4vh' }}>
+          {error && (
+            <div className="message error" style={{ marginBottom: '2vh' }}>
+              {error}
             </div>
           )}
-          {success && <div className="message success">{success}</div>}
+          {mintError && (
+            <div className="message error" style={{ marginBottom: '2vh' }}>
+              {mintError.message || 'Error desconocido'}
+            </div>
+          )}
+          {status && status !== 'idle' && (
+            <div className="message info" style={{ marginBottom: '2vh' }}>
+              Estado: {status}
+              {hash && <div style={{ marginTop: '0.8vh', fontSize: '0.85rem', wordBreak: 'break-all' }}>TX: {hash}</div>}
+            </div>
+          )}
+          {success && (
+            <div className="message success" style={{ marginBottom: '2vh' }}>
+              {success}
+            </div>
+          )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={Boolean(!isConnected || isPending || !seed || !selectedVideo || (seed && isSeedMinted))}
             className="btn-minimal"
-            style={{ marginTop: '30px', width: '100%', padding: '12px 20px', textAlign: 'center' }}
+            style={{
+              width: '100%',
+              padding: '1.2rem 2rem',
+              fontSize: '0.8rem',
+              marginTop: '2vh'
+            }}
           >
-            {isPending ? '⏳ Procesando...' : !isConnected ? 'Conecta Wallet' : !seed ? 'Ingresa Seed' : !selectedVideo ? 'Elige Video' : 'Acuñar NFT'}
+            {isPending ? '⏳ Procesando...' : !isConnected ? 'Conecta tu wallet' : !seed ? 'Completa tu semilla' : !selectedVideo ? 'Elige un video' : 'Acuñar NFT'}
           </button>
         </div>
       </form>

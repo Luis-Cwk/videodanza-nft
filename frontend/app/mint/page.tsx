@@ -4,49 +4,99 @@ import { MintCard } from '@/components/mint/MintCard'
 
 export default function MintPage() {
   return (
-    <main style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '60px', borderTop: '1px solid #000', paddingTop: '30px' }}>
-        <h1 style={{ fontSize: '1.4rem', textTransform: 'uppercase', marginBottom: '20px' }}>
-          Mint Your VideoDanza NFT
-        </h1>
-        <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.95rem', fontWeight: '300', maxWidth: '800px', textAlign: 'justify', borderLeft: '1px solid #eee', paddingLeft: '30px' }}>
-          Cada seed genera una composición única y determinística. El mismo seed siempre produce el mismo video, permitiendo reproducibilidad y verificación en la cadena de bloques. Tus videos se almacenan en IPFS para acceso permanente y descentralizado.
-        </p>
-      </div>
+    <main>
+      {/* HERO SECTION */}
+      <section style={{ marginBottom: '10vh' }}>
+        <div style={{ borderTop: '1px solid #000', paddingTop: '4vh', marginBottom: '8vh' }}>
+          <h1>CREAR NFT</h1>
+          <p className="intro">
+            Tus movimientos, tus gestos, tu energía — preservados en la cadena de bloques. 
+            Cada seed crea una composición única, determinística y permanente.
+          </p>
+        </div>
+      </section>
 
-      <MintCard />
+      {/* MINT FORM */}
+      <section style={{ marginBottom: '12vh' }}>
+        <MintCard />
+      </section>
 
-      {/* Info Section */}
-      <div style={{ marginTop: '80px', borderTop: '1px solid #000', paddingTop: '30px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4vw' }}>
-          <div>
-            <h3 style={{ fontSize: '1rem', textTransform: 'uppercase', marginBottom: '12px', fontWeight: 'bold' }}>
-              Generativo
-            </h3>
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.85rem', fontWeight: '300' }}>
-              Cada NFT es generado algorítmicamente usando tu seed único. La composición es reproducible y verificable.
+      {/* INFO SECTION */}
+      <section style={{ marginTop: '12vh', borderTop: '1px solid #000', paddingTop: '6vh' }}>
+        <h2 style={{ marginBottom: '6vh' }}>Cómo funciona</h2>
+        
+        <div className="editorial-grid">
+          <div className="editorial-info">
+            <h3>Semilla determinística</h3>
+            <p>
+              Tu seed no es aleatorio. Es una frase que tú eliges, hasheada criptográficamente. 
+              El mismo seed siempre genera el mismo video, creando certeza y reproducibilidad.
             </p>
           </div>
-
-          <div>
-            <h3 style={{ fontSize: '1rem', textTransform: 'uppercase', marginBottom: '12px', fontWeight: 'bold' }}>
-              Determinístico
-            </h3>
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.85rem', fontWeight: '300' }}>
-              El mismo seed siempre produce el mismo video. No hay duplicados posibles. Seguridad matemática garantizada.
-            </p>
-          </div>
-
-          <div>
-            <h3 style={{ fontSize: '1rem', textTransform: 'uppercase', marginBottom: '12px', fontWeight: 'bold' }}>
-              Descentralizado
-            </h3>
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.85rem', fontWeight: '300' }}>
-              Videos almacenados en IPFS. Contratos inteligentes en Ethereum. Acceso permanente garantizado.
+          <div style={{ background: '#f5f5f5', padding: '3vh 3vw', border: '1px solid #e8e8e8' }}>
+            <p style={{ fontSize: '0.9rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666' }}>
+              <strong>Ejemplo:</strong><br/>
+              Seed: "mi nombre en movimiento"<br/>
+              ↓<br/>
+              Hash: 0x7f3a8b2c...<br/>
+              ↓<br/>
+              Video único generado
             </p>
           </div>
         </div>
-      </div>
+
+        <div className="section-divider"></div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '4vw', marginTop: '8vh' }}>
+          <div style={{ paddingBottom: '2vh' }}>
+            <h3>Verificable</h3>
+            <p>
+              La matemática garantiza que tu video es único e irrepetible. 
+              Cualquiera puede verificar su autenticidad en la cadena de bloques.
+            </p>
+          </div>
+
+          <div style={{ paddingBottom: '2vh' }}>
+            <h3>Permanente</h3>
+            <p>
+              Almacenados en IPFS, tus NFT existirán para siempre. 
+              Descentralizados, resistentes, más allá de corporaciones.
+            </p>
+          </div>
+
+          <div style={{ paddingBottom: '2vh' }}>
+            <h3>Interoperable</h3>
+            <p>
+              Compatible con cualquier wallet y marketplace de Ethereum. 
+              Tu NFT es tuyo, verdaderamente tuyo.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SPEC SECTION */}
+      <section style={{ marginTop: '12vh', borderTop: '1px solid #000', paddingTop: '6vh', marginBottom: '8vh' }}>
+        <h2 style={{ marginBottom: '4vh' }}>Especificaciones técnicas</h2>
+        
+        <div className="stats-grid">
+          <div className="stat-item">
+            <div className="stat-label">Red</div>
+            <div className="stat-value">Ethereum Sepolia</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-label">Precio</div>
+            <div className="stat-value">0.001 ETH</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-label">Estándar</div>
+            <div className="stat-value">ERC-721</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-label">Almacenamiento</div>
+            <div className="stat-value">IPFS + Blockchain</div>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }

@@ -1,7 +1,14 @@
 {
-  "buildCommand": "npm run build",
+  "version": 2,
+  "buildCommand": "cd frontend && npm ci && npm run build",
   "outputDirectory": "frontend/.next",
-  "rootDirectory": "frontend",
+  "rootDirectory": ".",
   "framework": "nextjs",
-  "nodeVersion": "20.x"
+  "nodeVersion": "20.x",
+  "env": {
+    "NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID": "@NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID",
+    "NEXT_PUBLIC_CONTRACT_ADDRESS": "@NEXT_PUBLIC_CONTRACT_ADDRESS",
+    "NEXT_PUBLIC_CHAIN_ID": "@NEXT_PUBLIC_CHAIN_ID"
+  }
 }
+
