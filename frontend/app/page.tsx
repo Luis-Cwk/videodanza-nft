@@ -1,163 +1,166 @@
 'use client'
 
+import Link from 'next/link'
+
 export default function HomePage() {
   return (
-    <div className="space-y-12">
-      {/* Hero Section */}
-      <div className="text-center py-20">
-        <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          VideoDanza NFT
-        </h1>
-        <p className="text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
-          Generative Dance Video NFTs on Sepolia Ethereum
-        </p>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
-          Create unique, deterministic video art using blockchain technology and IPFS storage. Each seed phrase generates a unique generative dance video that lives forever on the decentralized web.
-        </p>
-
-        <div className="flex flex-wrap gap-4 justify-center">
-          <a
-            href="/mint"
-            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition-all duration-200"
-          >
-            Start Minting
-          </a>
-          <a
-            href="/gallery"
-            className="px-8 py-3 border border-purple-500 text-purple-400 hover:bg-purple-500/10 font-bold rounded-lg transition-all duration-200"
-          >
-            View Gallery
-          </a>
-        </div>
-      </div>
-
-      {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-slate-900/30 border border-purple-500/20 rounded-lg p-6 hover:border-purple-500/40 transition-all duration-200">
-          <div className="text-4xl mb-4">🎨</div>
-          <h3 className="text-lg font-bold mb-2">Generative</h3>
-          <p className="text-sm text-slate-400">
-            Algorithmically generated videos using your seed phrase
+    <main>
+      {/* HERO SECTION */}
+      <section style={{ marginBottom: '12vh' }}>
+        <div style={{ borderTop: '1px solid #000', paddingTop: '6vh', marginBottom: '8vh' }}>
+          <h1 style={{ marginBottom: '3vh' }}>VIDEODANZA</h1>
+          <p className="intro">
+            Un proyecto de arte generativo que transforma la danza en NFTs. 
+            Tu semilla determina la composición. Cada mint es único, irreproducible y verificable en la cadena de bloques.
           </p>
         </div>
 
-        <div className="bg-slate-900/30 border border-purple-500/20 rounded-lg p-6 hover:border-purple-500/40 transition-all duration-200">
-          <div className="text-4xl mb-4">🔐</div>
-          <h3 className="text-lg font-bold mb-2">Deterministic</h3>
-          <p className="text-sm text-slate-400">
-            Same seed always = same video. No duplicates possible
+        <Link href="/mint" className="btn-minimal" style={{ marginTop: '2vh' }}>
+          Comenzar
+        </Link>
+      </section>
+
+      {/* CONCEPT SECTION */}
+      <section style={{ marginTop: '12vh', borderTop: '1px solid #000', paddingTop: '6vh', marginBottom: '12vh' }}>
+        <h2 style={{ marginBottom: '6vh' }}>El Concepto</h2>
+
+        <div className="editorial-grid">
+          <div className="editorial-info">
+            <h3>Generatividad Pura</h3>
+            <p>
+              No eliges un video. El sistema genera tu composición determinísticamente usando tu semilla como input criptográfico. 
+              Cada elemento —escalas, opacidades, blend modes, tiempos— emerge de un algoritmo determinista.
+            </p>
+          </div>
+          <div style={{ background: '#f5f5f5', padding: '3vh 3vw', border: '1px solid #e8e8e8' }}>
+            <p style={{ fontSize: '0.9rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666', fontWeight: 300 }}>
+              <strong>La semilla es el arte.</strong><br/>
+              No el video. No la interfaz. La idea que contiene tu semilla es transmutada en una composición visual única mediante un algoritmo determinista.
+            </p>
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '4vw', marginTop: '8vh' }}>
+          <div>
+            <h3>Determinístico</h3>
+            <p>
+              La misma semilla siempre genera la misma composición. 
+              No hay aleatoriedad. La matemática garantiza la reproducibilidad.
+            </p>
+          </div>
+
+          <div>
+            <h3>Irreproducible</h3>
+            <p>
+              Cada semilla es única. Tu idea encriptada genera una composición que nadie más puede crear. 
+              Imposible de duplicar.
+            </p>
+          </div>
+
+          <div>
+            <h3>Verificable</h3>
+            <p>
+              Tu composición puede ser verificada en la cadena. El algoritmo es público, tu seed genera exactamente lo que ves.
+            </p>
+          </div>
+
+          <div>
+            <h3>Permanente</h3>
+            <p>
+              Almacenado en IPFS y blockchain. Tu VideoDanza existirá para siempre, más allá de plataformas corporativas.
+            </p>
+          </div>
+
+          <div>
+            <h3>Sin Intermediarios</h3>
+            <p>
+              Tu composición no es "creada por Petra". Es generada por el algoritmo. Eres co-autor del resultado.
+            </p>
+          </div>
+
+          <div>
+            <h3>Económico</h3>
+            <p>
+              Solo 0.001 ETH en Sepolia. Accesible. Un gesto de participación, no de especulación.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* TECHNICAL SECTION */}
+      <section style={{ marginTop: '12vh', borderTop: '1px solid #000', paddingTop: '6vh', marginBottom: '12vh' }}>
+        <h2 style={{ marginBottom: '4vh' }}>Cómo Funciona</h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '3vw' }}>
+          <div style={{ padding: '2vh 2vw', border: '1px solid #e8e8e8' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1vh' }}>01</div>
+            <h3 style={{ marginBottom: '1vh' }}>Ingresa tu Semilla</h3>
+            <p style={{ fontSize: '0.9rem' }}>
+              Una palabra, frase, nombre, coordenadas. Cualquier concepto que quieras cristalizar como arte.
+            </p>
+          </div>
+
+          <div style={{ padding: '2vh 2vw', border: '1px solid #e8e8e8' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1vh' }}>02</div>
+            <h3 style={{ marginBottom: '1vh' }}>El Algoritmo Genera</h3>
+            <p style={{ fontSize: '0.9rem' }}>
+              Tu semilla es procesada criptográficamente. El algoritmo combina tus 5 videos en una composición única.
+            </p>
+          </div>
+
+          <div style={{ padding: '2vh 2vw', border: '1px solid #e8e8e8' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1vh' }}>03</div>
+            <h3 style={{ marginBottom: '1vh' }}>Visualización</h3>
+            <p style={{ fontSize: '0.9rem' }}>
+              Ves un preview de tu composición generada: capas, blend modes, escalas, rotaciones. Todo determinístico.
+            </p>
+          </div>
+
+          <div style={{ padding: '2vh 2vw', border: '1px solid #e8e8e8' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1vh' }}>04</div>
+            <h3 style={{ marginBottom: '1vh' }}>Mint en Blockchain</h3>
+            <p style={{ fontSize: '0.9rem' }}>
+              Conectas tu wallet y acuñas la composición. Tu seed + algoritmo = tu NFT único.
+            </p>
+          </div>
+
+          <div style={{ padding: '2vh 2vw', border: '1px solid #e8e8e8' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1vh' }}>05</div>
+            <h3 style={{ marginBottom: '1vh' }}>Permanencia</h3>
+            <p style={{ fontSize: '0.9rem' }}>
+              Tu composición vive en IPFS. El contrato en Ethereum. Tu idea, para siempre.
+            </p>
+          </div>
+
+          <div style={{ padding: '2vh 2vw', border: '1px solid #e8e8e8' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '1vh' }}>06</div>
+            <h3 style={{ marginBottom: '1vh' }}>Reproducibilidad</h3>
+            <p style={{ fontSize: '0.9rem' }}>
+              Cualquiera puede verificar que tu composición es auténtica. El algoritmo es público.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA SECTION */}
+      <section style={{ marginTop: '12vh', marginBottom: '8vh' }}>
+        <div style={{
+          border: '1px solid #000',
+          padding: '6vh 4vw',
+          background: '#f5f5f5',
+          textAlign: 'center'
+        }}>
+          <h2 style={{ marginBottom: '2vh' }}>Lista para Crear</h2>
+          <p style={{ marginBottom: '3vh', maxWidth: '600px', margin: '0 auto 3vh' }}>
+            Tu semilla espera ser transformada en una composición visual única y permanente.
           </p>
+          <Link href="/mint" className="btn-minimal">
+            Ir al Mint
+          </Link>
         </div>
-
-        <div className="bg-slate-900/30 border border-purple-500/20 rounded-lg p-6 hover:border-purple-500/40 transition-all duration-200">
-          <div className="text-4xl mb-4">🌍</div>
-          <h3 className="text-lg font-bold mb-2">Decentralized</h3>
-          <p className="text-sm text-slate-400">
-            Videos stored on IPFS, contracts on Ethereum
-          </p>
-        </div>
-
-        <div className="bg-slate-900/30 border border-purple-500/20 rounded-lg p-6 hover:border-purple-500/40 transition-all duration-200">
-          <div className="text-4xl mb-4">💰</div>
-          <h3 className="text-lg font-bold mb-2">Affordable</h3>
-          <p className="text-sm text-slate-400">
-            0.001 ETH per mint + 7.5% creator royalties
-          </p>
-        </div>
-      </div>
-
-      {/* How It Works */}
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          How It Works
-        </h2>
-
-        <div className="space-y-6">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold">
-                1
-              </div>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-2">Connect Your Wallet</h3>
-              <p className="text-slate-400">
-                Connect MetaMask or another Ethereum wallet to access Sepolia testnet
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold">
-                2
-              </div>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-2">Choose Your Seed</h3>
-              <p className="text-slate-400">
-                Enter any phrase - your name, coordinates, a memory, whatever inspires you
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold">
-                3
-              </div>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-2">Select a Video</h3>
-              <p className="text-slate-400">
-                Browse our collection and select the video template for your NFT
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold">
-                4
-              </div>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-2">Mint Your NFT</h3>
-              <p className="text-slate-400">
-                Complete the transaction (0.001 ETH) and your NFT is permanently yours
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tech Stack */}
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Built With
-        </h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            'Ethereum',
-            'Solidity',
-            'Sepolia Testnet',
-            'IPFS',
-            'Pinata',
-            'Next.js',
-            'Wagmi',
-            'RainbowKit',
-            'Tailwind CSS',
-          ].map((tech) => (
-            <div
-              key={tech}
-              className="bg-slate-900/30 border border-purple-500/20 rounded p-4 text-center font-medium hover:border-purple-500/40 transition-all duration-200"
-            >
-              {tech}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }

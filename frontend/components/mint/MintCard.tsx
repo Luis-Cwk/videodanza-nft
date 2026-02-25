@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { useForm } from 'react-hook-form'
 import { useMintNFT } from '@/lib/hooks/useContract'
-import { useIPFSLookupTable } from '@/lib/hooks/useIPFS'
+import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
+import { GenerativePreview } from '@/components/generative/GenerativePreview'
 import { ethers } from 'ethers'
 
 interface MintFormData {
@@ -15,13 +16,11 @@ export const MintCard = () => {
   const { isConnected, address } = useAccount()
   const { register, handleSubmit, watch } = useForm<MintFormData>()
   const [seed, setSeed] = useState<`0x${string}` | null>(null)
-  const [selectedVideo, setSelectedVideo] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [hoveredVideo, setHoveredVideo] = useState<string | null>(null)
 
-  const { videos, loading: videosLoading } = useIPFSLookupTable()
   const { mint, isPending, isSuccess, hash, error: mintError, status } = useMintNFT()
+  const composition = useGenerativeComposition(seed)
 
   const seedPhrase = watch('seedPhrase')
   const mintPrice = '1000000000000000' // 0.001 ETH in wei
@@ -44,7 +43,7 @@ export const MintCard = () => {
   // Handle successful mint
   useEffect(() => {
     if (isSuccess) {
-      setSuccess(`✓ NFT acuñado exitosamente! TX: ${hash}`)
+      setSuccess(`✓ VideoDanza acuñada exitosamente! TX: ${hash}`)
       setTimeout(() => setSuccess(null), 5000)
     }
   }, [isSuccess, hash])
@@ -59,35 +58,24 @@ export const MintCard = () => {
       }
 
       if (!seed) {
-        setError('Ingresa una seed phrase válida')
+        setError('Ingresa una semilla válida')
+        return
+      }
+
+      if (!composition) {
+        setError('Generando composición...')
         return
       }
 
       if (isSeedMinted) {
-        setError('Esta seed ya ha sido acuñada')
+        setError('Esta semilla ya ha sido acuñada')
         return
       }
 
-      if (!selectedVideo) {
-        setError('Selecciona un video')
-        return
-      }
+      // For generative art, we use a metadata URI that represents the generative parameters
+      const metadataURI = composition.seed
 
-      // Get the IPFS metadata URI for the selected video
-      const videoData = videos[selectedVideo]
-      if (!videoData) {
-        setError('No se encontró la metadata del video')
-        return
-      }
-
-      // Use the IPFS URI (ipfs://Qm...) for the contract
-      const metadataURI = videoData.ipfs
-      if (!metadataURI) {
-        setError('No se encontró la URI IPFS del video')
-        return
-      }
-
-      console.log('Calling mint with:', { seed, metadataURI, mintPrice })
+      console.log('Calling mint with generative composition:', { seed, composition, mintPrice })
       await mint(seed, metadataURI, mintPrice)
     } catch (err) {
       console.error('Submit error:', err)
@@ -102,33 +90,57 @@ export const MintCard = () => {
     <div style={{ marginBottom: '8vh' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* STATUS BANNER */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: '1.5vw',
-          marginBottom: '6vh',
-          padding: '0'
-        }}>
-          <div style={{
-            padding: '2vh 2vw',
-            border: '1px solid #e8e8e8',
-            background: isConnected ? '#f5f5f5' : '#fff',
-            transition: 'all 0.3s ease'
-          }}>
-            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr 1fr',
+            gap: '1.5vw',
+            marginBottom: '6vh',
+            padding: '0',
+          }}
+        >
+          <div
+            style={{
+              padding: '2vh 2vw',
+              border: '1px solid #e8e8e8',
+              background: isConnected ? '#f5f5f5' : '#fff',
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.65rem',
+                textTransform: 'uppercase',
+                fontWeight: '700',
+                letterSpacing: '1px',
+                color: '#666',
+                marginBottom: '0.8vh',
+              }}
+            >
               Wallet
             </div>
             <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
-              {isConnected ? (shortAddress || 'Conectado') : 'Desconectado'}
+              {isConnected ? shortAddress || 'Conectado' : 'Desconectado'}
             </div>
           </div>
 
-          <div style={{
-            padding: '2vh 2vw',
-            border: '1px solid #e8e8e8',
-            background: '#f5f5f5',
-          }}>
-            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+          <div
+            style={{
+              padding: '2vh 2vw',
+              border: '1px solid #e8e8e8',
+              background: '#f5f5f5',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.65rem',
+                textTransform: 'uppercase',
+                fontWeight: '700',
+                letterSpacing: '1px',
+                color: '#666',
+                marginBottom: '0.8vh',
+              }}
+            >
               Red
             </div>
             <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -136,12 +148,23 @@ export const MintCard = () => {
             </div>
           </div>
 
-          <div style={{
-            padding: '2vh 2vw',
-            border: '1px solid #e8e8e8',
-            background: '#f5f5f5',
-          }}>
-            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+          <div
+            style={{
+              padding: '2vh 2vw',
+              border: '1px solid #e8e8e8',
+              background: '#f5f5f5',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.65rem',
+                textTransform: 'uppercase',
+                fontWeight: '700',
+                letterSpacing: '1px',
+                color: '#666',
+                marginBottom: '0.8vh',
+              }}
+            >
               Precio
             </div>
             <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -149,35 +172,55 @@ export const MintCard = () => {
             </div>
           </div>
 
-          <div style={{
-            padding: '2vh 2vw',
-            border: '1px solid #e8e8e8',
-            background: seed ? '#f5f5f5' : '#fff',
-            transition: 'all 0.3s ease'
-          }}>
-            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666', marginBottom: '0.8vh' }}>
+          <div
+            style={{
+              padding: '2vh 2vw',
+              border: '1px solid #e8e8e8',
+              background: seed && composition ? '#f5f5f5' : '#fff',
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.65rem',
+                textTransform: 'uppercase',
+                fontWeight: '700',
+                letterSpacing: '1px',
+                color: '#666',
+                marginBottom: '0.8vh',
+              }}
+            >
               Estado
             </div>
             <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
-              {!isConnected ? 'conectar' : !seed ? 'seed' : selectedVideo ? 'listo' : 'video'}
+              {!isConnected ? 'conectar' : !seed ? 'semilla' : 'listo'}
             </div>
           </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.2fr',
-          gap: '5vw',
-          alignItems: 'start',
-          borderTop: '1px solid #000',
-          paddingTop: '6vh'
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.2fr',
+            gap: '5vw',
+            alignItems: 'start',
+            borderTop: '1px solid #000',
+            paddingTop: '6vh',
+          }}
+        >
           {/* LEFT: SEED INPUT */}
           <div>
             <div style={{ marginBottom: '4vh' }}>
               <label htmlFor="seedPhrase">Tu Semilla</label>
-              <p style={{ fontSize: '0.9rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666', marginBottom: '1.5vh' }}>
-                Una palabra, frase o concepto que defina tu creación.
+              <p
+                style={{
+                  fontSize: '0.9rem',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: '#666',
+                  marginBottom: '1.5vh',
+                }}
+              >
+                Una palabra, frase o concepto. El sistema generará tu VideoDanza única de forma determinística.
               </p>
               <input
                 id="seedPhrase"
@@ -187,74 +230,37 @@ export const MintCard = () => {
                 style={{ fontSize: '1rem' }}
               />
               {seed && (
-                <div style={{
-                  marginTop: '1.5vh',
-                  padding: '1.5vh 1.5vw',
-                  background: '#f5f5f5',
-                  border: '1px solid #e8e8e8',
-                  fontSize: '0.8rem',
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  color: '#666',
-                  wordBreak: 'break-all'
-                }}>
-                  <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', marginBottom: '0.5vh' }}>Hash generado</div>
+                <div
+                  style={{
+                    marginTop: '1.5vh',
+                    padding: '1.5vh 1.5vw',
+                    background: '#f5f5f5',
+                    border: '1px solid #e8e8e8',
+                    fontSize: '0.8rem',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    color: '#666',
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.65rem',
+                      textTransform: 'uppercase',
+                      fontWeight: '700',
+                      letterSpacing: '1px',
+                      marginBottom: '0.5vh',
+                    }}
+                  >
+                    Identificador único
+                  </div>
                   {seed}
                 </div>
               )}
             </div>
           </div>
 
-          {/* RIGHT: VIDEO SELECT */}
-          <div>
-            <div style={{ marginBottom: '2vh' }}>
-              <label>Selecciona Video</label>
-              <p style={{ fontSize: '0.9rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666', marginBottom: '1.5vh' }}>
-                Elige la composición que acompañará tu semilla.
-              </p>
-            </div>
-
-            {videosLoading ? (
-              <div style={{
-                padding: '4vh 2vw',
-                textAlign: 'center',
-                color: '#666',
-                fontFamily: "'Space Grotesk', sans-serif"
-              }}>
-                Cargando videos...
-              </div>
-            ) : (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '1.5vw'
-              }}>
-                {Object.keys(videos).map((videoName) => (
-                  <button
-                    key={videoName}
-                    type="button"
-                    onClick={() => setSelectedVideo(videoName)}
-                    onMouseEnter={() => setHoveredVideo(videoName)}
-                    onMouseLeave={() => setHoveredVideo(null)}
-                    style={{
-                      padding: '2vh 1.5vw',
-                      border: selectedVideo === videoName ? '2px solid #000' : '1px solid #e8e8e8',
-                      background: selectedVideo === videoName || hoveredVideo === videoName ? '#f5f5f5' : '#fff',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      fontSize: '0.85rem',
-                      fontWeight: 300,
-                      transition: 'all 0.3s ease',
-                      color: '#000',
-                      textTransform: 'capitalize'
-                    }}
-                  >
-                    {videoName.replace(/\.mp4/, '').slice(0, 30)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* RIGHT: GENERATIVE PREVIEW */}
+          <GenerativePreview composition={composition} isLoading={Boolean(seed && !composition)} />
         </div>
 
         {/* MESSAGES & BUTTON */}
@@ -272,7 +278,11 @@ export const MintCard = () => {
           {status && status !== 'idle' && (
             <div className="message info" style={{ marginBottom: '2vh' }}>
               Estado: {status}
-              {hash && <div style={{ marginTop: '0.8vh', fontSize: '0.85rem', wordBreak: 'break-all' }}>TX: {hash}</div>}
+              {hash && (
+                <div style={{ marginTop: '0.8vh', fontSize: '0.85rem', wordBreak: 'break-all' }}>
+                  TX: {hash}
+                </div>
+              )}
             </div>
           )}
           {success && (
@@ -283,16 +293,24 @@ export const MintCard = () => {
 
           <button
             type="submit"
-            disabled={Boolean(!isConnected || isPending || !seed || !selectedVideo || (seed && isSeedMinted))}
+            disabled={Boolean(!isConnected || isPending || !seed || !composition || (seed && isSeedMinted))}
             className="btn-minimal"
             style={{
               width: '100%',
               padding: '1.2rem 2rem',
               fontSize: '0.8rem',
-              marginTop: '2vh'
+              marginTop: '2vh',
             }}
           >
-            {isPending ? '⏳ Procesando...' : !isConnected ? 'Conecta tu wallet' : !seed ? 'Completa tu semilla' : !selectedVideo ? 'Elige un video' : 'Acuñar NFT'}
+            {isPending
+              ? '⏳ Acuñando...'
+              : !isConnected
+                ? 'Conecta tu wallet'
+                : !seed
+                  ? 'Completa tu semilla'
+                  : !composition
+                    ? 'Generando...'
+                    : 'Acuñar VideoDanza'}
           </button>
         </div>
       </form>
