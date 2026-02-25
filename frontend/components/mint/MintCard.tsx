@@ -31,7 +31,7 @@ export const MintCard = () => {
 
   // Generate seed from phrase
   useEffect(() => {
-    if (seedPhrase.trim()) {
+    if (seedPhrase && typeof seedPhrase === 'string' && seedPhrase.trim()) {
       try {
         const hashedSeed = ethers.keccak256(ethers.toUtf8Bytes(seedPhrase))
         setSeed(hashedSeed as `0x${string}`)
