@@ -15,11 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning style={{ margin: 0, padding: 0 }}>
         <RootProvider>
-          <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-            {children}
-          </main>
+          {children}
         </RootProvider>
       </body>
     </html>

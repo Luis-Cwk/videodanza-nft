@@ -21,10 +21,7 @@ export const MintCard = () => {
 
   const { videos, loading: videosLoading } = useIPFSLookupTable()
   const { mint, isPending, isSuccess, hash, error: mintError, status } = useMintNFT()
-  // Temporarily disable contract reads to fix page rendering
-  // const mintPrice = useMintPrice()
-  // const isSeedMinted = useIsSeedMinted(seed || '0x0000000000000000000000000000000000000000000000000000000000000000')
-  
+
   const seedPhrase = watch('seedPhrase')
   const mintPrice = '1000000000000000' // 0.001 ETH in wei
   const isSeedMinted = false
@@ -55,157 +52,164 @@ export const MintCard = () => {
     try {
       setError(null)
 
-      console.log('Form submitted', { isConnected, seed, selectedVideo, isSeedMinted })
-
       if (!isConnected) {
-        setError('Please connect your wallet first')
+        setError('— Por favor conecta tu wallet primero')
         return
       }
 
       if (!seed) {
-        setError('Invalid seed phrase')
+        setError('— Ingresa una seed phrase válida')
         return
       }
 
       if (isSeedMinted) {
-        setError('This seed has already been minted')
+        setError('— Esta seed ya ha sido acuñada')
         return
       }
 
       if (!selectedVideo) {
-        setError('Please select a video')
+        setError('— Selecciona un video')
         return
       }
 
       // Get the IPFS metadata URI for the selected video
       const videoData = videos[selectedVideo]
       if (!videoData) {
-        setError('No se encontró la metadata del video')
-        return
-      }
-      
-      // Use the IPFS URI (ipfs://Qm...) for the contract
-      const metadataURI = videoData.ipfs
-      if (!metadataURI) {
-        setError('No se encontró la URI IPFS del video')
+        setError('— No se encontró la metadata del video')
         return
       }
 
-      console.log('✅ All validations passed, calling mint with:', { seed, metadataURI, mintPrice })
+      // Use the IPFS URI (ipfs://Qm...) for the contract
+      const metadataURI = videoData.ipfs
+      if (!metadataURI) {
+        setError('— No se encontró la URI IPFS del video')
+        return
+      }
+
+      console.log('Calling mint with:', { seed, metadataURI, mintPrice })
       await mint(seed, metadataURI, mintPrice)
-      console.log('Mint called successfully')
     } catch (err) {
       console.error('Submit error:', err)
-      setError(err instanceof Error ? err.message : 'Minting failed')
+      setError(err instanceof Error ? `— ${err.message}` : '— Error al acuñar')
     }
   }
 
   const formattedPrice = mintPrice ? (Number(mintPrice) / 1e18).toFixed(4) : '0.001'
 
   return (
-    <div className="bg-slate-900/50 backdrop-blur border border-purple-500/20 rounded-lg p-8 max-w-2xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-        Mint Your VideoDanza NFT
-      </h2>
+    <div className="mint-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <form onSubmit={handleSubmit(onSubmit)} className="mint-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '4vw', alignItems: 'start' }}>
+        {/* COLUMNA IZQUIERDA: Información */}
+        <div className="mint-info">
+          <h2 style={{ fontSize: '1.4rem', textTransform: 'uppercase', marginBottom: '20px' }}>
+            Mint Your VideoDanza
+          </h2>
 
-      {!isConnected && (
-        <div className="bg-amber-900/20 border border-amber-500/30 rounded p-4 mb-6 text-amber-200">
-          Please connect your wallet to mint an NFT
+          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.95rem', fontWeight: '300', marginBottom: '15px' }}>
+            Cada seed genera una composición única y determinística. El mismo seed siempre produce el mismo video, permitiendo reproducibilidad y verificación en la cadena de bloques.
+          </p>
+
+          <div className="separator"></div>
+
+          {/* Detalles */}
+          <div style={{ marginTop: '30px' }}>
+            <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Red</span>
+              <span>Sepolia Testnet</span>
+            </div>
+            <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Precio</span>
+              <span>{formattedPrice} ETH</span>
+            </div>
+            <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Royalties</span>
+              <span>7.5%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Estado</span>
+              <span>
+                {!isConnected ? 'wallet no conectado' : !seed ? 'ingresa seed' : 'listo'}
+              </span>
+            </div>
+          </div>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Seed Phrase Input */}
-        <div>
-          <label htmlFor="seedPhrase" className="block text-sm font-medium mb-2">
-            Seed Phrase
-          </label>
-          <input
-            id="seedPhrase"
-            type="text"
-            placeholder="Enter any phrase (e.g., your name, a memory, coordinates)"
-            className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50"
-            {...register('seedPhrase', { required: 'Seed phrase is required' })}
-          />
-          {errors.seedPhrase && (
-            <p className="text-red-400 text-sm mt-1">{errors.seedPhrase.message}</p>
+        {/* COLUMNA DERECHA: Formulario */}
+        <div className="mint-form-inputs">
+          {/* Conectar Wallet */}
+          {!isConnected && (
+            <div className="message info">
+              Conecta tu wallet para continuar
+            </div>
           )}
-          {seed && (
-            <p className="text-xs text-slate-400 mt-1">
-              Seed: {seed.slice(0, 10)}...{seed.slice(-8)}
-            </p>
+
+          {/* Seed Phrase Input */}
+          <div style={{ marginBottom: '25px' }}>
+            <label htmlFor="seedPhrase">Seed Phrase</label>
+            <input
+              id="seedPhrase"
+              type="text"
+              placeholder="Tu nombre, coordenadas, un recuerdo..."
+              {...register('seedPhrase', { required: 'Requerido' })}
+            />
+            {errors.seedPhrase && (
+              <div className="message error" style={{ marginTop: '5px', fontSize: '0.75rem' }}>
+                {errors.seedPhrase.message}
+              </div>
+            )}
+            {seed && (
+              <div style={{ marginTop: '8px', fontSize: '0.75rem', fontFamily: "'Space Grotesk', sans-serif", fontWeight: '300', color: '#666' }}>
+                Seed hash: {seed.slice(0, 16)}...
+              </div>
+            )}
+          </div>
+
+          <div className="separator"></div>
+
+          {/* Video Selection */}
+          <div style={{ marginTop: '25px', marginBottom: '25px' }}>
+            <label htmlFor="video">Selecciona Video</label>
+            {videosLoading ? (
+              <div style={{ fontSize: '0.9rem', color: '#666' }}>Cargando videos...</div>
+            ) : (
+              <select
+                id="video"
+                value={selectedVideo}
+                onChange={(e) => setSelectedVideo(e.target.value)}
+              >
+                <option value="">— Elige un video —</option>
+                {Object.keys(videos).map((videoName) => (
+                  <option key={videoName} value={videoName}>
+                    {videoName.replace(/\.mp4/, '').slice(0, 50)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="separator"></div>
+
+          {/* Error/Success Messages */}
+          {error && <div className="message error">{error}</div>}
+          {mintError && <div className="message error">— {mintError.message || 'Error desconocido'}</div>}
+          {status && status !== 'idle' && (
+            <div className="message info">
+              → Estado: {status}
+              {hash && <div style={{ marginTop: '5px' }}>TX: {hash}</div>}
+            </div>
           )}
+          {success && <div className="message success">{success}</div>}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={Boolean(!isConnected || isPending || !seed || !selectedVideo || (seed && isSeedMinted))}
+            className="btn-minimal"
+            style={{ marginTop: '30px', width: '100%', padding: '12px 20px', textAlign: 'center' }}
+          >
+            {isPending ? '⏳ Procesando...' : !isConnected ? 'Conecta Wallet' : !seed ? 'Ingresa Seed' : !selectedVideo ? 'Elige Video' : 'Acuñar NFT'}
+          </button>
         </div>
-
-        {/* Video Selection */}
-        <div>
-          <label htmlFor="video" className="block text-sm font-medium mb-2">
-            Choose Video
-          </label>
-          {videosLoading ? (
-            <div className="text-slate-400">Loading videos...</div>
-          ) : (
-            <select
-              id="video"
-              value={selectedVideo}
-              onChange={(e) => setSelectedVideo(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50"
-            >
-              <option value="">Select a video...</option>
-              {Object.keys(videos).map((videoName) => (
-                <option key={videoName} value={videoName}>
-                  {videoName.replace(/\.mp4/, '').slice(0, 50)}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        {/* Mint Info */}
-        <div className="bg-slate-800/50 rounded p-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Mint Price</span>
-            <span className="font-mono">{formattedPrice} ETH</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Status</span>
-            <span className={seed && isSeedMinted ? 'text-orange-400' : 'text-green-400'}>
-              {!seed ? 'Enter a seed' : isSeedMinted ? 'Already minted' : 'Ready to mint'}
-            </span>
-          </div>
-        </div>
-
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="bg-red-900/20 border border-red-500/30 rounded p-4 text-red-200 text-sm">
-            {error}
-          </div>
-        )}
-        {mintError && (
-          <div className="bg-red-900/20 border border-red-500/30 rounded p-4 text-red-200 text-sm">
-            Contract Error: {mintError.message || 'Unknown error'}
-          </div>
-        )}
-        {status && status !== 'idle' && (
-          <div className="bg-blue-900/20 border border-blue-500/30 rounded p-4 text-blue-200 text-sm">
-            Transaction Status: {status}
-            {hash && <div className="mt-2">TX Hash: {hash}</div>}
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-900/20 border border-green-500/30 rounded p-4 text-green-200 text-sm">
-            {success}
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={Boolean(!isConnected || isPending || !seed || !selectedVideo || (seed && isSeedMinted))}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded transition-all duration-200"
-        >
-          {isPending ? 'Processing Transaction...' : !isConnected ? 'Connect Wallet to Mint' : !seed ? 'Enter Seed Phrase' : !selectedVideo ? 'Select a Video' : 'Mint NFT'}
-        </button>
       </form>
     </div>
   )
