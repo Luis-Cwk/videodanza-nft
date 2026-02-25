@@ -26,7 +26,7 @@ interface IPFSLookupTable {
 let lookupTableCache: IPFSLookupTable | null = null
 
 const loadLookupTable = async (): Promise<IPFSLookupTable> => {
-  if (lookupTableCache) {
+  if (lookupTableCache !== null) {
     return lookupTableCache
   }
 
@@ -35,12 +35,13 @@ const loadLookupTable = async (): Promise<IPFSLookupTable> => {
     if (!response.ok) {
       throw new Error('Failed to load IPFS lookup table')
     }
-    lookupTableCache = await response.json()
+    const data = await response.json() as IPFSLookupTable
+    lookupTableCache = data
     return lookupTableCache
   } catch (err) {
     console.error('Error loading IPFS lookup table:', err)
     // Return empty table as fallback
-    return {
+    const fallback: IPFSLookupTable = {
       network: 'sepolia',
       chainId: 11155111,
       contractAddress: '0xA4bFA5843B6134a55310D1346b31BD7Bd29CfFEf',
@@ -48,6 +49,8 @@ const loadLookupTable = async (): Promise<IPFSLookupTable> => {
       gateway: GATEWAY_URL,
       videos: {}
     }
+    lookupTableCache = fallback
+    return fallback
   }
 }
 
