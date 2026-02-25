@@ -20,7 +20,7 @@ export const MintCard = () => {
   const [success, setSuccess] = useState<string | null>(null)
 
   const { videos, loading: videosLoading } = useIPFSLookupTable()
-  const { mint, isPending, isSuccess, hash } = useMintNFT()
+  const { mint, isPending, isSuccess, hash, error: mintError, status } = useMintNFT()
   // Temporarily disable contract reads to fix page rendering
   // const mintPrice = useMintPrice()
   // const isSeedMinted = useIsSeedMinted(seed || '0x0000000000000000000000000000000000000000000000000000000000000000')
@@ -55,6 +55,8 @@ export const MintCard = () => {
     try {
       setError(null)
 
+      console.log('Form submitted', { isConnected, seed, selectedVideo, isSeedMinted })
+
       if (!isConnected) {
         setError('Please connect your wallet first')
         return
@@ -75,8 +77,11 @@ export const MintCard = () => {
         return
       }
 
+      console.log('All validations passed, calling mint with:', { seed, mintPrice })
       await mint(seed, mintPrice)
+      console.log('Mint called successfully')
     } catch (err) {
+      console.error('Submit error:', err)
       setError(err instanceof Error ? err.message : 'Minting failed')
     }
   }
@@ -162,6 +167,17 @@ export const MintCard = () => {
             {error}
           </div>
         )}
+        {mintError && (
+          <div className="bg-red-900/20 border border-red-500/30 rounded p-4 text-red-200 text-sm">
+            Contract Error: {mintError.message || 'Unknown error'}
+          </div>
+        )}
+        {status && status !== 'idle' && (
+          <div className="bg-blue-900/20 border border-blue-500/30 rounded p-4 text-blue-200 text-sm">
+            Transaction Status: {status}
+            {hash && <div className="mt-2">TX Hash: {hash}</div>}
+          </div>
+        )}
         {success && (
           <div className="bg-green-900/20 border border-green-500/30 rounded p-4 text-green-200 text-sm">
             {success}
@@ -174,7 +190,7 @@ export const MintCard = () => {
           disabled={Boolean(!isConnected || isPending || !seed || !selectedVideo || (seed && isSeedMinted))}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded transition-all duration-200"
         >
-          {isPending ? 'Minting...' : 'Mint NFT'}
+          {isPending ? 'Processing Transaction...' : !isConnected ? 'Connect Wallet to Mint' : !seed ? 'Enter Seed Phrase' : !selectedVideo ? 'Select a Video' : 'Mint NFT'}
         </button>
       </form>
     </div>

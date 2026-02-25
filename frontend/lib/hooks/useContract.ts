@@ -36,16 +36,28 @@ export const useIsSeedMinted = (seed: `0x${string}`) => {
 export const useMintNFT = () => {
   const contract = useNFTContract()
 
-  const { data: hash, isPending, writeContract } = useWriteContract()
+  const { data: hash, isPending, writeContract, error, status } = useWriteContract()
 
   const mint = async (seed: `0x${string}`, price: string | bigint = '1000000000000000') => {
     // price defaults to 0.001 ETH in wei
-    writeContract({
-      ...contract,
-      functionName: 'mint',
-      args: [seed],
-      value: price,
-    } as any)
+    try {
+      console.log('Starting mint transaction:', { seed, price, contract })
+      
+      const tx = {
+        ...contract,
+        functionName: 'mint',
+        args: [seed],
+        value: price,
+      } as any
+
+      console.log('Transaction config:', tx)
+      
+      await writeContract(tx)
+      console.log('Mint transaction sent successfully')
+    } catch (err) {
+      console.error('Mint error:', err)
+      throw err
+    }
   }
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -57,6 +69,8 @@ export const useMintNFT = () => {
     isPending: isPending || isConfirming,
     isSuccess,
     hash,
+    error,
+    status,
   }
 }
 
