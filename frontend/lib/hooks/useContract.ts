@@ -35,13 +35,11 @@ export const useIsSeedMinted = (seed: `0x${string}`) => {
 
 export const useMintNFT = () => {
   const contract = useNFTContract()
-  const price = useMintPrice()
 
   const { data: hash, isPending, writeContract } = useWriteContract()
 
-  const mint = async (seed: `0x${string}`) => {
-    if (!price) throw new Error('Price not loaded')
-
+  const mint = async (seed: `0x${string}`, price: string | bigint = '1000000000000000') => {
+    // price defaults to 0.001 ETH in wei
     writeContract({
       ...contract,
       functionName: 'mint',

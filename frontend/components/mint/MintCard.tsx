@@ -75,7 +75,7 @@ export const MintCard = () => {
         return
       }
 
-      await mint(seed)
+      await mint(seed, mintPrice)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Minting failed')
     }
