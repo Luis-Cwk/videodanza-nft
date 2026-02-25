@@ -9,8 +9,8 @@
     "compile": "cd smart-contracts && npm run compile",
     "deploy": "cd smart-contracts && npm run deploy:sepolia",
     "dev": "cd frontend && npm run dev",
-    "build:frontend": "cd frontend && npm run build",
-    "start:frontend": "cd frontend && npm run start",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm run start",
     "dev:frontend": "cd frontend && npm run dev",
     "type-check:frontend": "cd frontend && npm run type-check"
   },
