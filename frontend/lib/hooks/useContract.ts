@@ -1,6 +1,6 @@
 'use client'
 
-import { useContractRead, useContractWrite, useWaitForTransactionReceipt } from 'wagmi'
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { CONTRACT_ADDRESS, VideoDanzaNFTABI } from '@/lib/contracts'
 
 export const useNFTContract = () => {
@@ -13,10 +13,10 @@ export const useNFTContract = () => {
 export const useMintPrice = () => {
   const contract = useNFTContract()
   
-  const { data: price } = useContractRead({
+  const { data: price } = useReadContract({
     ...contract,
     functionName: 'mintPrice',
-  })
+  } as any)
 
   return price
 }
@@ -24,11 +24,11 @@ export const useMintPrice = () => {
 export const useIsSeedMinted = (seed: `0x${string}`) => {
   const contract = useNFTContract()
   
-  const { data: isMinted } = useContractRead({
+  const { data: isMinted } = useReadContract({
     ...contract,
     functionName: '_seedMinted',
     args: [seed],
-  })
+  } as any)
 
   return isMinted
 }
@@ -37,7 +37,7 @@ export const useMintNFT = () => {
   const contract = useNFTContract()
   const price = useMintPrice()
 
-  const { data: hash, isPending, writeContract } = useContractWrite() as any
+  const { data: hash, isPending, writeContract } = useWriteContract()
 
   const mint = async (seed: `0x${string}`) => {
     if (!price) throw new Error('Price not loaded')
@@ -52,7 +52,7 @@ export const useMintNFT = () => {
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash: hash as any,
-  }) as any
+  })
 
   return {
     mint,
@@ -65,11 +65,11 @@ export const useMintNFT = () => {
 export const useTokenMetadata = (tokenId: bigint) => {
   const contract = useNFTContract()
   
-  const { data: metadata } = useContractRead({
+  const { data: metadata } = useReadContract({
     ...contract,
     functionName: 'tokenURI',
     args: [tokenId],
-  })
+  } as any)
 
   return metadata
 }
