@@ -1,0 +1,31 @@
+{
+  "name": "videodanza-nft",
+  "version": "1.0.0",
+  "description": "VideoDanza Generativa NFT - Smart contract + IPFS + Frontend",
+  "scripts": {
+    "upload:pinata": "node scripts/uploadToPinata.js",
+    "test:gateway": "node scripts/testGateway.js",
+    "test": "cd smart-contracts && npm run test",
+    "compile": "cd smart-contracts && npm run compile",
+    "deploy": "cd smart-contracts && npm run deploy:sepolia",
+    "dev": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "start:frontend": "cd frontend && npm run start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "type-check:frontend": "cd frontend && npm run type-check"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "form-data": "^4.0.0"
+  },
+  "keywords": [
+    "nft",
+    "blockchain",
+    "ethereum",
+    "ipfs",
+    "generative-art",
+    "videodanza"
+  ],
+  "author": "Petra",
+  "license": "MIT"
+}

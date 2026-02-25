@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply antialiased;
+}
+
+html {
+  @apply scroll-smooth;
+}
+
+body {
+  @apply bg-slate-950 text-white;
+}
+
+button {
+  @apply transition-all duration-200;
+}
+
+a {
+  @apply hover:text-purple-400 transition-colors duration-200;
+}

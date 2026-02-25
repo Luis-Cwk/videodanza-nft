@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables (secrets)
+.env.local
+.env.*.local
+
+# Build outputs
+frontend/out/
+frontend/.next/
+smart-contracts/artifacts/
+smart-contracts/cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# Videos (large files)
+videos/
+
+# Temporary files
+temp_abi.json
+*.log

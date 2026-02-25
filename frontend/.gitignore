@@ -1,0 +1,9 @@
+.eslintrc.json
+node_modules/
+.next/
+out/
+dist/
+*.pem
+.env
+.env.local
+.env.*.local

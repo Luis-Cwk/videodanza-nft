@@ -1,0 +1,44 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "contractAddress": "0xA4bFA5843B6134a55310D1346b31BD7Bd29CfFEf",
+  "timestamp": "2026-02-25T05:16:11.767Z",
+  "gateway": "https://gateway.pinata.cloud",
+  "videos": {
+    "20260123_181721-clone_with_audio.mp4": {
+      "cid": "bafybeibisgh7nurllqc6cmu4bnnrbhb4le5qjpend3zkexgo2fcybec73u",
+      "ipfs": "ipfs://bafybeibisgh7nurllqc6cmu4bnnrbhb4le5qjpend3zkexgo2fcybec73u",
+      "gateway": "https://gateway.pinata.cloud/ipfs/bafybeibisgh7nurllqc6cmu4bnnrbhb4le5qjpend3zkexgo2fcybec73u",
+      "fileSize": 451922113,
+      "uploadTime": "2026-02-25T05:14:19.035Z"
+    },
+    "20260123_182751-clone_with_audio.mp4": {
+      "cid": "bafybeid7uy3g2tc5ijaaltbe65l3xolrd7nh7v5skjksggjf3rfgvflo7e",
+      "ipfs": "ipfs://bafybeid7uy3g2tc5ijaaltbe65l3xolrd7nh7v5skjksggjf3rfgvflo7e",
+      "gateway": "https://gateway.pinata.cloud/ipfs/bafybeid7uy3g2tc5ijaaltbe65l3xolrd7nh7v5skjksggjf3rfgvflo7e",
+      "fileSize": 225623632,
+      "uploadTime": "2026-02-25T05:14:45.003Z"
+    },
+    "20260123_182827-ascii_with_audio.mp4": {
+      "cid": "bafybeidcp2i2fnwk7ufdmt7sbwyx7ctvv7mjeqanmy7a2ae6bpktqtppiy",
+      "ipfs": "ipfs://bafybeidcp2i2fnwk7ufdmt7sbwyx7ctvv7mjeqanmy7a2ae6bpktqtppiy",
+      "gateway": "https://gateway.pinata.cloud/ipfs/bafybeidcp2i2fnwk7ufdmt7sbwyx7ctvv7mjeqanmy7a2ae6bpktqtppiy",
+      "fileSize": 514890795,
+      "uploadTime": "2026-02-25T05:15:45.062Z"
+    },
+    "petra9_trails.mp4": {
+      "cid": "bafybeidjptx3eovcmt3lm7dyyqxacpkzyp3lwyk7xptvddtzuphmrxmyoq",
+      "ipfs": "ipfs://bafybeidjptx3eovcmt3lm7dyyqxacpkzyp3lwyk7xptvddtzuphmrxmyoq",
+      "gateway": "https://gateway.pinata.cloud/ipfs/bafybeidjptx3eovcmt3lm7dyyqxacpkzyp3lwyk7xptvddtzuphmrxmyoq",
+      "fileSize": 145083143,
+      "uploadTime": "2026-02-25T05:16:04.203Z"
+    },
+    "video_local_horizontal_20260213_122733_procesado_final_hibrido.mp4": {
+      "cid": "bafybeia6jjveiwwtsxzobo35cwsmv3afdqxkefkgnmwb4pp4jr43ajxate",
+      "ipfs": "ipfs://bafybeia6jjveiwwtsxzobo35cwsmv3afdqxkefkgnmwb4pp4jr43ajxate",
+      "gateway": "https://gateway.pinata.cloud/ipfs/bafybeia6jjveiwwtsxzobo35cwsmv3afdqxkefkgnmwb4pp4jr43ajxate",
+      "fileSize": 27563465,
+      "uploadTime": "2026-02-25T05:16:11.766Z"
+    }
+  }
+}
