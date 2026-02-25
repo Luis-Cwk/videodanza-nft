@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useIPFSLookupTable, getIPFSUrl } from '@/lib/hooks/useIPFS'
+import { useIPFSLookupTable } from '@/lib/hooks/useIPFS'
 
 export const Gallery = () => {
   const { videos, loading, error } = useIPFSLookupTable()
@@ -40,7 +40,7 @@ export const Gallery = () => {
 
       {/* Video Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {videoList.map(([name, cid]) => (
+        {videoList.map(([name, metadata]) => (
           <div
             key={name}
             onClick={() => setSelectedVideo(name)}
@@ -55,7 +55,7 @@ export const Gallery = () => {
               </div>
             </div>
             <div className="p-4">
-              <p className="text-xs text-slate-500 font-mono truncate">CID: {cid.slice(0, 20)}...</p>
+              <p className="text-xs text-slate-500 font-mono truncate">CID: {metadata.cid.slice(0, 20)}...</p>
               <button
                 className="mt-3 w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded text-sm font-medium transition-all duration-200"
                 onClick={(e) => {
@@ -86,7 +86,7 @@ export const Gallery = () => {
 
             <div className="p-6">
               <video
-                src={getIPFSUrl(videos[selectedVideo])}
+                src={videos[selectedVideo].gateway}
                 controls
                 className="w-full rounded-lg bg-black"
                 controlsList="nodownload"
@@ -96,13 +96,13 @@ export const Gallery = () => {
                 <div>
                   <p className="text-sm text-slate-400 mb-2">IPFS CID</p>
                   <p className="font-mono text-sm break-all bg-slate-800 p-3 rounded border border-slate-700">
-                    {videos[selectedVideo]}
+                    {videos[selectedVideo].cid}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-400 mb-2">IPFS Gateway URL</p>
                   <p className="font-mono text-sm break-all bg-slate-800 p-3 rounded border border-slate-700">
-                    {getIPFSUrl(videos[selectedVideo])}
+                    {videos[selectedVideo].gateway}
                   </p>
                 </div>
               </div>

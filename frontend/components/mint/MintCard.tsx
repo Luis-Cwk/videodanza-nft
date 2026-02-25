@@ -77,8 +77,15 @@ export const MintCard = () => {
         return
       }
 
-      console.log('All validations passed, calling mint with:', { seed, mintPrice })
-      await mint(seed, mintPrice)
+      // Get the IPFS gateway URL for the selected video
+      const metadataURI = videos[selectedVideo]?.gateway
+      if (!metadataURI) {
+        setError('Could not find video metadata')
+        return
+      }
+
+      console.log('All validations passed, calling mint with:', { seed, metadataURI, mintPrice })
+      await mint(seed, metadataURI, mintPrice)
       console.log('Mint called successfully')
     } catch (err) {
       console.error('Submit error:', err)

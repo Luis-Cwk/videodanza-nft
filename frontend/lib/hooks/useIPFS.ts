@@ -55,7 +55,7 @@ const loadLookupTable = async (): Promise<IPFSLookupTable> => {
 }
 
 export const useIPFSLookupTable = () => {
-  const [videos, setVideos] = useState<Record<string, string>>({})
+  const [videos, setVideos] = useState<Record<string, VideoMetadata>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,12 +63,7 @@ export const useIPFSLookupTable = () => {
     const fetchLookupTable = async () => {
       try {
         const table = await loadLookupTable()
-        // Convert to simple name -> CID mapping
-        const videoMap: Record<string, string> = {}
-        Object.entries(table.videos).forEach(([name, metadata]) => {
-          videoMap[name] = metadata.cid
-        })
-        setVideos(videoMap)
+        setVideos(table.videos)
       } catch (err) {
         console.error('Failed to load IPFS lookup table:', err)
         setError('Failed to load video mappings')
