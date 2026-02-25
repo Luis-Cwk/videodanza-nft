@@ -27,6 +27,8 @@ export interface GenerativeComposition {
   audioIntensity: number
   hash: string
   layerCount: number
+  videoUrl?: string // IPFS URL of the generated video
+  thumbnailUrl?: string // IPFS URL of the first frame/thumbnail
 }
 
 class SeededRandom {
