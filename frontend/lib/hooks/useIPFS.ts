@@ -1,10 +1,55 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 
 const GATEWAY_URL = 'https://gateway.pinata.cloud/ipfs'
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+
+// Type definitions
+interface VideoMetadata {
+  cid: string
+  ipfs: string
+  gateway: string
+  fileSize: number
+  uploadTime: string
+}
+
+interface IPFSLookupTable {
+  network: string
+  chainId: number
+  contractAddress: string
+  timestamp: string
+  gateway: string
+  videos: Record<string, VideoMetadata>
+}
+
+// Load lookup table from public folder (static data, no API call needed)
+let lookupTableCache: IPFSLookupTable | null = null
+
+const loadLookupTable = async (): Promise<IPFSLookupTable> => {
+  if (lookupTableCache) {
+    return lookupTableCache
+  }
+
+  try {
+    const response = await fetch('/ipfs_lookup_table.json')
+    if (!response.ok) {
+      throw new Error('Failed to load IPFS lookup table')
+    }
+    lookupTableCache = await response.json()
+    return lookupTableCache
+  } catch (err) {
+    console.error('Error loading IPFS lookup table:', err)
+    // Return empty table as fallback
+    return {
+      network: 'sepolia',
+      chainId: 11155111,
+      contractAddress: '0xA4bFA5843B6134a55310D1346b31BD7Bd29CfFEf',
+      timestamp: new Date().toISOString(),
+      gateway: GATEWAY_URL,
+      videos: {}
+    }
+  }
+}
 
 export const useIPFSLookupTable = () => {
   const [videos, setVideos] = useState<Record<string, string>>({})
@@ -14,10 +59,15 @@ export const useIPFSLookupTable = () => {
   useEffect(() => {
     const fetchLookupTable = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/ipfs/lookup-table`)
-        setVideos(response.data)
+        const table = await loadLookupTable()
+        // Convert to simple name -> CID mapping
+        const videoMap: Record<string, string> = {}
+        Object.entries(table.videos).forEach(([name, metadata]) => {
+          videoMap[name] = metadata.cid
+        })
+        setVideos(videoMap)
       } catch (err) {
-        console.error('Failed to fetch IPFS lookup table:', err)
+        console.error('Failed to load IPFS lookup table:', err)
         setError('Failed to load video mappings')
       } finally {
         setLoading(false)
@@ -44,11 +94,15 @@ export const useIPFSVideo = (videoName: string) => {
 
     const fetchVideoInfo = async () => {
       try {
-        const cidResponse = await axios.get(`${API_BASE}/ipfs/cid/${videoName}`)
-        const fetchedCID = cidResponse.data.cid
+        const table = await loadLookupTable()
+        const videoMetadata = table.videos[videoName]
 
-        setCID(fetchedCID)
-        setUrl(`${GATEWAY_URL}/${fetchedCID}`)
+        if (!videoMetadata) {
+          throw new Error(`Video not found: ${videoName}`)
+        }
+
+        setCID(videoMetadata.cid)
+        setUrl(videoMetadata.gateway)
       } catch (err) {
         console.error('Failed to fetch IPFS video info:', err)
         setError('Failed to load video')
