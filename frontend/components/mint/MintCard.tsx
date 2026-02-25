@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { useForm } from 'react-hook-form'
-import { useMintNFT, useMintPrice, useIsSeedMinted } from '@/lib/hooks/useContract'
+import { useMintNFT } from '@/lib/hooks/useContract'
 import { useIPFSLookupTable } from '@/lib/hooks/useIPFS'
 import { ethers } from 'ethers'
 
@@ -21,10 +21,13 @@ export const MintCard = () => {
 
   const { videos, loading: videosLoading } = useIPFSLookupTable()
   const { mint, isPending, isSuccess, hash } = useMintNFT()
-  const mintPrice = useMintPrice()
+  // Temporarily disable contract reads to fix page rendering
+  // const mintPrice = useMintPrice()
+  // const isSeedMinted = useIsSeedMinted(seed || '0x0000000000000000000000000000000000000000000000000000000000000000')
+  
   const seedPhrase = watch('seedPhrase')
-  // Only check if seed is minted when we have a valid seed
-  const isSeedMinted = useIsSeedMinted(seed || '0x0000000000000000000000000000000000000000000000000000000000000000')
+  const mintPrice = '1000000000000000' // 0.001 ETH in wei
+  const isSeedMinted = false
 
   // Generate seed from phrase
   useEffect(() => {
