@@ -41,8 +41,7 @@ export const useMintNFT = () => {
   const mint = async (seed: `0x${string}`, metadataURI: string, price: string | bigint = '1000000000000000') => {
     // price defaults to 0.001 ETH in wei
     try {
-      console.log('🚀 Starting mint transaction:', { seed, metadataURI, price })
-      console.log('📝 metadataURI length:', metadataURI?.length || 'undefined')
+      console.log('Calling mint with:', { seed, metadataURI, price })
       
       const tx = {
         ...contract,
@@ -51,14 +50,12 @@ export const useMintNFT = () => {
         value: price,
       } as any
 
-      console.log('🔧 Transaction config:', tx)
-      console.log('📊 Args array:', tx.args)
-      console.log('📊 Args length:', tx.args?.length)
+      console.log('Transaction will send args:', tx.args)
       
       await writeContract(tx)
-      console.log('✅ Mint transaction sent successfully')
+      console.log('Transaction sent to mempool')
     } catch (err) {
-      console.error('❌ Mint error:', err)
+      console.error('Mint error:', err)
       throw err
     }
   }

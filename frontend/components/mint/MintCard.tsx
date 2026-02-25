@@ -77,25 +77,17 @@ export const MintCard = () => {
         return
       }
 
-      // Get the IPFS gateway URL for the selected video
-      console.log('🔍 Selected video:', selectedVideo)
-      console.log('🔍 Videos data:', JSON.stringify(videos, null, 2))
-      console.log('🔍 Video metadata:', videos[selectedVideo])
-      
+      // Get the IPFS metadata URI for the selected video
       const videoData = videos[selectedVideo]
       if (!videoData) {
-        console.error('❌ No video data found for:', selectedVideo)
-        setError('Could not find video metadata')
+        setError('No se encontró la metadata del video')
         return
       }
       
-      const metadataURI = typeof videoData === 'string' ? videoData : videoData.gateway
-      console.log('🔍 metadataURI type:', typeof videoData)
-      console.log('🔍 metadataURI value:', metadataURI)
-      
+      // Use the IPFS URI (ipfs://Qm...) for the contract
+      const metadataURI = videoData.ipfs
       if (!metadataURI) {
-        console.error('❌ No gateway URL found')
-        setError('Could not find gateway URL')
+        setError('No se encontró la URI IPFS del video')
         return
       }
 
