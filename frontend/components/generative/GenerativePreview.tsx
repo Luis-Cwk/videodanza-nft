@@ -114,24 +114,24 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
 
       {/* Composition details */}
       {composition && (
-        <div style={{ marginTop: '2vh', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5vw' }}>
+        <div style={{ marginTop: '2vh', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1vw' }}>
           {composition.elements.map((element, idx) => (
             <div
               key={idx}
               style={{
-                padding: '1.5vh 1.5vw',
+                padding: '1.2vh 1vw',
                 border: '1px solid #e8e8e8',
                 background: '#f5f5f5',
-                fontSize: '0.8rem',
+                fontSize: '0.7rem',
                 fontFamily: "'Space Grotesk', sans-serif",
               }}
             >
-              <div style={{ fontWeight: 600, marginBottom: '0.5vh' }}>Capa {idx + 1}</div>
-              <div style={{ color: '#666', fontSize: '0.75rem' }}>
-                {element.videoName.slice(0, 20)}...
+              <div style={{ fontWeight: 600, marginBottom: '0.3vh', fontSize: '0.65rem' }}>L{idx + 1}</div>
+              <div style={{ color: '#666', fontSize: '0.65rem', marginBottom: '0.3vh' }}>
+                {element.videoName.slice(0, 15)}...
               </div>
-              <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.5vh' }}>
-                {element.duration.toFixed(1)}s • {Math.round(element.scale * 100)}% • {element.blendMode}
+              <div style={{ color: '#999', fontSize: '0.6rem' }}>
+                {element.duration.toFixed(1)}s • {Math.round(element.scale * 100)}%
               </div>
             </div>
           ))}
