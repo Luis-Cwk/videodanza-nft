@@ -5,7 +5,7 @@ import { sepolia } from 'viem/chains'
 
 export const config = getDefaultConfig({
   appName: 'VideoDanza NFT',
-  projectId: 'VIDEODANZA_PROJECT', // Update with your actual WalletConnect project ID
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '964c0e86963ff1c5976e9a82cec565b0',
   chains: [sepolia],
   ssr: true,
 })
