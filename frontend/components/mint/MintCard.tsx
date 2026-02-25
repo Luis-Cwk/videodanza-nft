@@ -78,9 +78,19 @@ export const MintCard = () => {
       }
 
       // Get the IPFS gateway URL for the selected video
-      const metadataURI = videos[selectedVideo]?.gateway
-      if (!metadataURI) {
+      console.log('Selected video:', selectedVideo)
+      console.log('Videos data:', videos)
+      console.log('Video metadata:', videos[selectedVideo])
+      
+      const videoData = videos[selectedVideo]
+      if (!videoData) {
         setError('Could not find video metadata')
+        return
+      }
+      
+      const metadataURI = videoData.gateway
+      if (!metadataURI) {
+        setError('Could not find gateway URL')
         return
       }
 
