@@ -78,23 +78,28 @@ export const MintCard = () => {
       }
 
       // Get the IPFS gateway URL for the selected video
-      console.log('Selected video:', selectedVideo)
-      console.log('Videos data:', videos)
-      console.log('Video metadata:', videos[selectedVideo])
+      console.log('🔍 Selected video:', selectedVideo)
+      console.log('🔍 Videos data:', JSON.stringify(videos, null, 2))
+      console.log('🔍 Video metadata:', videos[selectedVideo])
       
       const videoData = videos[selectedVideo]
       if (!videoData) {
+        console.error('❌ No video data found for:', selectedVideo)
         setError('Could not find video metadata')
         return
       }
       
-      const metadataURI = videoData.gateway
+      const metadataURI = typeof videoData === 'string' ? videoData : videoData.gateway
+      console.log('🔍 metadataURI type:', typeof videoData)
+      console.log('🔍 metadataURI value:', metadataURI)
+      
       if (!metadataURI) {
+        console.error('❌ No gateway URL found')
         setError('Could not find gateway URL')
         return
       }
 
-      console.log('All validations passed, calling mint with:', { seed, metadataURI, mintPrice })
+      console.log('✅ All validations passed, calling mint with:', { seed, metadataURI, mintPrice })
       await mint(seed, metadataURI, mintPrice)
       console.log('Mint called successfully')
     } catch (err) {
