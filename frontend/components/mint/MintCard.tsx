@@ -23,7 +23,8 @@ export const MintCard = () => {
   const { mint, isPending, isSuccess, hash } = useMintNFT()
   const mintPrice = useMintPrice()
   const seedPhrase = watch('seedPhrase')
-  const isSeedMinted = useIsSeedMinted(seed || '0x')
+  // Only check if seed is minted when we have a valid seed
+  const isSeedMinted = useIsSeedMinted(seed || '0x0000000000000000000000000000000000000000000000000000000000000000')
 
   // Generate seed from phrase
   useEffect(() => {
