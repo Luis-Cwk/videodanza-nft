@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { ethers } from 'ethers'
+import { useState, useEffect } from 'react'
 import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
 
 interface MintedNFT {
@@ -50,25 +49,6 @@ export const Gallery = () => {
     setSelectedComposition(composition)
   }
 
-  const exampleSeeds = useMemo(() => {
-    return [
-      'flowing in silence',
-      'digital gardens',
-      'echo chambers',
-      'crystalline dreams',
-    ]
-  }, [])
-
-  const exampleCompositions = useMemo(() => {
-    return exampleSeeds.map((phrase) => {
-      const hashedSeed = ethers.keccak256(ethers.toUtf8Bytes(phrase))
-      return {
-        phrase,
-        seed: hashedSeed as `0x${string}`,
-      }
-    })
-  }, [exampleSeeds])
-
   return (
     <main>
       {/* HEADER */}
@@ -110,27 +90,6 @@ export const Gallery = () => {
         </section>
       )}
 
-      {/* EXAMPLE SEEDS */}
-      <section style={{ marginBottom: '12vh', borderTop: '1px solid #000', paddingTop: '6vh' }}>
-        <h2 style={{ marginBottom: '4vh' }}>Ejemplos de Composición</h2>
-        <p style={{ marginBottom: '4vh', color: '#666' }}>
-          Estas son semillas de ejemplo para que veas qué tipo de composiciones puede generar el algoritmo.
-        </p>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '2vw'
-        }}>
-          {exampleCompositions.map((composition, idx) => (
-            <GenerativeCard
-              key={idx}
-              composition={composition}
-              onSelect={() => handleSelectComposition(composition)}
-            />
-          ))}
-        </div>
-      </section>
-
       {/* DETAIL MODAL */}
       {selectedComposition && (
         <div style={{
@@ -147,29 +106,59 @@ export const Gallery = () => {
           padding: '2vw'
         }}>
           <div style={{
-            background: '#fff',
             border: '1px solid #000',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
+            maxWidth: '900px',
+            width: '95vw',
+            maxHeight: '95vh',
             overflow: 'auto',
-            position: 'relative'
+            position: 'relative',
           }}>
-            <button
-              onClick={() => setSelectedComposition(null)}
-              style={{
-                position: 'sticky',
-                top: 0,
-                right: 0,
-                background: '#fff',
-                border: 'none',
-                fontSize: '2rem',
-                cursor: 'pointer',
-                padding: '1rem',
-                zIndex: 101
-              }}
-            >
-              ✕
-            </button>
+            {/* Header with back and close buttons */}
+            <div style={{
+              position: 'sticky',
+              top: 0,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1.5rem 2rem',
+              borderBottom: '1px solid #e8e8e8',
+              background: '#fff',
+              zIndex: 102
+            }}>
+              <button
+                onClick={() => setSelectedComposition(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#666',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                }}
+              >
+                ← Volver a la Galería
+              </button>
+              <button
+                onClick={() => setSelectedComposition(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  color: '#000',
+                  lineHeight: 1,
+                }}
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
 
             <CompositionDetail composition={selectedComposition} />
           </div>
@@ -193,7 +182,7 @@ const MintedCard = ({ nft, onSelect }: MintedCardProps) => {
       style={{
         border: '1px solid #000',
         cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         overflow: 'hidden',
         background: generativeComposition
           ? `linear-gradient(135deg, hsla(${generativeComposition.colorShift}, 70%, 50%, ${generativeComposition.backgroundIntensity * 0.3}), hsla(${generativeComposition.colorShift + 60}, 60%, 45%, ${generativeComposition.backgroundIntensity * 0.2}))`
@@ -202,10 +191,12 @@ const MintedCard = ({ nft, onSelect }: MintedCardProps) => {
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLElement
         el.style.transform = 'translateY(-4px)'
+        el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLElement
         el.style.transform = 'translateY(0)'
+        el.style.boxShadow = 'none'
       }}
     >
       <div
@@ -213,22 +204,54 @@ const MintedCard = ({ nft, onSelect }: MintedCardProps) => {
           aspectRatio: '1',
           position: 'relative',
           overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          background: generativeComposition
+            ? `linear-gradient(135deg, hsla(${generativeComposition.colorShift}, 70%, 50%, ${generativeComposition.backgroundIntensity * 0.3}), hsla(${generativeComposition.colorShift + 60}, 60%, 45%, ${generativeComposition.backgroundIntensity * 0.2}))`
+            : '#000',
         }}
       >
-        {generativeComposition && (
-          <div style={{ textAlign: 'center', color: '#fff', zIndex: 10 }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>#{nft.tokenId}</div>
-            <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {generativeComposition.theme}
-            </div>
-            <div style={{ fontSize: '0.9rem', marginTop: '1vh' }}>
-              {generativeComposition.elements.length} capas
-            </div>
+        {/* Videos en vivo */}
+        {generativeComposition && generativeComposition.elements.slice(0, 4).map((element, idx) => {
+          const gatewayUrl = element.ipfsUri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
+          return (
+            <video
+              key={idx}
+              src={gatewayUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={{
+                position: 'absolute',
+                left: `${element.positionX}%`,
+                top: `${element.positionY}%`,
+                width: `${30 * element.scale}%`,
+                aspectRatio: '1',
+                objectFit: 'cover',
+                transform: `rotate(${element.rotation}deg)`,
+                opacity: element.opacity * 0.8,
+                mixBlendMode: element.blendMode as any,
+                zIndex: element.zIndex,
+              }}
+            />
+          )
+        })}
+        
+        {/* Overlay con info */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+          padding: '1rem',
+          color: '#fff',
+          zIndex: 20,
+        }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>#{nft.tokenId}</div>
+          <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            {generativeComposition?.theme} • {generativeComposition?.elements.length} capas
           </div>
-        )}
+        </div>
       </div>
 
       <div style={{ padding: '2vh 2vw', background: '#fff' }}>
@@ -242,86 +265,6 @@ const MintedCard = ({ nft, onSelect }: MintedCardProps) => {
           }}
         >
           VideoDanza #{nft.tokenId}
-        </h3>
-        <p
-          style={{
-            fontSize: '0.8rem',
-            fontFamily: "'Space Grotesk', sans-serif",
-            color: '#666',
-            fontWeight: 300,
-          }}
-        >
-          {generativeComposition ? `${generativeComposition.totalDuration.toFixed(1)}s` : 'Cargando...'}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-interface GenerativeCardProps {
-  composition: { phrase: string; seed: `0x${string}` }
-  onSelect: () => void
-}
-
-const GenerativeCard = ({ composition, onSelect }: GenerativeCardProps) => {
-  const generativeComposition = useGenerativeComposition(composition.seed)
-
-  return (
-    <div
-      onClick={onSelect}
-      style={{
-        border: '1px solid #e8e8e8',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-        overflow: 'hidden',
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement
-        el.style.borderColor = '#000'
-        el.style.transform = 'translateY(-4px)'
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement
-        el.style.borderColor = '#e8e8e8'
-        el.style.transform = 'translateY(0)'
-      }}
-    >
-      <div
-        style={{
-          aspectRatio: '1',
-          background: generativeComposition
-            ? `linear-gradient(135deg, hsla(${generativeComposition.colorShift}, 70%, 50%, ${generativeComposition.backgroundIntensity * 0.3}), hsla(${generativeComposition.colorShift + 60}, 60%, 45%, ${generativeComposition.backgroundIntensity * 0.2}))`
-            : '#f5f5f5',
-          position: 'relative',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {generativeComposition && (
-          <div style={{ textAlign: 'center', color: '#fff' }}>
-            <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {generativeComposition.theme}
-            </div>
-            <div style={{ fontSize: '1.2rem', marginTop: '1vh' }}>
-              {generativeComposition.elements.length} capas
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div style={{ padding: '2vh 2vw' }}>
-        <h3
-          style={{
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            marginBottom: '0.8vh',
-            lineHeight: 1.2,
-          }}
-        >
-          {composition.phrase}
         </h3>
         <p
           style={{
