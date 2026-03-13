@@ -8,7 +8,7 @@ import { useAccount } from 'wagmi'
 const CONTRACT_ADDRESS = '0xA4bFA5843B6134a55310D1346b31BD7Bd29CfFEf'
 
 const CONTRACT_ABI = [
-  'function _tokenIdCounter() view returns (uint256)',
+  'function totalSupply() view returns (uint256)',
   'function tokenIdToSeed(uint256) view returns (bytes32)'
 ]
 
@@ -36,7 +36,7 @@ export const Gallery = () => {
       const provider = new ethers.BrowserProvider((window as any).ethereum)
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
       
-      const total = await contract._tokenIdCounter()
+      const total = await contract.totalSupply()
       const totalNum = Number(total)
       
       if (totalNum === 0) {
