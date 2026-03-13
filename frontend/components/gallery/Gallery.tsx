@@ -1,8 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ethers } from 'ethers'
 import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
+import { useAccount } from 'wagmi'
+
+const CONTRACT_ADDRESS = '0xA4bFA5843B6134a55310D1346b31BD7Bd29CfFEf'
+
+const CONTRACT_ABI = [
+  'function _tokenIdCounter() view returns (uint256)',
+  'function tokenIdToSeed(uint256) view returns (bytes32)'
+]
 
 interface MintedNFT {
   tokenId: number
@@ -12,41 +20,61 @@ interface MintedNFT {
 }
 
 export const Gallery = () => {
+  const { address, isConnected } = useAccount()
   const [mintedNFTs, setMintedNFTs] = useState<MintedNFT[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedComposition, setSelectedComposition] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  // Hardcoded: 11 NFTs based on Etherscan (Max Total Supply: 11 VDANZA)
-  const KNOWN_TOTAL = 11
+  const fetchNFTs = useCallback(async () => {
+    if (!address) return
+    
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const provider = new ethers.BrowserProvider((window as any).ethereum)
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
+      
+      const total = await contract._tokenIdCounter()
+      const totalNum = Number(total)
+      
+      if (totalNum === 0) {
+        setMintedNFTs([])
+        setLoading(false)
+        return
+      }
+
+      const nfts: MintedNFT[] = []
+      for (let i = 0; i < totalNum; i++) {
+        try {
+          const seed = await contract.tokenIdToSeed(i)
+          nfts.push({
+            tokenId: i,
+            seed: seed,
+          })
+        } catch (e) {
+          console.log(`Error fetching token ${i}:`, e)
+        }
+      }
+
+      setMintedNFTs(nfts)
+    } catch (e) {
+      console.error('Error fetching NFTs:', e)
+      setError('Error al conectar con el contrato. Asegúrate de estar conectado a Sepolia.')
+    } finally {
+      setLoading(false)
+    }
+  }, [address])
 
   useEffect(() => {
-    // Generate deterministic seeds from phrases
-    const phrases = [
-      'videodanza-alpha',
-      'motion-seed-001',
-      'choreography-x',
-      'digital-movement',
-      'ethereal-flow',
-      'kinetic-pulse',
-      'art-block-7',
-      'creative-chain',
-      'nft-genesis',
-      'unique-dance',
-      'initial-mint',
-    ]
-
-    const nfts: MintedNFT[] = []
-    for (let i = 0; i < KNOWN_TOTAL; i++) {
-      const hashedSeed = ethers.keccak256(ethers.toUtf8Bytes(phrases[i]))
-      nfts.push({
-        tokenId: i,
-        seed: hashedSeed,
-        seedPhrase: phrases[i],
-      })
+    if (isConnected && address) {
+      fetchNFTs()
+    } else {
+      setMintedNFTs([])
+      setLoading(false)
     }
-    setMintedNFTs(nfts)
-    setLoading(false)
-  }, [])
+  }, [isConnected, address, fetchNFTs])
 
   const handleSelectComposition = (composition: any) => {
     setSelectedComposition(composition)
@@ -58,22 +86,26 @@ export const Gallery = () => {
       <section style={{ marginBottom: '8vh', borderTop: '1px solid #000', paddingTop: '6vh' }}>
         <h1 style={{ marginBottom: '3vh' }}>GALERÍA</h1>
         
-        {loading ? (
+        {!isConnected ? (
+          <p className="intro">
+            Conecta tu wallet para ver tus VideoDanzas minteadas.
+          </p>
+        ) : loading ? (
           <p className="intro">Cargando tus VideoDanzas desde la blockchain...</p>
+        ) : error ? (
+          <p className="intro" style={{ color: '#d00' }}>{error}</p>
         ) : mintedNFTs.length > 0 ? (
           <p className="intro">
             Tienes <strong>{mintedNFTs.length}</strong> VideoDanzas minteadas en Sepolia.
-            Cada una es única, determinística y permanente.
           </p>
         ) : (
           <p className="intro">
-            No tienes VideoDanzas minteadas aún. 
-            Ve a "Crear NFT" para acuñar tu primera composición.
+            No tienes VideoDanzas minteadas aún. Ve a "Crear NFT" para acuñar tu primera.
           </p>
         )}
       </section>
 
-      {/* MINTED NFTS */}
+      {/* NFTS GRID */}
       {!loading && mintedNFTs.length > 0 && (
         <section style={{ marginBottom: '12vh' }}>
           <h2 style={{ marginBottom: '4vh' }}>Tus VideoDanzas</h2>
