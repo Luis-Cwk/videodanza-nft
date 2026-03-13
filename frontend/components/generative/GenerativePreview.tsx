@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useRef } from 'react'
 import { GenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
 
 interface GenerativePreviewProps {
@@ -9,22 +9,46 @@ interface GenerativePreviewProps {
 }
 
 export const GenerativePreview = ({ composition, isLoading = false }: GenerativePreviewProps) => {
-  const previewStyle = useMemo(() => {
-    if (!composition) return {}
+  const containerRef = useRef<HTMLDivElement>(null)
 
-    const hueRotate = composition.colorShift
-    const filters = [
-      `hue-rotate(${hueRotate}deg)`,
-      `contrast(${0.8 + composition.audioIntensity * 0.3})`,
-      `brightness(${0.9 + composition.backgroundIntensity * 0.2})`,
-    ]
+  useEffect(() => {
+    if (!composition || !containerRef.current) return
 
-    return {
-      background: `linear-gradient(135deg, hsla(${hueRotate}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${hueRotate + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
-      filter: filters.join(' '),
-      aspectRatio: '16 / 9',
-    }
+    const videos = containerRef.current.querySelectorAll('video')
+    videos.forEach((video) => {
+      video.play().catch(() => {})
+    })
   }, [composition])
+
+  const getVideoUrl = (ipfsUri: string) => {
+    return ipfsUri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
+  }
+
+  if (!composition || isLoading) {
+    return (
+      <div style={{ marginTop: '4vh', marginBottom: '4vh' }}>
+        <div style={{ marginBottom: '1.5vh' }}>
+          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666' }}>
+            Preview generativo
+          </div>
+        </div>
+        <div
+          style={{
+            border: '1px solid #e8e8e8',
+            aspectRatio: '16 / 9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#999',
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '0.95rem',
+          }}
+        >
+          {isLoading ? 'Generando composición...' : 'Ingresa una semilla para ver preview'}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ marginTop: '4vh', marginBottom: '4vh' }}>
@@ -35,87 +59,68 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
       </div>
 
       <div
+        ref={containerRef}
         style={{
           border: '1px solid #e8e8e8',
-          overflow: 'hidden',
+          aspectRatio: '16 / 9',
           position: 'relative',
-          ...previewStyle,
+          overflow: 'hidden',
+          background: `linear-gradient(135deg, hsla(${composition.colorShift}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${composition.colorShift + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
         }}
       >
-        {!composition || isLoading ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: '#999',
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: '0.95rem',
-            }}
-          >
-            {isLoading ? 'Generando composición...' : 'Ingresa una semilla para ver preview'}
-          </div>
-        ) : (
-          <>
-            {/* Visual representation of composition */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                overflow: 'hidden',
-              }}
-            >
-              {composition.elements.map((element, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    position: 'absolute',
-                    left: `${element.positionX}%`,
-                    top: `${element.positionY}%`,
-                    width: `${20 * element.scale}%`,
-                    aspectRatio: '1',
-                    background: `hsla(${(idx * 120 + composition.colorShift) % 360}, 60%, 50%, ${element.opacity})`,
-                    transform: `rotate(${element.rotation}deg) scale(${element.scale})`,
-                    borderRadius: '4px',
-                    mixBlendMode: (element.blendMode as any) || 'normal',
-                    opacity: element.opacity,
-                    animation: `float-${idx % 2} 3s ease-in-out infinite`,
-                  }}
-                />
-              ))}
-            </div>
+        {composition.elements.map((element, idx) => {
+          const gatewayUrl = getVideoUrl(element.ipfsUri)
 
-            {/* Composition info overlay */}
-            <div
+          return (
+            <video
+              key={idx}
+              src={gatewayUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
               style={{
                 position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'linear-gradient(transparent, rgba(0,0,0,0.4))',
-                padding: '2vh 2vw',
-                color: '#fff',
+                left: `${element.positionX}%`,
+                top: `${element.positionY}%`,
+                width: `${20 * element.scale}%`,
+                aspectRatio: '1',
+                objectFit: 'cover',
+                transform: `rotate(${element.rotation}deg)`,
+                opacity: element.opacity,
+                mixBlendMode: element.blendMode as any,
+                zIndex: element.zIndex,
+                pointerEvents: 'none',
               }}
-            >
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5vh' }}>
-                {composition.theme}
-              </div>
-              <div style={{ fontSize: '0.8rem', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 300 }}>
-                {composition.elements.length} capas • {composition.totalDuration.toFixed(1)}s • Hash: {composition.hash}
-              </div>
-            </div>
-          </>
-        )}
+            />
+          )
+        })}
+
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
+            padding: '2vh 2vw',
+            color: '#fff',
+            zIndex: 100,
+          }}
+        >
+          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5vh' }}>
+            {composition.theme}
+          </div>
+          <div style={{ fontSize: '0.8rem', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 300 }}>
+            {composition.elements.length} capas • {composition.totalDuration.toFixed(1)}s • {composition.hash}
+          </div>
+        </div>
       </div>
 
-      {/* Composition details */}
-      {composition && (
+      {composition.elements.length > 0 && (
         <div style={{ marginTop: '2vh', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1vw' }}>
-          {composition.elements.map((element, idx) => (
+          {composition.elements.slice(0, 6).map((element, idx) => (
             <div
               key={idx}
               style={{
@@ -126,28 +131,17 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
                 fontFamily: "'Space Grotesk', sans-serif",
               }}
             >
-              <div style={{ fontWeight: 600, marginBottom: '0.3vh', fontSize: '0.65rem' }}>L{idx + 1}</div>
-              <div style={{ color: '#666', fontSize: '0.65rem', marginBottom: '0.3vh' }}>
-                {element.videoName.slice(0, 15)}...
+              <div style={{ fontWeight: 600, marginBottom: '0.3vh', fontSize: '0.65rem' }}>Capa {idx + 1}</div>
+              <div style={{ color: '#666', fontSize: '0.65rem', marginBottom: '0.3vh', wordBreak: 'break-word' }}>
+                {element.videoName.slice(0, 15)}
               </div>
               <div style={{ color: '#999', fontSize: '0.6rem' }}>
-                {element.duration.toFixed(1)}s • {Math.round(element.scale * 100)}%
+                {element.blendMode} • {Math.round(element.opacity * 100)}%
               </div>
             </div>
           ))}
         </div>
       )}
-
-      <style>{`
-        @keyframes float-0 {
-          0%, 100% { transform: translateY(0px) rotate(var(--rotation)); }
-          50% { transform: translateY(-10px) rotate(var(--rotation)); }
-        }
-        @keyframes float-1 {
-          0%, 100% { transform: translateY(-10px) rotate(var(--rotation)); }
-          50% { transform: translateY(0px) rotate(var(--rotation)); }
-        }
-      `}</style>
     </div>
   )
 }

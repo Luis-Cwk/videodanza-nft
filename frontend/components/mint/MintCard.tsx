@@ -5,9 +5,7 @@ import { useAccount } from 'wagmi'
 import { useForm } from 'react-hook-form'
 import { useMintNFT } from '@/lib/hooks/useContract'
 import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
-import { useMetadataUpload } from '@/lib/hooks/useMetadataUpload'
 import { GenerativePreview } from '@/components/generative/GenerativePreview'
-import { PinataCredentialsModal } from './PinataCredentialsModal'
 import { ethers } from 'ethers'
 
 interface MintFormData {
@@ -20,11 +18,9 @@ export const MintCard = () => {
   const [seed, setSeed] = useState<`0x${string}` | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [isUploadingMetadata, setIsUploadingMetadata] = useState(false)
-  const [showPinataModal, setShowPinataModal] = useState(false)
+  const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false)
 
   const { mint, isPending, isSuccess, hash, error: mintError, status } = useMintNFT()
-  const { generateMetadata, uploadMetadataJSON } = useMetadataUpload()
   const composition = useGenerativeComposition(seed)
 
   const seedPhrase = watch('seedPhrase')
@@ -53,87 +49,67 @@ export const MintCard = () => {
     }
   }, [isSuccess, hash])
 
-  const proceedWithMint = async (pinataApiKey: string, pinataSecretKey: string) => {
-    try {
-      setIsUploadingMetadata(true)
-      setShowPinataModal(false)
-
-      if (!composition || !seed) {
-        setError('Error: composición o semilla no disponible')
-        setIsUploadingMetadata(false)
-        return
-      }
-
-      // Generate metadata JSON
-      const metadata = generateMetadata(composition, seedPhrase)
-
-      // Upload metadata to IPFS
-      const metadataUrl = await uploadMetadataJSON(metadata, pinataApiKey, pinataSecretKey)
-
-      if (!metadataUrl) {
-        setError('Error al subir metadata a IPFS')
-        setIsUploadingMetadata(false)
-        return
-      }
-
-      console.log('Metadata uploaded to IPFS:', metadataUrl)
-      console.log('Calling mint with metadata URI:', { seed, metadataUrl, mintPrice })
-
-      // Call mint with metadata URI (not video URL directly)
-      await mint(seed, metadataUrl, mintPrice)
-    } catch (err) {
-      console.error('Mint error:', err)
-      setError(err instanceof Error ? err.message : 'Error al acuñar')
-    } finally {
-      setIsUploadingMetadata(false)
-    }
-  }
-
   const onSubmit = async (_data: MintFormData) => {
     try {
       setError(null)
+      setIsGeneratingMetadata(true)
 
       if (!isConnected) {
         setError('Conecta tu wallet para continuar')
+        setIsGeneratingMetadata(false)
         return
       }
 
       if (!seed) {
         setError('Ingresa una semilla válida')
+        setIsGeneratingMetadata(false)
         return
       }
 
       if (!composition) {
         setError('Generando composición...')
+        setIsGeneratingMetadata(false)
         return
       }
 
       if (isSeedMinted) {
         setError('Esta semilla ya ha sido acuñada')
+        setIsGeneratingMetadata(false)
         return
       }
 
-      // Check for stored credentials
-      let pinataApiKey = localStorage.getItem('pinata_api_key')
-      let pinataSecretKey = localStorage.getItem('pinata_secret_key')
+      // Llamar al endpoint serverless para generar metadata
+      console.log('Generating metadata on backend...', { seed, seedPhrase, composition })
+      const response = await fetch('/api/generate-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seed,
+          seedPhrase,
+          composition,
+        }),
+      })
 
-      if (pinataApiKey && pinataSecretKey) {
-        // Use stored credentials
-        await proceedWithMint(pinataApiKey, pinataSecretKey)
-      } else {
-        // Show modal to ask for credentials
-        setShowPinataModal(true)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate metadata')
       }
+
+      const { metadataUrl } = await response.json()
+
+      console.log('Metadata generated:', metadataUrl)
+      console.log('Calling mint with metadata URI:', { seed, metadataUrl, mintPrice })
+
+      // Call mint with metadata URI from backend
+      await mint(seed, metadataUrl, mintPrice)
     } catch (err) {
       console.error('Submit error:', err)
       setError(err instanceof Error ? err.message : 'Error al acuñar')
+    } finally {
+      setIsGeneratingMetadata(false)
     }
-  }
-
-  const handlePinataSubmit = async (apiKey: string, secretKey: string) => {
-    localStorage.setItem('pinata_api_key', apiKey)
-    localStorage.setItem('pinata_secret_key', secretKey)
-    await proceedWithMint(apiKey, secretKey)
   }
 
   const formattedPrice = mintPrice ? (Number(mintPrice) / 1e18).toFixed(3) : '0.001'
@@ -141,12 +117,6 @@ export const MintCard = () => {
 
   return (
     <div style={{ marginBottom: '8vh' }}>
-      <PinataCredentialsModal
-        isOpen={showPinataModal}
-        onSubmit={handlePinataSubmit}
-        onCancel={() => setShowPinataModal(false)}
-      />
-
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* STATUS BANNER */}
         <div
@@ -270,7 +240,17 @@ export const MintCard = () => {
           <div>
             {/* SEED INPUT */}
             <div style={{ marginBottom: '3vh' }}>
-              <label style={{ display: 'block', marginBottom: '1vh', fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#666' }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '1vh',
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  color: '#666',
+                }}
+              >
                 Tu semilla única
               </label>
               <input
@@ -291,7 +271,8 @@ export const MintCard = () => {
             {/* INFO SECTION */}
             <div style={{ borderTop: '1px solid #e8e8e8', paddingTop: '2vh' }}>
               <p style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6', marginBottom: '2vh' }}>
-                <strong>Cómo funciona:</strong> Tu semilla es hasheada criptográficamente. El mismo seed siempre produce la misma composición de videodanza, garantizando que tu NFT sea único e irreproducible.
+                <strong>Cómo funciona:</strong> Tu semilla es hasheada criptográficamente. El mismo seed siempre produce
+                la misma composición de videodanza, garantizando que tu NFT sea único e irreproducible.
               </p>
 
               {seed && (
@@ -357,7 +338,7 @@ export const MintCard = () => {
 
           <button
             type="submit"
-            disabled={Boolean(!isConnected || isPending || isUploadingMetadata || !seed || !composition || (seed && isSeedMinted))}
+            disabled={Boolean(!isConnected || isPending || isGeneratingMetadata || !seed || !composition || (seed && isSeedMinted))}
             className="btn-minimal"
             style={{
               width: '100%',
@@ -366,8 +347,8 @@ export const MintCard = () => {
               marginTop: '2vh',
             }}
           >
-            {isUploadingMetadata
-              ? '⏳ Subiendo metadata...'
+            {isGeneratingMetadata
+              ? '⏳ Generando metadata...'
               : isPending
                 ? '⏳ Acuñando...'
                 : !isConnected
