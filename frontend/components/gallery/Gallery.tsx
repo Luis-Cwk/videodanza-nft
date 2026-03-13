@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ethers } from 'ethers'
 import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
 
 interface MintedNFT {
@@ -19,26 +20,28 @@ export const Gallery = () => {
   const KNOWN_TOTAL = 11
 
   useEffect(() => {
-    // Generar seeds determinísticos para los NFTs conocidos
-    const seeds = [
-      '0x1a2b3c4d5e6f7890123456789abcdef0123456789abcdef0123456789abcd',
-      '0x2b3c4d5e6f7890123456789abcdef0123456789abcdef0123456789abcd',
-      '0x3c4d5e6f7890123456789abcdef0123456789abcdef0123456789abcd',
-      '0x4d5e6f7890123456789abcdef0123456789abcdef0123456789abcd',
-      '0x5e6f7890123456789abcdef0123456789abcdef0123456789abcdef0',
-      '0x6f7890123456789abcdef0123456789abcdef0123456789abcdef01',
-      '0x7890123456789abcdef0123456789abcdef0123456789abcdef012',
-      '0x890123456789abcdef0123456789abcdef0123456789abcdef0123',
-      '0x90123456789abcdef0123456789abcdef0123456789abcdef01234',
-      '0x0123456789abcdef0123456789abcdef0123456789abcdef012345',
-      '0x123456789abcdef0123456789abcdef0123456789abcdef0123456',
+    // Generate deterministic seeds from phrases
+    const phrases = [
+      'videodanza-alpha',
+      'motion-seed-001',
+      'choreography-x',
+      'digital-movement',
+      'ethereal-flow',
+      'kinetic-pulse',
+      'art-block-7',
+      'creative-chain',
+      'nft-genesis',
+      'unique-dance',
+      'initial-mint',
     ]
 
     const nfts: MintedNFT[] = []
     for (let i = 0; i < KNOWN_TOTAL; i++) {
+      const hashedSeed = ethers.keccak256(ethers.toUtf8Bytes(phrases[i]))
       nfts.push({
         tokenId: i,
-        seed: seeds[i] as `0x${string}`,
+        seed: hashedSeed,
+        seedPhrase: phrases[i],
       })
     }
     setMintedNFTs(nfts)
