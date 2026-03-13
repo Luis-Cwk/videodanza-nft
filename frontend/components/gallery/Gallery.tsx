@@ -98,22 +98,24 @@ export const Gallery = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0,0,0,0.85)',
+          background: '#000',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
-          padding: '2vw'
+          padding: '1rem',
+          overflow: 'auto',
         }}>
           <div style={{
+            background: '#fff',
             border: '1px solid #000',
-            maxWidth: '900px',
-            width: '95vw',
-            maxHeight: '95vh',
+            maxWidth: '1000px',
+            width: '100%',
+            maxHeight: '100vh',
             overflow: 'auto',
             position: 'relative',
           }}>
-            {/* Header with back and close buttons */}
+            {/* Header with close button - always visible */}
             <div style={{
               position: 'sticky',
               top: 0,
@@ -122,7 +124,7 @@ export const Gallery = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '1.5rem 2rem',
+              padding: '1rem 1.5rem',
               borderBottom: '1px solid #e8e8e8',
               background: '#fff',
               zIndex: 102
@@ -130,29 +132,31 @@ export const Gallery = () => {
               <button
                 onClick={() => setSelectedComposition(null)}
                 style={{
-                  background: 'transparent',
+                  background: '#000',
+                  color: '#fff',
                   border: 'none',
-                  fontSize: '1rem',
+                  fontSize: '0.9rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  color: '#666',
+                  padding: '0.6rem 1rem',
                   fontFamily: "'Space Grotesk', sans-serif",
                 }}
               >
-                ← Volver a la Galería
+                ← Volver
               </button>
               <button
                 onClick={() => setSelectedComposition(null)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  fontSize: '1.5rem',
+                  background: '#fff',
+                  border: '2px solid #000',
+                  fontSize: '1.2rem',
                   cursor: 'pointer',
-                  padding: '0.5rem',
+                  padding: '0.5rem 1rem',
                   color: '#000',
                   lineHeight: 1,
+                  fontWeight: 'bold',
                 }}
                 aria-label="Cerrar"
               >
