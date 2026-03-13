@@ -43,9 +43,13 @@ export const MintCard = () => {
 
   // Handle successful mint
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && hash) {
       setSuccess(`✓ VideoDanza acuñada exitosamente! TX: ${hash}`)
-      setTimeout(() => setSuccess(null), 5000)
+      // Redirect to Etherscan after 2 seconds
+      const timer = setTimeout(() => {
+        window.location.href = `https://sepolia.etherscan.io/tx/${hash}`
+      }, 2000)
+      return () => clearTimeout(timer)
     }
   }, [isSuccess, hash])
 
