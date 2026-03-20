@@ -20,10 +20,6 @@ interface GenerativeComposition {
   elements: CompositionElement[]
 }
 
-type ResponseData =
-  | { success: true; metadataUrl: string; cid: string; metadata: unknown }
-  | { error: string }
-
 export async function POST(req: Request): Promise<Response> {
   try {
     const body = (await req.json()) as {
