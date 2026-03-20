@@ -1,8 +1,9 @@
 /**
  * Vercel Serverless Function: Generate Metadata JSON
  * 
- * Este endpoint genera metadata JSON para cada composición generativa
- * y la sube automáticamente a IPFS usando las credenciales del backend
+ * Este endpoint genera metadata JSON completa para cada composición generativa
+ * con TODOS los datos necesarios para reproducir la pieza exactamente igual.
+ * Se sube automáticamente a IPFS y retorna el CID.
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -10,16 +11,31 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 const PINATA_API_URL = 'https://api.pinata.cloud/pinning/pinFileToIPFS'
 
 interface CompositionElement {
+  videoKey: string
   videoName: string
-  [key: string]: unknown
+  ipfsUri: string
+  startTime: number
+  duration: number
+  scale: number
+  opacity: number
+  rotation: number
+  positionX: number
+  positionY: number
+  blendMode: string
+  effectId: number
+  zIndex: number
 }
 
 interface GenerativeComposition {
-  theme: string
-  layerCount: number
-  backgroundIntensity: number
-  audioIntensity: number
+  seed: string
   elements: CompositionElement[]
+  totalDuration: number
+  backgroundIntensity: number
+  theme: string
+  colorShift: number
+  audioIntensity: number
+  hash: string
+  layerCount: number
 }
 
 type ResponseData =
@@ -30,7 +46,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  // Solo POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -46,44 +61,47 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing seed or composition data' })
     }
 
-    // Generar metadata JSON
     const metadata = {
       name: `VideoDanza #${Math.floor(Math.random() * 100000)}`,
       description: 'Pieza generativa única de videodanza. Composición determinística creada a partir de una semilla única.',
-      image: 'ipfs://QmajZaDfCnZzGGqZEJKdEaKDYVQd1qXnbMz8x4NHUcmBb', // Thumbnail placeholder
-      animation_url: `ipfs://${seed}`, // Los parámetros de la composición
+      image: 'ipfs://QmajZaDfCnZzGGqZEJKdEaKDYVQd1qXnbMz8x4NHUcmBb',
+      animation_url: `ipfs://${seed}`,
+      seed: seed,
+      seedPhrase: seedPhrase || '',
+      theme: composition.theme,
+      layerCount: composition.layerCount,
+      totalDuration: composition.totalDuration,
+      backgroundIntensity: composition.backgroundIntensity,
+      colorShift: composition.colorShift,
+      audioIntensity: composition.audioIntensity,
+      elements: composition.elements.map((el: CompositionElement) => ({
+        videoKey: el.videoKey,
+        videoName: el.videoName,
+        ipfsUri: el.ipfsUri,
+        startTime: el.startTime,
+        duration: el.duration,
+        scale: el.scale,
+        opacity: el.opacity,
+        rotation: el.rotation,
+        positionX: el.positionX,
+        positionY: el.positionY,
+        blendMode: el.blendMode,
+        effectId: el.effectId,
+        zIndex: el.zIndex,
+      })),
       attributes: [
-        {
-          trait_type: 'Seed',
-          value: seedPhrase || seed,
-        },
-        {
-          trait_type: 'Theme',
-          value: composition.theme,
-        },
-        {
-          trait_type: 'Layer Count',
-          value: composition.layerCount.toString(),
-        },
-        {
-          trait_type: 'Videos Base',
-          value: composition.elements
-            .slice(0, 3)
-            .map((el: CompositionElement) => el.videoName)
-            .join(', '),
-        },
-        {
-          trait_type: 'Background Intensity',
-          value: composition.backgroundIntensity.toFixed(2),
-        },
-        {
-          trait_type: 'Audio Intensity',
-          value: composition.audioIntensity.toFixed(2),
-        },
+        { trait_type: 'Seed', value: seedPhrase || seed },
+        { trait_type: 'Theme', value: composition.theme },
+        { trait_type: 'Layer Count', value: composition.layerCount.toString() },
+        { trait_type: 'Duration', value: composition.totalDuration.toFixed(1) + 's' },
+        { trait_type: 'Background Intensity', value: composition.backgroundIntensity.toFixed(2) },
+        { trait_type: 'Audio Intensity', value: composition.audioIntensity.toFixed(2) },
+        { trait_type: 'Color Shift', value: Math.round(composition.colorShift).toString() },
       ],
+      _version: '2.0',
+      _generatedAt: new Date().toISOString(),
     }
 
-    // Subir metadata a IPFS
     const jsonBlob = Buffer.from(JSON.stringify(metadata, null, 2))
     const formData = new FormData()
     formData.append(
@@ -99,7 +117,6 @@ export default async function handler(
       return res.status(500).json({ error: 'Pinata credentials not configured' })
     }
 
-    // Hacer request a Pinata
     const response = await fetch(PINATA_API_URL, {
       method: 'POST',
       headers: {

@@ -26,3 +26,5 @@ videos/
 # Temporary files
 temp_abi.json
 *.log
+
+.vercel

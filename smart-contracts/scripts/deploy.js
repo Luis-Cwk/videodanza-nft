@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 async function main() {
-  console.log("🚀 Iniciando deployment de VideoDanzaNFT a Base Sepolia...\n");
+  console.log("🚀 Iniciando deployment de VideoDanzaNFT a Ethereum Sepolia...\n");
 
   // Obtener el network actual
   const network = await hre.ethers.provider.getNetwork();
@@ -18,7 +18,7 @@ async function main() {
   // Validar que tenemos suficiente ETH
   if (balance === 0n) {
     throw new Error(
-      "❌ Sin ETH en la wallet. Obtén ETH de testnet faucet: https://www.basescan.io/faucet"
+      "❌ Sin ETH en la wallet. Obtén ETH de testnet faucet: https://sepolia.etherscan.io/faucet"
     );
   }
 
@@ -75,16 +75,16 @@ async function main() {
   // Información de explorador
   console.log("🔗 Enlaces útiles:");
   console.log(
-    `  - Explorador: https://sepolia.basescan.org/address/${contractAddress}`
+    `  - Explorador: https://sepolia.etherscan.io/address/${contractAddress}`
   );
   console.log(
-    `  - RPC: https://sepolia.base.org/`
+    `  - RPC: https://ethereum-sepolia.publicnode.com/`
   );
 
   // Guardar dirección en archivo
   const fs = require("fs");
   const path = require("path");
-  const networkName = network.name === "baseSepolia" ? "base-sepolia" : "sepolia";
+  const networkName = "sepolia";
   const deploymentFile = path.join(
     __dirname,
     `../deployments/${networkName}.json`

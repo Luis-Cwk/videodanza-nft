@@ -44,7 +44,7 @@ const loadLookupTable = async (): Promise<IPFSLookupTable> => {
     const fallback: IPFSLookupTable = {
       network: 'sepolia',
       chainId: 11155111,
-      contractAddress: '0xA4bFA5843B6134a55310D1346b31BD7Bd29CfFEf',
+      contractAddress: '0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763',
       timestamp: new Date().toISOString(),
       gateway: GATEWAY_URL,
       videos: {}
