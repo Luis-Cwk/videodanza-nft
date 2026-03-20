@@ -4,81 +4,80 @@
 
 const PINATA_API_URL = 'https://api.pinata.cloud/pinning/pinJSONToIPFS'
 
-interface CompositionElement {
-  videoName: string
-  [key: string]: unknown
-}
-
-interface GenerativeComposition {
-  theme: string
-  layerCount: number
-  backgroundIntensity: number
-  audioIntensity: number
-  elements: CompositionElement[]
-}
-
 export async function POST(req: Request): Promise<Response> {
   try {
-    const body = (await req.json()) as {
-      seed: string
-      seedPhrase?: string
-      composition: GenerativeComposition
-    }
-
+    const body = await req.json()
     const { seed, seedPhrase, composition } = body
 
     if (!seed || !composition) {
-      return Response.json({ error: 'Missing seed or composition data' }, { status: 400 })
+      return Response.json({ error: 'Missing seed or composition data', received: { seed: !!seed, composition: !!composition } }, { status: 400 })
     }
 
     const pinataApiKey = process.env.PINATA_API_KEY
     const pinataSecret = process.env.PINATA_API_SECRET
 
+    // Debug info (remove in production)
+    const debugInfo = {
+      hasApiKey: !!pinataApiKey,
+      hasSecret: !!pinataSecret,
+      apiKeyLength: pinataApiKey?.length || 0,
+      secretLength: pinataSecret?.length || 0,
+      envKeys: Object.keys(process.env).filter(k => k.includes('PINATA')),
+    }
+
     if (!pinataApiKey || !pinataSecret) {
-      return Response.json({ error: 'Pinata credentials not configured' }, { status: 500 })
+      return Response.json({ 
+        error: 'Pinata credentials not configured', 
+        debug: debugInfo 
+      }, { status: 500 })
     }
 
     const metadata = {
       name: `VideoDanza #${Math.floor(Math.random() * 100000)}`,
-      description: 'Pieza generativa única de videodanza. Composición determinística creada a partir de una semilla única.',
+      description: 'Pieza generativa única de videodanza.',
       image: 'ipfs://QmajZaDfCnZzGGqZEJKdEaKDYVQd1qXnbMz8x4NHUcmBb',
       animation_url: `ipfs://${seed}`,
       attributes: [
         { trait_type: 'Seed', value: seedPhrase || seed },
         { trait_type: 'Theme', value: composition.theme },
-        { trait_type: 'Layer Count', value: composition.layerCount.toString() },
-        { trait_type: 'Videos Base', value: composition.elements.slice(0, 3).map((el: CompositionElement) => el.videoName).join(', ') },
-        { trait_type: 'Background Intensity', value: composition.backgroundIntensity.toFixed(2) },
-        { trait_type: 'Audio Intensity', value: composition.audioIntensity.toFixed(2) },
+        { trait_type: 'Layer Count', value: String(composition.layerCount) },
       ],
     }
 
-    const response = await fetch(PINATA_API_URL, {
+    const pinataResponse = await fetch(PINATA_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        pinata_api_key: pinataApiKey,
-        pinata_secret_api_key: pinataSecret,
+        'pinata_api_key': pinataApiKey,
+        'pinata_secret_api_key': pinataSecret,
       },
       body: JSON.stringify({ pinataContent: metadata }),
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      return Response.json({ error: `Pinata error: ${response.status} - ${errorText}` }, { status: 500 })
+    if (!pinataResponse.ok) {
+      const errorText = await pinataResponse.text()
+      return Response.json({ 
+        error: `Pinata error: ${pinataResponse.status}`,
+        pinataResponse: errorText,
+        debug: debugInfo
+      }, { status: 500 })
     }
 
-    const data = (await response.json()) as { IpfsHash: string }
-    const metadataUrl = `ipfs://${data.IpfsHash}`
+    const data = await pinataResponse.json()
 
     return Response.json({
       success: true,
-      metadataUrl,
+      metadataUrl: `ipfs://${data.IpfsHash}`,
       cid: data.IpfsHash,
       metadata,
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return Response.json({ error: errorMessage }, { status: 500 })
+    const errorStack = error instanceof Error ? error.stack : undefined
+    return Response.json({ 
+      error: errorMessage, 
+      stack: errorStack,
+      type: error?.constructor?.name 
+    }, { status: 500 })
   }
 }
