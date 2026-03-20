@@ -288,7 +288,57 @@ export const Gallery = () => {
     loadAllMetadata()
   }, [nfts])
 
-  const validNfts = (nfts || []).filter((nft: NFTData) => nft.metadata !== null && nft.metadata?.elements !== undefined && Array.isArray(nft.metadata?.elements))
+  // Show all NFTs, not just those with valid metadata
+  const allNfts = nfts || []
+
+  // Simple fallback preview for NFTs without metadata
+  const SimplePreview = ({ tokenId, metadataUri, onClick }: { tokenId: number; metadataUri: string; onClick?: () => void }) => {
+    const colors = [
+      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+      'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+    ]
+    const gradient = colors[tokenId % colors.length]
+    
+    return (
+      <div
+        onClick={onClick}
+        style={{
+          border: '1px solid #000',
+          cursor: onClick ? 'pointer' : 'default',
+          overflow: 'hidden',
+          aspectRatio: '16/9',
+          background: gradient,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+        }}>
+          <span style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>#{tokenId + 1}</span>
+          <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>VideoDanza</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main>
@@ -308,10 +358,10 @@ export const Gallery = () => {
               Sepolia Testnet: Chain ID 11155111
             </small>
           </p>
-        ) : validNfts.length > 0 ? (
+        ) : allNfts.length > 0 ? (
           <>
             <p className="intro">
-              Tienes <strong>{validNfts.length}</strong> VideoDanzas minteadas en Sepolia.
+              Tienes <strong>{allNfts.length}</strong> VideoDanzas minteadas en Sepolia.
               {loadingMetadata && ' Cargando composiciones...'}
             </p>
 
@@ -322,12 +372,20 @@ export const Gallery = () => {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                 gap: '2vw'
               }}>
-                {validNfts.map(({ tokenId, metadata, metadataUri }) => (
+                {allNfts.map(({ tokenId, metadata, metadataUri }) => (
                   <div key={tokenId}>
-                    <CompositionPreview
-                      composition={metadata!}
-                      onClick={() => setSelectedNFT({ tokenId, metadata: metadata!, metadataUri })}
-                    />
+                    {metadata ? (
+                      <CompositionPreview
+                        composition={metadata}
+                        onClick={() => setSelectedNFT({ tokenId, metadata, metadataUri })}
+                      />
+                    ) : (
+                      <SimplePreview
+                        tokenId={tokenId}
+                        metadataUri={metadataUri}
+                        onClick={() => setSelectedNFT({ tokenId, metadata: null, metadataUri })}
+                      />
+                    )}
                     <div style={{ padding: '2vh 2vw', background: '#fff', border: '1px solid #000', borderTop: 'none' }}>
                       <h3
                         style={{
@@ -348,7 +406,7 @@ export const Gallery = () => {
                           fontWeight: 300,
                         }}
                       >
-                        {metadata!.theme} • {metadata!.elements.length} capas
+                        {metadata ? `${metadata.theme} • ${metadata.elements.length} capas` : 'Cargando metadata...'}
                       </p>
                     </div>
                   </div>
