@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { useGenerativeComposition, GenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
+import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
 
 const CONTRACT_ADDRESS = '0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763'
 
