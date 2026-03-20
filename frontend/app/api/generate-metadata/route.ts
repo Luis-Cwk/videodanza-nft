@@ -5,8 +5,6 @@
  * y la sube automáticamente a IPFS usando las credenciales del backend
  */
 
-import type { NextApiRequest, NextApiResponse } from 'next'
-
 const PINATA_API_URL = 'https://api.pinata.cloud/pinning/pinFileToIPFS'
 
 interface CompositionElement {
