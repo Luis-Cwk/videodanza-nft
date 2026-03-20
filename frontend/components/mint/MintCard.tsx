@@ -84,7 +84,7 @@ export const MintCard = () => {
 
       // Llamar al endpoint serverless para generar metadata
       console.log('Generating metadata on backend...', { seed, seedPhrase, composition })
-      const response = await fetch('/api/generate-metadata', {
+      const response = await fetch('/api/mint-metadata', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
