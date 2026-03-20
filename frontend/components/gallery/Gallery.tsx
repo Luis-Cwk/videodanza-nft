@@ -503,7 +503,7 @@ export const Gallery = () => {
                     <strong>Theme:</strong> {selectedNFT.metadata.theme}
                   </div>
                   <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-                    <strong>Capas:</strong> {selectedNFT.metadata.elements.length}
+                    <strong>Capas:</strong> {selectedNFT.metadata.elements?.length || 0}
                   </div>
                   <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
                     <strong>Duración:</strong> {selectedNFT.metadata.totalDuration}s
@@ -517,7 +517,7 @@ export const Gallery = () => {
               <div style={{ marginBottom: '2rem' }}>
                 <h4 style={{ marginBottom: '0.5rem' }}>Videos utilizados:</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {selectedNFT.metadata.elements.map((el, idx) => (
+                  {selectedNFT.metadata.elements && Array.isArray(selectedNFT.metadata.elements) ? selectedNFT.metadata.elements.map((el, idx) => (
                     <span
                       key={idx}
                       style={{
@@ -530,7 +530,7 @@ export const Gallery = () => {
                     >
                       {el.videoName}
                     </span>
-                  ))}
+                  )) : <span style={{ color: '#999', fontSize: '0.75rem' }}>No hay videos disponibles</span>}
                 </div>
               </div>
 
