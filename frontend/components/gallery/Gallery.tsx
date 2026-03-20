@@ -406,7 +406,7 @@ export const Gallery = () => {
                           fontWeight: 300,
                         }}
                       >
-                        {metadata ? `${metadata.theme} • ${metadata.elements.length} capas` : 'Cargando metadata...'}
+                        {metadata && metadata.elements ? `${metadata.theme} • ${metadata.elements.length} capas` : 'Cargando metadata...'}
                       </p>
                     </div>
                   </div>
