@@ -1,40 +1,35 @@
-/**
- * Vercel Serverless Function: Generate Metadata JSON
- */
-
-const PINATA_API_URL = 'https://api.pinata.cloud/pinning/pinJSONToIPFS'
-
-export async function POST(req: Request): Promise<Response> {
+export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { seed, seedPhrase, composition } = body
 
     if (!seed || !composition) {
-      return Response.json({ error: 'Missing seed or composition data', received: { seed: !!seed, composition: !!composition } }, { status: 400 })
+      return new Response(JSON.stringify({ error: 'Missing data' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     const pinataApiKey = process.env.PINATA_API_KEY
     const pinataSecret = process.env.PINATA_API_SECRET
 
-    // Debug info (remove in production)
-    const debugInfo = {
-      hasApiKey: !!pinataApiKey,
-      hasSecret: !!pinataSecret,
-      apiKeyLength: pinataApiKey?.length || 0,
-      secretLength: pinataSecret?.length || 0,
-      envKeys: Object.keys(process.env).filter(k => k.includes('PINATA')),
-    }
-
     if (!pinataApiKey || !pinataSecret) {
-      return Response.json({ 
-        error: 'Pinata credentials not configured', 
-        debug: debugInfo 
-      }, { status: 500 })
+      return new Response(JSON.stringify({ 
+        error: 'Pinata not configured',
+        debug: {
+          hasKey: !!pinataApiKey,
+          hasSecret: !!pinataSecret,
+          envVars: Object.keys(process.env).filter(k => k.includes('PINATA'))
+        }
+      }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     const metadata = {
       name: `VideoDanza #${Math.floor(Math.random() * 100000)}`,
-      description: 'Pieza generativa única de videodanza.',
+      description: 'Pieza generativa de videodanza.',
       image: 'ipfs://QmajZaDfCnZzGGqZEJKdEaKDYVQd1qXnbMz8x4NHUcmBb',
       animation_url: `ipfs://${seed}`,
       attributes: [
@@ -44,7 +39,7 @@ export async function POST(req: Request): Promise<Response> {
       ],
     }
 
-    const pinataResponse = await fetch(PINATA_API_URL, {
+    const pinataResponse = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,28 +51,33 @@ export async function POST(req: Request): Promise<Response> {
 
     if (!pinataResponse.ok) {
       const errorText = await pinataResponse.text()
-      return Response.json({ 
-        error: `Pinata error: ${pinataResponse.status}`,
-        pinataResponse: errorText,
-        debug: debugInfo
-      }, { status: 500 })
+      return new Response(JSON.stringify({ 
+        error: `Pinata failed: ${pinataResponse.status}`,
+        details: errorText
+      }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     const data = await pinataResponse.json()
 
-    return Response.json({
+    return new Response(JSON.stringify({
       success: true,
       metadataUrl: `ipfs://${data.IpfsHash}`,
       cid: data.IpfsHash,
       metadata,
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
     })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : undefined
-    return Response.json({ 
-      error: errorMessage, 
-      stack: errorStack,
-      type: error?.constructor?.name 
-    }, { status: 500 })
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      type: error?.constructor?.name
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 }
