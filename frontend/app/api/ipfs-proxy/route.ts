@@ -16,20 +16,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing uri parameter' }, { status: 400 })
   }
 
-  const cid = uri.replace('ipfs://', '')
+  // Extract CID from ipfs:// URI or use raw CID
+  let cid = uri.replace('ipfs://', '')
+  
+  // Validate CID format (basic check)
+  if (!cid || cid.length < 10) {
+    return NextResponse.json({ error: 'Invalid CID' }, { status: 400 })
+  }
 
+  // Try each gateway with timeout
   for (const gateway of IPFS_GATEWAYS) {
     try {
       const url = `${gateway}/${cid}`
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      
       const response = await fetch(url, {
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json, */*',
         },
         redirect: 'follow',
+        signal: controller.signal,
       })
+      
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
-        console.warn(`Gateway ${gateway} failed: ${response.status}`)
         continue
       }
 
@@ -37,22 +49,44 @@ export async function GET(request: NextRequest) {
       
       if (contentType.includes('application/json')) {
         const data = await response.json()
-        return NextResponse.json(data)
+        return NextResponse.json(data, {
+          headers: {
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+          },
+        })
       } else {
         const text = await response.text()
         try {
           const data = JSON.parse(text)
-          return NextResponse.json(data)
+          return NextResponse.json(data, {
+            headers: {
+              'Cache-Control': 'public, max-age=3600',
+              'Access-Control-Allow-Origin': '*',
+            },
+          })
         } catch {
-          console.warn(`Gateway ${gateway} returned non-JSON`)
           continue
         }
       }
     } catch (err) {
-      console.warn(`Gateway ${gateway} error:`, err)
       continue
     }
   }
 
-  return NextResponse.json({ error: 'Failed to fetch from all gateways. The content may have been garbage collected from IPFS.' }, { status: 500 })
+  // Return fallback metadata instead of error
+  // This prevents the page from breaking when IPFS content is not available
+  return NextResponse.json({
+    name: 'VideoDanza',
+    description: 'Contenido temporalmente no disponible',
+    image: null,
+    animation_url: null,
+    attributes: [],
+    _fallback: true,
+  }, {
+    headers: {
+      'Cache-Control': 'public, max-age=300',
+      'Access-Control-Allow-Origin': '*',
+    },
+  })
 }

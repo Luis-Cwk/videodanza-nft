@@ -16,22 +16,35 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Missing uri parameter', { status: 400 })
   }
 
-  const cid = uri.replace('ipfs://', '')
+  // Extract CID from ipfs:// URI or use raw CID
+  let cid = uri.replace('ipfs://', '')
+  
+  // Validate CID format
+  if (!cid || cid.length < 10) {
+    return new NextResponse('Invalid CID', { status: 400 })
+  }
 
+  // Try each gateway with timeout
   for (const gateway of IPFS_GATEWAYS) {
     try {
       const url = `${gateway}/${cid}`
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout for videos
+      
       const response = await fetch(url, {
         redirect: 'follow',
+        signal: controller.signal,
       })
+      
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
-        console.warn(`Gateway ${gateway} failed: ${response.status}`)
         continue
       }
 
       const contentType = response.headers.get('Content-Type') || 'video/mp4'
 
+      // Stream the response
       return new NextResponse(response.body, {
         status: 200,
         headers: {
@@ -41,10 +54,10 @@ export async function GET(request: NextRequest) {
         },
       })
     } catch (err) {
-      console.warn(`Gateway ${gateway} error:`, err)
       continue
     }
   }
 
-  return new NextResponse('Failed to fetch from all gateways', { status: 500 })
+  // Return 404 instead of 500 when video not found
+  return new NextResponse('Video not available', { status: 404 })
 }
