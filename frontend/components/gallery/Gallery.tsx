@@ -292,7 +292,7 @@ export const Gallery = () => {
   const allNfts = nfts || []
 
   // Simple fallback preview for NFTs without metadata
-  const SimplePreview = ({ tokenId, metadataUri, onClick }: { tokenId: number; metadataUri: string; onClick?: () => void }) => {
+  const SimplePreview = ({ tokenId, onClick }: { tokenId: number; metadataUri?: string; onClick?: () => void }) => {
     const colors = [
       'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
