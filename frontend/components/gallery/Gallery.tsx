@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
+import { useGenerativeComposition, GenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
 
 const CONTRACT_ADDRESS = '0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763'
 
@@ -10,116 +11,62 @@ const SEPOLIA_RPC_FALLBACK = 'https://sepolia.drpc.org'
 
 const CONTRACT_ABI = [
   'function totalSupply() view returns (uint256)',
+  'function tokenIdToSeed(uint256) view returns (bytes32)',
   'function tokenURI(uint256) view returns (string)'
 ]
 
-const IPFS_GATEWAYS = [
-  'https://gateway.pinata.cloud/ipfs',
-  'https://nftstorage.link/ipfs',
-  'https://ipfs.io/ipfs',
-  'https://dweb.link/ipfs',
-]
-
-const getIPFSUrl = (uri: string, gatewayIndex: number = 0): string => {
-  const gateway = IPFS_GATEWAYS[gatewayIndex % IPFS_GATEWAYS.length]
-  return uri.replace('ipfs://', `${gateway}/`)
-}
-
 const getVideoUrl = (ipfsUri: string): string => {
-  // Handle direct gateway URLs by extracting CID
   if (ipfsUri.includes('gateway.pinata.cloud/ipfs/')) {
     const cid = ipfsUri.split('/ipfs/')[1]
     return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
   }
-  // Handle ipfs:// URIs
   return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
 }
 
-interface StoredComposition {
-  name: string
-  description: string
-  seed: string
-  seedPhrase: string
-  theme: string
-  layerCount: number
-  totalDuration: number
-  backgroundIntensity: number
-  colorShift: number
-  audioIntensity: number
-  elements: StoredElement[]
-}
-
-interface StoredElement {
-  videoKey: string
-  videoName: string
-  ipfsUri: string
-  startTime: number
-  duration: number
-  scale: number
-  opacity: number
-  rotation: number
-  positionX: number
-  positionY: number
-  blendMode: string
-  effectId: number
-  zIndex: number
-}
-
-interface NFTData {
+interface NFTCardProps {
   tokenId: number
-  metadata: StoredComposition | null
-  metadataUri: string
+  seed: string
+  onClick: () => void
 }
 
-const CompositionPreview = ({ 
-  composition, 
-  onClick,
-  size = 'normal'
-}: { 
-  composition: StoredComposition; 
-  onClick?: () => void;
-  size?: 'normal' | 'large'
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!composition || !containerRef.current) return
-    const videos = containerRef.current.querySelectorAll('video')
-    videos.forEach((video) => {
-      video.play().catch(() => {})
-    })
-  }, [composition])
-
-  const aspectRatio = size === 'large' ? '16/9' : '16/9'
+const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
+  const composition = useGenerativeComposition(seed as `0x${string}`)
+  
+  if (!composition) {
+    return (
+      <div style={{
+        border: '1px solid #000',
+        aspectRatio: '16/9',
+        background: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#999' }}>Cargando...</span>
+      </div>
+    )
+  }
 
   return (
-    <div
-      onClick={onClick}
-      style={{
+    <div onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div style={{
         border: '1px solid #000',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         overflow: 'hidden',
-        aspectRatio,
+        aspectRatio: '16/9',
         background: `linear-gradient(135deg, hsla(${composition.colorShift}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${composition.colorShift + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
+        position: 'relative',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
       }}
       onMouseEnter={(e) => {
-        if (onClick) {
-          const el = e.currentTarget as HTMLElement
-          el.style.transform = 'translateY(-4px)'
-          el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'
-        }
+        e.currentTarget.style.transform = 'translateY(-4px)'
+        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'
       }}
       onMouseLeave={(e) => {
-        if (onClick) {
-          const el = e.currentTarget as HTMLElement
-          el.style.transform = 'translateY(0)'
-          el.style.boxShadow = 'none'
-        }
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = 'none'
       }}
-    >
-      <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {composition.elements && Array.isArray(composition.elements) && composition.elements.map((element, idx) => (
+      >
+        {composition.elements.map((element, idx) => (
           <video
             key={idx}
             src={getVideoUrl(element.ipfsUri)}
@@ -144,32 +91,166 @@ const CompositionPreview = ({
           />
         ))}
       </div>
+      <div style={{ padding: '2vh 2vw', background: '#fff', border: '1px solid #000', borderTop: 'none' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.8vh', lineHeight: 1.2 }}>
+          VideoDanza #{tokenId + 1}
+        </h3>
+        <p style={{ fontSize: '0.8rem', fontFamily: "'Space Grotesk', sans-serif", color: '#666', fontWeight: 300 }}>
+          {composition.theme} • {composition.elements.length} capas
+        </p>
+      </div>
+    </div>
+  )
+}
+
+const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; onClose: () => void }) => {
+  const composition = useGenerativeComposition(seed as `0x${string}`)
+  
+  if (!composition) return null
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.9)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 100,
+      padding: '1rem',
+    }}>
+      <div style={{
+        background: '#fff',
+        border: '1px solid #000',
+        maxWidth: '1000px',
+        width: '95vw',
+        maxHeight: '95vh',
+        overflow: 'auto',
+        position: 'relative',
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '1rem 1.5rem',
+          borderBottom: '1px solid #e8e8e8',
+          background: '#f8f9fa',
+        }}>
+          <button onClick={onClose} style={{
+            background: 'transparent',
+            border: '1px solid #000',
+            color: '#000',
+            fontSize: '1rem',
+            cursor: 'pointer',
+          }}>
+            ← Volver a la Galería
+          </button>
+          <button onClick={onClose} style={{
+            background: '#fff',
+            border: '2px solid #000',
+            fontSize: '1.2rem',
+            cursor: 'pointer',
+            padding: '0.5rem 1rem',
+            color: '#000',
+            fontWeight: 'bold',
+          }}>
+            ✕
+          </button>
+        </div>
+
+        <div style={{ padding: '2rem' }}>
+          <h2 style={{ marginBottom: '1.5rem', textTransform: 'capitalize' }}>
+            VideoDanza #{tokenId + 1} - {composition.theme}
+          </h2>
+
+          <div style={{
+            border: '1px solid #000',
+            overflow: 'hidden',
+            aspectRatio: '16/9',
+            background: `linear-gradient(135deg, hsla(${composition.colorShift}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${composition.colorShift + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
+            position: 'relative',
+            marginBottom: '2rem',
+          }}>
+            {composition.elements.map((element, idx) => (
+              <video
+                key={idx}
+                src={getVideoUrl(element.ipfsUri)}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                style={{
+                  position: 'absolute',
+                  left: `${element.positionX}%`,
+                  top: `${element.positionY}%`,
+                  width: `${20 * element.scale}%`,
+                  aspectRatio: '1',
+                  objectFit: 'cover',
+                  transform: `rotate(${element.rotation}deg)`,
+                  opacity: element.opacity,
+                  mixBlendMode: element.blendMode as any,
+                  zIndex: element.zIndex,
+                }}
+              />
+            ))}
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>Detalles de la Composición</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
+                <strong>Tema:</strong> {composition.theme}
+              </div>
+              <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
+                <strong>Capas:</strong> {composition.elements.length}
+              </div>
+              <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
+                <strong>Duración:</strong> {composition.totalDuration.toFixed(1)}s
+              </div>
+              <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
+                <strong>Intensidad Audio:</strong> {(composition.audioIntensity * 100).toFixed(0)}%
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h4 style={{ marginBottom: '0.5rem' }}>Videos utilizados:</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {composition.elements.map((el, idx) => (
+                <span key={idx} style={{
+                  padding: '0.3rem 0.8rem',
+                  background: '#e8e8e8',
+                  borderRadius: '4px',
+                  fontSize: '0.75rem',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                }}>
+                  {el.videoName}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h4 style={{ marginBottom: '0.5rem' }}>Seed:</h4>
+            <code style={{ fontSize: '0.75rem', wordBreak: 'break-all', display: 'block', padding: '1rem', background: '#f5f5f5' }}>
+              {seed}
+            </code>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
 
 export const Gallery = () => {
-  const [nfts, setNfts] = useState<NFTData[]>([])
+  const [nfts, setNfts] = useState<{ tokenId: number; seed: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedNFT, setSelectedNFT] = useState<NFTData | null>(null)
-  const [loadingMetadata, setLoadingMetadata] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
-
-  const fetchMetadata = async (uri: string): Promise<StoredComposition | null> => {
-    try {
-      const response = await fetch(`/api/ipfs-proxy?uri=${encodeURIComponent(uri)}`)
-      if (!response.ok) {
-        console.warn('IPFS proxy failed:', response.status)
-        return null
-      }
-      const data = await response.json()
-      return data as StoredComposition
-    } catch (err) {
-      console.error('Error fetching metadata:', err)
-      return null
-    }
-  }
+  const [selectedNFT, setSelectedNFT] = useState<{ tokenId: number; seed: string } | null>(null)
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -178,8 +259,8 @@ export const Gallery = () => {
         setError(null)
 
         let provider: any
-        let nftsData: NFTData[] = []
         let success = false
+        const nftsData: { tokenId: number; seed: string }[] = []
 
         const rpcUrls = [SEPOLIA_RPC, SEPOLIA_RPC_FALLBACK]
 
@@ -199,13 +280,9 @@ export const Gallery = () => {
 
             for (let i = 0; i < totalNum; i++) {
               try {
-                await new Promise(r => setTimeout(r, 100))
-                const metadataUri = await contract.tokenURI(i)
-                nftsData.push({
-                  tokenId: i,
-                  metadata: null,
-                  metadataUri
-                })
+                await new Promise(r => setTimeout(r, 200))
+                const seed = await contract.tokenIdToSeed(i)
+                nftsData.push({ tokenId: i, seed })
               } catch (err) {
                 console.warn(`Error reading token ${i}:`, err)
               }
@@ -230,13 +307,9 @@ export const Gallery = () => {
             if (totalNum > 0) {
               for (let i = 0; i < totalNum; i++) {
                 try {
-                  await new Promise(r => setTimeout(r, 100))
-                  const metadataUri = await contract.tokenURI(i)
-                  nftsData.push({
-                    tokenId: i,
-                    metadata: null,
-                    metadataUri
-                  })
+                  await new Promise(r => setTimeout(r, 200))
+                  const seed = await contract.tokenIdToSeed(i)
+                  nftsData.push({ tokenId: i, seed })
                 } catch (err) {
                   console.warn(`Error reading token ${i}:`, err)
                 }
@@ -250,108 +323,26 @@ export const Gallery = () => {
 
         if (success) {
           setNfts(nftsData)
-          setLoading(false)
-          return
+        } else {
+          setError('No se pudo conectar a Sepolia. Intenta de nuevo más tarde.')
         }
-
-        setError('No se pudo conectar a Sepolia. Intenta de nuevo más tarde.')
       } catch (err: any) {
         console.error('Error fetching NFTs:', err)
-        if (err.message?.includes('could not decode result data')) {
-          setError('Error al leer el contrato. Verifica que el contrato exista en Sepolia.')
-        } else if (err.message?.includes('network')) {
-          setError('Error de red. Verifica que estés conectado a Sepolia testnet.')
-        } else {
-          setError(`Error: ${err.message}`)
-        }
+        setError(`Error: ${err.message}`)
       } finally {
         setLoading(false)
-        setIsInitialized(true)
       }
     }
 
     fetchNFTs()
   }, [])
 
-  useEffect(() => {
-    if (nfts.length === 0) return
-
-    const loadAllMetadata = async () => {
-      setLoadingMetadata(true)
-      const updatedNfts = [...nfts]
-      
-      for (let i = 0; i < updatedNfts.length; i++) {
-        if (!updatedNfts[i].metadata) {
-          const metadata = await fetchMetadata(updatedNfts[i].metadataUri)
-          updatedNfts[i] = { ...updatedNfts[i], metadata }
-        }
-      }
-      
-      setNfts(updatedNfts)
-      setLoadingMetadata(false)
-    }
-
-    loadAllMetadata()
-  }, [nfts])
-
-  // Show all NFTs, not just those with valid metadata
-  const allNfts = nfts || []
-
-  // Simple fallback preview for NFTs without metadata
-  const SimplePreview = ({ tokenId, onClick }: { tokenId: number; metadataUri?: string; onClick?: () => void }) => {
-    const colors = [
-      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-      'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-      'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-      'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-    ]
-    const gradient = colors[tokenId % colors.length]
-    
-    return (
-      <div
-        onClick={onClick}
-        style={{
-          border: '1px solid #000',
-          cursor: onClick ? 'pointer' : 'default',
-          overflow: 'hidden',
-          aspectRatio: '16/9',
-          background: gradient,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-        }}>
-          <span style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>#{tokenId + 1}</span>
-          <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>VideoDanza</span>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <main>
       <section style={{ marginBottom: '8vh', borderTop: '1px solid #000', paddingTop: '6vh' }}>
         <h1 style={{ marginBottom: '3vh' }}>GALERÍA</h1>
 
-        {loading || !isInitialized ? (
+        {loading ? (
           <p className="intro">Cargando tus VideoDanzas desde la blockchain...</p>
         ) : error ? (
           <p className="intro" style={{ color: '#d00', textAlign: 'center' }}>
@@ -364,11 +355,10 @@ export const Gallery = () => {
               Sepolia Testnet: Chain ID 11155111
             </small>
           </p>
-        ) : allNfts.length > 0 ? (
+        ) : nfts.length > 0 ? (
           <>
             <p className="intro">
-              Tienes <strong>{allNfts.length}</strong> VideoDanzas minteadas en Sepolia.
-              {loadingMetadata && ' Cargando composiciones...'}
+              Tienes <strong>{nfts.length}</strong> VideoDanzas minteadas en Sepolia.
             </p>
 
             <section style={{ marginBottom: '12vh' }}>
@@ -378,44 +368,13 @@ export const Gallery = () => {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                 gap: '2vw'
               }}>
-                {allNfts.map(({ tokenId, metadata, metadataUri }) => (
-                  <div key={tokenId}>
-                    {metadata ? (
-                      <CompositionPreview
-                        composition={metadata}
-                        onClick={() => setSelectedNFT({ tokenId, metadata, metadataUri })}
-                      />
-                    ) : (
-                      <SimplePreview
-                        tokenId={tokenId}
-                        metadataUri={metadataUri}
-                        onClick={() => setSelectedNFT({ tokenId, metadata: null, metadataUri })}
-                      />
-                    )}
-                    <div style={{ padding: '2vh 2vw', background: '#fff', border: '1px solid #000', borderTop: 'none' }}>
-                      <h3
-                        style={{
-                          fontSize: '1rem',
-                          fontWeight: 'bold',
-                          textTransform: 'uppercase',
-                          marginBottom: '0.8vh',
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        VideoDanza #{tokenId + 1}
-                      </h3>
-                      <p
-                        style={{
-                          fontSize: '0.8rem',
-                          fontFamily: "'Space Grotesk', sans-serif",
-                          color: '#666',
-                          fontWeight: 300,
-                        }}
-                      >
-                        {metadata && metadata.elements ? `${metadata.theme} • ${metadata.elements.length} capas` : 'Cargando metadata...'}
-                      </p>
-                    </div>
-                  </div>
+                {nfts.map(({ tokenId, seed }) => (
+                  <NFTCard
+                    key={tokenId}
+                    tokenId={tokenId}
+                    seed={seed}
+                    onClick={() => setSelectedNFT({ tokenId, seed })}
+                  />
                 ))}
               </div>
             </section>
@@ -428,148 +387,12 @@ export const Gallery = () => {
         )}
       </section>
 
-      {selectedNFT && selectedNFT.metadata && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.9)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '1rem',
-        }}>
-          <div style={{
-            background: '#fff',
-            border: '1px solid #000',
-            maxWidth: '1000px',
-            width: '95vw',
-            maxHeight: '95vh',
-            overflow: 'auto',
-            position: 'relative',
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '1rem 1.5rem',
-              borderBottom: '1px solid #e8e8e8',
-              background: '#f8f9fa',
-            }}>
-              <button
-                onClick={() => setSelectedNFT(null)}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #000',
-                  color: '#000',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                ← Volver a la Galería
-              </button>
-              <button
-                onClick={() => setSelectedNFT(null)}
-                style={{
-                  background: '#fff',
-                  border: '2px solid #000',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  padding: '0.5rem 1rem',
-                  color: '#000',
-                  lineHeight: 1,
-                  fontWeight: 'bold',
-                }}
-                aria-label="Cerrar"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ padding: '2rem' }}>
-              <h2 style={{ marginBottom: '1.5rem', textTransform: 'capitalize' }}>
-                VideoDanza #{selectedNFT.tokenId + 1} - {selectedNFT.metadata.theme}
-              </h2>
-
-              <CompositionPreview 
-                composition={selectedNFT.metadata} 
-                size="large"
-              />
-
-              <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>Detalles de la Composición</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                  <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-                    <strong>Theme:</strong> {selectedNFT.metadata.theme}
-                  </div>
-                  <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-                    <strong>Capas:</strong> {selectedNFT.metadata.elements?.length || 0}
-                  </div>
-                  <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-                    <strong>Duración:</strong> {selectedNFT.metadata.totalDuration}s
-                  </div>
-                  <div style={{ padding: '1rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-                    <strong>Intensidad Audio:</strong> {(selectedNFT.metadata.audioIntensity * 100).toFixed(0)}%
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '2rem' }}>
-                <h4 style={{ marginBottom: '0.5rem' }}>Videos utilizados:</h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {selectedNFT.metadata.elements && Array.isArray(selectedNFT.metadata.elements) ? selectedNFT.metadata.elements.map((el, idx) => (
-                    <span
-                      key={idx}
-                      style={{
-                        padding: '0.3rem 0.8rem',
-                        background: '#e8e8e8',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem',
-                        fontFamily: "'Space Grotesk', sans-serif",
-                      }}
-                    >
-                      {el.videoName}
-                    </span>
-                  )) : <span style={{ color: '#999', fontSize: '0.75rem' }}>No hay videos disponibles</span>}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '2rem' }}>
-                <h4 style={{ marginBottom: '0.5rem' }}>Seed:</h4>
-                <code style={{ fontSize: '0.75rem', wordBreak: 'break-all', display: 'block', padding: '1rem', background: '#f5f5f5' }}>
-                  {selectedNFT.metadata.seed}
-                </code>
-              </div>
-
-              {selectedNFT.metadata.seedPhrase && (
-                <div style={{ marginBottom: '2rem' }}>
-                  <h4 style={{ marginBottom: '0.5rem' }}>Frase-semilla:</h4>
-                  <code style={{ fontSize: '0.85rem', display: 'block', padding: '1rem', background: '#f5f5f5' }}>
-                    {selectedNFT.metadata.seedPhrase}
-                  </code>
-                </div>
-              )}
-
-              <div>
-                <h4 style={{ marginBottom: '0.5rem' }}>Metadata IPFS:</h4>
-                <a 
-                  href={getIPFSUrl(selectedNFT.metadataUri)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: '0.75rem', wordBreak: 'break-all', color: '#0066cc' }}
-                >
-                  {selectedNFT.metadataUri}
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+      {selectedNFT && (
+        <NFTModal
+          tokenId={selectedNFT.tokenId}
+          seed={selectedNFT.seed}
+          onClose={() => setSelectedNFT(null)}
+        />
       )}
     </main>
   )
