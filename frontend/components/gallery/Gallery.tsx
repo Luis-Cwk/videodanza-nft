@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
+import { VideodanzaPlayer } from '@/components/player/VideodanzaPlayer'
 
 const CONTRACT_ADDRESS = '0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763'
 
@@ -14,14 +15,6 @@ const CONTRACT_ABI = [
   'function tokenIdToSeed(uint256) view returns (bytes32)',
   'function tokenURI(uint256) view returns (string)'
 ]
-
-const getVideoUrl = (ipfsUri: string): string => {
-  if (ipfsUri.includes('gateway.pinata.cloud/ipfs/')) {
-    const cid = ipfsUri.split('/ipfs/')[1]
-    return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
-  }
-  return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
-}
 
 interface NFTCardProps {
   tokenId: number
@@ -36,7 +29,7 @@ const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
     return (
       <div style={{
         border: '1px solid #000',
-        aspectRatio: '16/9',
+        aspectRatio: '3/4',
         background: '#f0f0f0',
         display: 'flex',
         alignItems: 'center',
@@ -52,9 +45,6 @@ const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
       <div style={{
         border: '1px solid #000',
         overflow: 'hidden',
-        aspectRatio: '16/9',
-        background: `linear-gradient(135deg, hsla(${composition.colorShift}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${composition.colorShift + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
-        position: 'relative',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
       }}
       onMouseEnter={(e) => {
@@ -66,30 +56,11 @@ const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
         e.currentTarget.style.boxShadow = 'none'
       }}
       >
-        {composition.elements.map((element, idx) => (
-          <video
-            key={idx}
-            src={getVideoUrl(element.ipfsUri)}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            style={{
-              position: 'absolute',
-              left: `${element.positionX}%`,
-              top: `${element.positionY}%`,
-              width: `${20 * element.scale}%`,
-              aspectRatio: '1',
-              objectFit: 'cover',
-              transform: `rotate(${element.rotation}deg)`,
-              opacity: element.opacity,
-              mixBlendMode: element.blendMode as any,
-              zIndex: element.zIndex,
-              pointerEvents: 'none',
-            }}
-          />
-        ))}
+        <VideodanzaPlayer 
+          elements={composition.elements} 
+          autoPlay={true}
+          muted={true}
+        />
       </div>
       <div style={{ padding: '2vh 2vw', background: '#fff', border: '1px solid #000', borderTop: 'none' }}>
         <h3 style={{ fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.8vh', lineHeight: 1.2 }}>
@@ -169,34 +140,13 @@ const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; o
           <div style={{
             border: '1px solid #000',
             overflow: 'hidden',
-            aspectRatio: '16/9',
-            background: `linear-gradient(135deg, hsla(${composition.colorShift}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${composition.colorShift + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
-            position: 'relative',
             marginBottom: '2rem',
           }}>
-            {composition.elements.map((element, idx) => (
-              <video
-                key={idx}
-                src={getVideoUrl(element.ipfsUri)}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                style={{
-                  position: 'absolute',
-                  left: `${element.positionX}%`,
-                  top: `${element.positionY}%`,
-                  width: `${20 * element.scale}%`,
-                  aspectRatio: '1',
-                  objectFit: 'cover',
-                  transform: `rotate(${element.rotation}deg)`,
-                  opacity: element.opacity,
-                  mixBlendMode: element.blendMode as any,
-                  zIndex: element.zIndex,
-                }}
-              />
-            ))}
+            <VideodanzaPlayer 
+              elements={composition.elements} 
+              autoPlay={true}
+              muted={false}
+            />
           </div>
 
           <div style={{ marginBottom: '2rem' }}>

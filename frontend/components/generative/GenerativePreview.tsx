@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { GenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
+import { VideodanzaPlayer } from '@/components/player/VideodanzaPlayer'
 
 interface GenerativePreviewProps {
   composition: GenerativeComposition | null
@@ -9,27 +9,6 @@ interface GenerativePreviewProps {
 }
 
 export const GenerativePreview = ({ composition, isLoading = false }: GenerativePreviewProps) => {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!composition || !containerRef.current) return
-
-    const videos = containerRef.current.querySelectorAll('video')
-    videos.forEach((video) => {
-      video.play().catch(() => {})
-    })
-  }, [composition])
-
-  const getVideoUrl = (ipfsUri: string) => {
-    // Handle direct gateway URLs by extracting CID
-    if (ipfsUri.includes('gateway.pinata.cloud/ipfs/')) {
-      const cid = ipfsUri.split('/ipfs/')[1]
-      return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
-    }
-    // Handle ipfs:// URIs
-    return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
-  }
-
   if (!composition || isLoading) {
     return (
       <div style={{ marginTop: '4vh', marginBottom: '4vh' }}>
@@ -41,7 +20,7 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
         <div
           style={{
             border: '1px solid #e8e8e8',
-            aspectRatio: '16 / 9',
+            aspectRatio: '3/4',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -64,45 +43,13 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
         </div>
       </div>
 
-      <div
-        ref={containerRef}
-        style={{
-          border: '1px solid #e8e8e8',
-          aspectRatio: '16 / 9',
-          position: 'relative',
-          overflow: 'hidden',
-          background: `linear-gradient(135deg, hsla(${composition.colorShift}, 70%, 50%, ${composition.backgroundIntensity * 0.3}), hsla(${composition.colorShift + 60}, 60%, 45%, ${composition.backgroundIntensity * 0.2}))`,
-        }}
-      >
-        {composition.elements.map((element, idx) => {
-          const gatewayUrl = getVideoUrl(element.ipfsUri)
-
-          return (
-            <video
-              key={idx}
-              src={gatewayUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              style={{
-                position: 'absolute',
-                left: `${element.positionX}%`,
-                top: `${element.positionY}%`,
-                width: `${20 * element.scale}%`,
-                aspectRatio: '1',
-                objectFit: 'cover',
-                transform: `rotate(${element.rotation}deg)`,
-                opacity: element.opacity,
-                mixBlendMode: element.blendMode as any,
-                zIndex: element.zIndex,
-                pointerEvents: 'none',
-              }}
-            />
-          )
-        })}
-
+      <div style={{ position: 'relative', border: '1px solid #e8e8e8' }}>
+        <VideodanzaPlayer 
+          elements={composition.elements} 
+          autoPlay={true}
+          muted={true}
+        />
+        
         <div
           style={{
             position: 'absolute',
