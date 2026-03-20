@@ -113,7 +113,7 @@ const CompositionPreview = ({
       }}
     >
       <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {composition.elements.map((element, idx) => (
+        {composition.elements && Array.isArray(composition.elements) && composition.elements.map((element, idx) => (
           <video
             key={idx}
             src={getVideoUrl(element.ipfsUri)}
