@@ -18,10 +18,19 @@ const getVideoUrl = (ipfsUri: string): string => {
   return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
 }
 
-function shuffleArray<T>(arr: T[]): T[] {
+// Shuffle determinista basado en seed
+function seededShuffle<T>(arr: T[], seed: string): T[] {
   const shuffled = [...arr]
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i)
+    hash = hash & hash
+  }
+  
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    hash = ((hash << 5) - hash) + i
+    hash = hash & hash
+    const j = Math.abs(hash) % (i + 1)
     ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
   return shuffled
@@ -42,10 +51,20 @@ export const VideodanzaPlayer = ({
   const queueRef = useRef<string[]>([])
   const activeRef = useRef<'a' | 'b'>('a')
   const isTransitioningRef = useRef(false)
+  const cycleRef = useRef(0)
 
+  // Generar queue determinista basado en ciclo
   const buildQueue = useCallback(() => {
     const urls = elements.map(el => getVideoUrl(el.ipfsUri))
-    return shuffleArray(urls)
+    
+    // Primera reproducción: orden original (determinista)
+    if (cycleRef.current === 0) {
+      return [...urls]
+    }
+    
+    // Reproducciones siguientes: shuffle determinista basado en ciclo + seed del primer elemento
+    const seed = `${cycleRef.current}-${elements[0]?.ipfsUri || 'default'}`
+    return seededShuffle(urls, seed)
   }, [elements])
 
   const getActiveVideo = () => activeRef.current === 'a' ? vidARef.current : vidBRef.current
@@ -53,9 +72,11 @@ export const VideodanzaPlayer = ({
 
   const preloadNext = useCallback(() => {
     const inactive = getInactiveVideo()
-    if (!inactive || queueRef.current.length === 0) return
+    if (!inactive) return
 
+    // Si la queue está vacía, reconstruir
     if (queueRef.current.length === 0) {
+      cycleRef.current++
       queueRef.current = buildQueue()
     }
     
@@ -101,6 +122,8 @@ export const VideodanzaPlayer = ({
   const startPlayback = useCallback(() => {
     if (elements.length === 0) return
     
+    // Reiniciar ciclo
+    cycleRef.current = 0
     queueRef.current = buildQueue()
     
     const active = getActiveVideo()
