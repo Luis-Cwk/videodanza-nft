@@ -21,7 +21,13 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
   }, [composition])
 
   const getVideoUrl = (ipfsUri: string) => {
-    return ipfsUri.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
+    // Handle direct gateway URLs by extracting CID
+    if (ipfsUri.includes('gateway.pinata.cloud/ipfs/')) {
+      const cid = ipfsUri.split('/ipfs/')[1]
+      return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
+    }
+    // Handle ipfs:// URIs
+    return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
   }
 
   if (!composition || isLoading) {

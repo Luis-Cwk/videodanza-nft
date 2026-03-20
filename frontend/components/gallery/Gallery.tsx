@@ -26,6 +26,12 @@ const getIPFSUrl = (uri: string, gatewayIndex: number = 0): string => {
 }
 
 const getVideoUrl = (ipfsUri: string): string => {
+  // Handle direct gateway URLs by extracting CID
+  if (ipfsUri.includes('gateway.pinata.cloud/ipfs/')) {
+    const cid = ipfsUri.split('/ipfs/')[1]
+    return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
+  }
+  // Handle ipfs:// URIs
   return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
 }
 
