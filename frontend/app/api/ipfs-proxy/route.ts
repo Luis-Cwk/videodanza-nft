@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'edge'
+
 const IPFS_GATEWAYS = [
   'https://gateway.pinata.cloud/ipfs',
   'https://nftstorage.link/ipfs',
