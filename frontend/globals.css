@@ -23,6 +23,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   padding: 3vw 5vw;
+  padding-top: 12vh;
   line-height: 1.6;
   letter-spacing: 0.3px;
 }
@@ -33,10 +34,11 @@ nav.minimal-nav {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 2.5vh;
-  margin-bottom: 8vh;
-  position: sticky;
-  top: 3vw;
+  padding: 2.5vh 5vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   background: var(--bg);
   z-index: 1000;
   gap: 3vw;
@@ -396,6 +398,43 @@ select:focus {
 @media (max-width: 1024px) {
   body {
     padding: 4vw 6vw;
+    padding-top: 14vh;
+  }
+
+  .editorial-grid {
+    grid-template-columns: 1fr;
+  }
+
+  nav.minimal-nav {
+    grid-template-columns: auto 1fr auto;
+    gap: 2vw;
+    padding: 2vh 4vw;
+  }
+
+  .nav-links {
+    justify-content: flex-start;
+    gap: 2vw;
+  }
+
+  .brand {
+    grid-column: 1;
+  }
+
+  .nav-links a.featured {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 4vw;
+    padding-top: 16vh;
+  }
+
+  nav.minimal-nav {
+    grid-template-columns: 1fr;
+    padding: 2vh 4vw;
+    gap: 1vh;
   }
 
   .editorial-grid {
