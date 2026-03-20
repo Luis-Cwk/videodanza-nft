@@ -1,4 +1,4 @@
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   return new Response(JSON.stringify({
     success: true,
     message: 'API working',
