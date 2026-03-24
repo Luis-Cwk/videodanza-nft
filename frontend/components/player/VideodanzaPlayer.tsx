@@ -51,7 +51,7 @@ export const VideodanzaPlayer = ({
   const vidARef = useRef<HTMLVideoElement>(null)
   const vidBRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [audioUnlocked, setAudioUnlocked] = useState(!muted)
+  const [audioUnlocked, setAudioUnlocked] = useState(hoverSound ? false : !muted)
   const [needsInteraction, setNeedsInteraction] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   
