@@ -8,6 +8,7 @@ interface VideodanzaPlayerProps {
   style?: React.CSSProperties
   autoPlay?: boolean
   muted?: boolean
+  hoverSound?: boolean
 }
 
 const getVideoUrl = (ipfsUri: string): string => {
@@ -44,13 +45,15 @@ export const VideodanzaPlayer = ({
   elements, 
   style,
   autoPlay = true,
-  muted = true
+  muted = true,
+  hoverSound = false
 }: VideodanzaPlayerProps) => {
   const vidARef = useRef<HTMLVideoElement>(null)
   const vidBRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [audioUnlocked, setAudioUnlocked] = useState(!muted)
+  const [audioUnlocked, setAudioUnlocked] = useState(!muted && !hoverSound)
   const [needsInteraction, setNeedsInteraction] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   
   const queueRef = useRef<string[]>([])
   const activeRef = useRef<'a' | 'b'>('a')
@@ -161,6 +164,18 @@ export const VideodanzaPlayer = ({
 
   useEffect(() => {
     const active = vidARef.current
+    const inactive = vidBRef.current
+    if (!active || !inactive) return
+
+    if (hoverSound) {
+      const shouldPlayAudio = isHovered && audioUnlocked
+      active.muted = !shouldPlayAudio
+      inactive.muted = !shouldPlayAudio
+    }
+  }, [isHovered, audioUnlocked, hoverSound])
+
+  useEffect(() => {
+    const active = vidARef.current
     if (!active || elements.length === 0) return
 
     if (autoPlay) {
@@ -181,8 +196,24 @@ export const VideodanzaPlayer = ({
     }
   }, [elements, autoPlay, startPlayback])
 
+  const handleMouseEnter = () => {
+    if (hoverSound) {
+      setIsHovered(true)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (hoverSound) {
+      setIsHovered(false)
+    }
+  }
+
   return (
-    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', ...style }}>
+    <div 
+      style={{ position: 'relative', width: '100%', aspectRatio: '16/9', ...style }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <video
         ref={vidARef}
         style={{

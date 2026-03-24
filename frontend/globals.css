@@ -855,3 +855,96 @@ select {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .nft-card-info {
+    padding: 0.75rem;
+  }
+  
+  .nft-card-title {
+    font-size: 0.7rem;
+  }
+  
+  .nft-card-meta {
+    font-size: 0.6rem;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 0.5rem;
+    max-height: 90vh;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  
+  .stat-item {
+    padding: 0.5rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.6rem !important;
+  }
+  
+  .stat-value {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Tablets */
+@media (min-width: 481px) and (max-width: 768px) {
+  .modal-content {
+    width: 90%;
+    margin: 1rem;
+  }
+}
+
+/* Mint page responsive */
+@media (max-width: 480px) {
+  .mint-form {
+    padding: 1rem !important;
+  }
+  
+  .mint-form input {
+    font-size: 0.9rem !important;
+    padding: 0.75rem !important;
+  }
+  
+  .mint-form button {
+    width: 100% !important;
+    padding: 1rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .feature-card {
+    padding: 1rem !important;
+  }
+  
+  .feature-number {
+    font-size: 1.5rem !important;
+  }
+  
+  .grid-row {
+    flex-direction: column !important;
+  }
+  
+  .python-code {
+    font-size: 0.7rem !important;
+    padding: 0.75rem !important;
+  }
+}

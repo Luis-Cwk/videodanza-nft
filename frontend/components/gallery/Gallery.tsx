@@ -46,6 +46,7 @@ const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
           elements={composition.elements} 
           autoPlay={true}
           muted={false}
+          hoverSound={true}
         />
       </div>
       <div className="nft-card-info">
