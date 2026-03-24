@@ -199,12 +199,20 @@ export const VideodanzaPlayer = ({
   const handleMouseEnter = () => {
     if (hoverSound) {
       setIsHovered(true)
+      const active = getActiveVideo()
+      if (active && active.paused) {
+        active.play().catch(() => {})
+      }
     }
   }
 
   const handleMouseLeave = () => {
     if (hoverSound) {
       setIsHovered(false)
+      const active = getActiveVideo()
+      if (active && !active.paused) {
+        active.pause()
+      }
     }
   }
 
