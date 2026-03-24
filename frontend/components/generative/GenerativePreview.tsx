@@ -69,24 +69,6 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
         </div>
       </div>
 
-      {/* SEMILLA - justo debajo del video */}
-      <div style={{ 
-        padding: '1.5rem 0',
-        borderBottom: '1px solid var(--border)',
-      }}>
-        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', marginBottom: '0.5rem' }}>
-          Semilla
-        </div>
-        <div style={{ 
-          fontSize: '1.2rem', 
-          fontWeight: 700, 
-          color: 'var(--text)',
-          fontFamily: "'JetBrains Mono', monospace",
-        }}>
-          {composition.seed}
-        </div>
-      </div>
-
       {/* CAPAS */}
       {composition.elements.length > 0 && (
         <div style={{ padding: '1.5rem 0', borderBottom: '1px solid var(--border)' }}>
