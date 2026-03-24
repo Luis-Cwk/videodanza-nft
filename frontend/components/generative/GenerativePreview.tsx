@@ -37,6 +37,7 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
           elements={composition.elements} 
           autoPlay={true}
           muted={false}
+          hoverSound={true}
         />
         
         <div
