@@ -247,7 +247,7 @@ export const VideodanzaPlayer = ({
         onEnded={handleClipEnd}
       />
       
-      {needsInteraction && (
+      {needsInteraction && !hoverSound && (
         <button
           onClick={handleUserInteraction}
           style={{
