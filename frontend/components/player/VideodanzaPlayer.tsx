@@ -51,7 +51,7 @@ export const VideodanzaPlayer = ({
   const vidARef = useRef<HTMLVideoElement>(null)
   const vidBRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [audioUnlocked, setAudioUnlocked] = useState(!muted && !hoverSound)
+  const [audioUnlocked, setAudioUnlocked] = useState(!muted)
   const [needsInteraction, setNeedsInteraction] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   
@@ -59,6 +59,9 @@ export const VideodanzaPlayer = ({
   const activeRef = useRef<'a' | 'b'>('a')
   const isTransitioningRef = useRef(false)
   const cycleRef = useRef(0)
+
+  // Sound should play when: (hover sound enabled + hovered) OR (not hover sound + not muted)
+  const shouldPlaySound = hoverSound ? isHovered : !muted
 
   // Generar queue determinista basado en ciclo
   const buildQueue = useCallback(() => {
@@ -164,18 +167,6 @@ export const VideodanzaPlayer = ({
 
   useEffect(() => {
     const active = vidARef.current
-    const inactive = vidBRef.current
-    if (!active || !inactive) return
-
-    if (hoverSound) {
-      const shouldPlayAudio = isHovered && audioUnlocked
-      active.muted = !shouldPlayAudio
-      inactive.muted = !shouldPlayAudio
-    }
-  }, [isHovered, audioUnlocked, hoverSound])
-
-  useEffect(() => {
-    const active = vidARef.current
     if (!active || elements.length === 0) return
 
     if (autoPlay) {
@@ -199,6 +190,7 @@ export const VideodanzaPlayer = ({
   const handleMouseEnter = () => {
     if (hoverSound) {
       setIsHovered(true)
+      setAudioUnlocked(true)
       const active = getActiveVideo()
       if (active && active.paused) {
         active.play().catch(() => {})
@@ -235,7 +227,7 @@ export const VideodanzaPlayer = ({
           zIndex: 1,
         }}
         playsInline
-        muted={!audioUnlocked}
+        muted={!shouldPlaySound}
         onEnded={handleClipEnd}
       />
       <video
@@ -251,7 +243,7 @@ export const VideodanzaPlayer = ({
           zIndex: 2,
         }}
         playsInline
-        muted={!audioUnlocked}
+        muted={!shouldPlaySound}
         onEnded={handleClipEnd}
       />
       
