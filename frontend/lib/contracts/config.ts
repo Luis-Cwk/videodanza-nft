@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = '0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763' as const
+export const CONTRACT_ADDRESS = '0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828' as const
 export const CHAIN_ID = 11155111 as const // Sepolia Ethereum
 export const MINT_PRICE = '0.001' // ETH
 export const ROYALTY_PERCENTAGE = 7.5

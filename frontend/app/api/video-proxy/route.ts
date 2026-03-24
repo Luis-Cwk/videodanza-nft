@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const IPFS_GATEWAYS = [
+  'https://ipfs.filebase.io/ipfs',
   'https://gateway.pinata.cloud/ipfs',
   'https://nftstorage.link/ipfs',
   'https://dweb.link/ipfs',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAccount } from 'wagmi'
 import { useForm } from 'react-hook-form'
 import { useMintNFT } from '@/lib/hooks/useContract'
@@ -12,44 +12,69 @@ interface MintFormData {
   seedPhrase: string
 }
 
+const CONTRACT_ADDRESS = '0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828'
+const SEPOLIA_RPC = 'https://ethereum-sepolia.publicnode.com'
+
+const CONTRACT_ABI = [
+  'function isSeedMinted(bytes32) view returns (bool)'
+]
+
 export const MintCard = () => {
   const { isConnected, address } = useAccount()
-  const { register, handleSubmit, watch } = useForm<MintFormData>()
+  const { register, handleSubmit, watch, reset } = useForm<MintFormData>()
   const [seed, setSeed] = useState<`0x${string}` | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false)
+  const [isSeedMinted, setIsSeedMinted] = useState(false)
+  const [checkingSeed, setCheckingSeed] = useState(false)
 
   const { mint, isPending, isSuccess, hash, error: mintError, status } = useMintNFT()
   const composition = useGenerativeComposition(seed)
 
   const seedPhrase = watch('seedPhrase')
-  const mintPrice = '1000000000000000' // 0.001 ETH in wei
-  const isSeedMinted = false
+  const mintPrice = '1000000000000000'
 
-  // Generate seed from phrase
+  const checkIfSeedMinted = useCallback(async (seedValue: `0x${string}`) => {
+    try {
+      setCheckingSeed(true)
+      const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC)
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
+      const minted = await contract.isSeedMinted(seedValue)
+      setIsSeedMinted(minted)
+    } catch (err) {
+      console.warn('Error checking seed:', err)
+      setIsSeedMinted(false)
+    } finally {
+      setCheckingSeed(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (seedPhrase && typeof seedPhrase === 'string' && seedPhrase.trim()) {
       try {
         const hashedSeed = ethers.keccak256(ethers.toUtf8Bytes(seedPhrase))
         setSeed(hashedSeed as `0x${string}`)
+        setIsSeedMinted(false)
       } catch (err) {
         setSeed(null)
       }
     } else {
       setSeed(null)
+      setIsSeedMinted(false)
     }
   }, [seedPhrase])
 
-  // Handle successful mint
+  useEffect(() => {
+    if (seed) {
+      checkIfSeedMinted(seed)
+    }
+  }, [seed, checkIfSeedMinted])
+
   useEffect(() => {
     if (isSuccess && hash) {
-      setSuccess(`✓ VideoDanza acuñada exitosamente! TX: ${hash}`)
-      // Redirect to Etherscan after 2 seconds
-      const timer = setTimeout(() => {
-        window.location.href = `https://sepolia.etherscan.io/tx/${hash}`
-      }, 2000)
-      return () => clearTimeout(timer)
+      setSuccess(`VideoDanza acuanada! TX: ${hash.slice(0, 10)}...`)
+      setIsSeedMinted(true)
     }
   }, [isSuccess, hash])
 
@@ -65,13 +90,13 @@ export const MintCard = () => {
       }
 
       if (!seed) {
-        setError('Ingresa una semilla válida')
+        setError('Ingresa una semilla valida')
         setIsGeneratingMetadata(false)
         return
       }
 
       if (!composition) {
-        setError('Generando composición...')
+        setError('Generando composicion...')
         setIsGeneratingMetadata(false)
         return
       }
@@ -82,18 +107,10 @@ export const MintCard = () => {
         return
       }
 
-      // Llamar al endpoint serverless para generar metadata
-      console.log('Generating metadata on backend...', { seed, seedPhrase, composition })
       const response = await fetch('/api/mint-metadata', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          seed,
-          seedPhrase,
-          composition,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seed, seedPhrase, composition }),
       })
 
       if (!response.ok) {
@@ -102,11 +119,6 @@ export const MintCard = () => {
       }
 
       const { metadataUrl } = await response.json()
-
-      console.log('Metadata generated:', metadataUrl)
-      console.log('Calling mint with metadata URI:', { seed, metadataUrl, mintPrice })
-
-      // Call mint with metadata URI from backend
       await mint(seed, metadataUrl, mintPrice)
     } catch (err) {
       console.error('Submit error:', err)
@@ -116,255 +128,158 @@ export const MintCard = () => {
     }
   }
 
+  const handleReset = () => {
+    reset()
+    setSeed(null)
+    setIsSeedMinted(false)
+    setSuccess(null)
+    setError(null)
+  }
+
   const formattedPrice = mintPrice ? (Number(mintPrice) / 1e18).toFixed(3) : '0.001'
   const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null
 
   return (
-    <div style={{ marginBottom: '8vh' }}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* STATUS BANNER */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr 1fr',
-            gap: '1.5vw',
-            marginBottom: '6vh',
-            padding: '0',
-          }}
-        >
-          <div
-            style={{
-              padding: '2vh 2vw',
-              border: '1px solid #e8e8e8',
-              background: isConnected ? '#f5f5f5' : '#fff',
-              transition: 'all 0.3s ease',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                fontWeight: '700',
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '0.8vh',
-              }}
-            >
-              Wallet
-            </div>
-            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
-              {isConnected ? shortAddress || 'Conectado' : 'Desconectado'}
-            </div>
-          </div>
-
-          <div
-            style={{
-              padding: '2vh 2vw',
-              border: '1px solid #e8e8e8',
-              background: '#f5f5f5',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                fontWeight: '700',
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '0.8vh',
-              }}
-            >
-              Red
-            </div>
-            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
-              Sepolia
-            </div>
-          </div>
-
-          <div
-            style={{
-              padding: '2vh 2vw',
-              border: '1px solid #e8e8e8',
-              background: '#f5f5f5',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                fontWeight: '700',
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '0.8vh',
-              }}
-            >
-              Precio
-            </div>
-            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
-              {formattedPrice} ETH
-            </div>
-          </div>
-
-          <div
-            style={{
-              padding: '2vh 2vw',
-              border: '1px solid #e8e8e8',
-              background: seed && composition ? '#f5f5f5' : '#fff',
-              transition: 'all 0.3s ease',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                fontWeight: '700',
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '0.8vh',
-              }}
-            >
-              Estado
-            </div>
-            <div style={{ fontSize: '0.95rem', fontWeight: '500', fontFamily: "'Space Grotesk', sans-serif" }}>
-              {!isConnected ? 'conectar' : !seed ? 'semilla' : 'listo'}
-            </div>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="stats-grid" style={{ marginBottom: '2rem' }}>
+        <div className="stat-item">
+          <div className="stat-label">Wallet</div>
+          <div className="stat-value" style={{ fontSize: '0.9rem', color: isConnected ? 'var(--accent)' : 'var(--text-muted)' }}>
+            {isConnected ? shortAddress || 'Conectado' : 'Desconectado'}
           </div>
         </div>
 
-        {/* MAIN CONTENT: FORM + PREVIEW */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '3vw',
-            marginBottom: '6vh',
-          }}
-        >
-          {/* LEFT: FORM */}
-          <div>
-            {/* SEED INPUT */}
-            <div style={{ marginBottom: '3vh' }}>
-              <label
-                style={{
-                  display: 'block',
-                  marginBottom: '1vh',
-                  fontSize: '0.75rem',
-                  fontWeight: '700',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  color: '#666',
-                }}
-              >
-                Tu semilla única
-              </label>
-              <input
-                type="text"
-                placeholder="ej: mi-semilla-única-2026"
-                {...register('seedPhrase')}
-                style={{
-                  width: '100%',
-                  padding: '1.2rem 1rem',
-                  fontSize: '0.95rem',
-                  border: '1px solid #e8e8e8',
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
-
-            {/* INFO SECTION */}
-            <div style={{ borderTop: '1px solid #e8e8e8', paddingTop: '2vh' }}>
-              <p style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6', marginBottom: '2vh' }}>
-                <strong>Cómo funciona:</strong> Tu semilla es hasheada criptográficamente. El mismo seed siempre produce
-                la misma composición de videodanza, garantizando que tu NFT sea único e irreproducible.
-              </p>
-
-              {seed && (
-                <div
-                  style={{
-                    padding: '1.5vh 1.5vw',
-                    background: '#f5f5f5',
-                    border: '1px solid #e8e8e8',
-                    fontSize: '0.8rem',
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: '#666',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '0.65rem',
-                      textTransform: 'uppercase',
-                      fontWeight: '700',
-                      letterSpacing: '1px',
-                      marginBottom: '0.5vh',
-                    }}
-                  >
-                    Identificador único
-                  </div>
-                  {seed}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT: GENERATIVE PREVIEW */}
-          <GenerativePreview composition={composition} isLoading={Boolean(seed && !composition)} />
+        <div className="stat-item">
+          <div className="stat-label">Red</div>
+          <div className="stat-value" style={{ fontSize: '0.9rem' }}>SEPOLIA</div>
         </div>
 
-        {/* MESSAGES & BUTTON */}
-        <div style={{ marginTop: '6vh', borderTop: '1px solid #000', paddingTop: '4vh' }}>
-          {error && (
-            <div className="message error" style={{ marginBottom: '2vh' }}>
-              {error}
-            </div>
-          )}
-          {mintError && (
-            <div className="message error" style={{ marginBottom: '2vh' }}>
-              {mintError.message || 'Error desconocido'}
-            </div>
-          )}
-          {status && status !== 'idle' && (
-            <div className="message info" style={{ marginBottom: '2vh' }}>
-              Estado: {status}
-              {hash && (
-                <div style={{ marginTop: '0.8vh', fontSize: '0.85rem', wordBreak: 'break-all' }}>
-                  TX: {hash}
+        <div className="stat-item">
+          <div className="stat-label">Precio</div>
+          <div className="stat-value" style={{ fontSize: '0.9rem' }}>{formattedPrice} ETH</div>
+        </div>
+
+        <div className="stat-item">
+          <div className="stat-label">Estado</div>
+          <div className="stat-value" style={{ fontSize: '0.9rem', color: isSeedMinted ? '#ff4444' : (seed && composition ? 'var(--accent)' : 'var(--text-muted)') }}>
+            {checkingSeed ? 'CHECK...' : isSeedMinted ? 'TOMADO' : (!isConnected ? 'CONECTAR' : !seed ? 'SEMILLA' : !composition ? 'GENERANDO' : 'LISTO')}
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '1px',
+        background: 'var(--border)',
+        border: '1px solid var(--border-bright)',
+        marginBottom: '2rem',
+      }}>
+        <div style={{ padding: '1.5rem', background: 'var(--bg)' }}>
+          <label>Tu semilla unica</label>
+          <input
+            type="text"
+            placeholder="ej: mi-semilla-unica-2026"
+            {...register('seedPhrase')}
+          />
+
+          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+              <strong>Como funciona:</strong> Tu semilla es hasheada criptograficamente. El mismo seed siempre produce la misma composicion.
+            </p>
+
+            {seed && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                background: 'var(--surface)',
+                border: '1px solid var(--border-bright)',
+                fontSize: '0.75rem',
+                fontFamily: "'JetBrains Mono', monospace",
+                color: isSeedMinted ? '#ff4444' : 'var(--text-muted)',
+                wordBreak: 'break-all',
+              }}>
+                <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', color: 'var(--text-dim)' }}>
+                  Identificador {isSeedMinted && '(YA MINTEADO)'}
                 </div>
-              )}
-            </div>
-          )}
-          {success && (
-            <div className="message success" style={{ marginBottom: '2vh' }}>
+                {seed}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ padding: '1.5rem', background: 'var(--surface)' }}>
+          <div className="data-panel-label" data-coord="PREVIEW.001">Vista Previa</div>
+          <div style={{ marginTop: '1rem' }}>
+            <GenerativePreview composition={composition} isLoading={Boolean(seed && !composition)} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid var(--border-bright)', paddingTop: '1.5rem' }}>
+        {error && <div className="message error">{error}</div>}
+        {mintError && <div className="message error">{mintError.message || 'Error desconocido'}</div>}
+        {status && status !== 'idle' && (
+          <div className="message info">
+            Estado: {status}
+            {hash && <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', wordBreak: 'break-all' }}>TX: {hash}</div>}
+          </div>
+        )}
+        {success && (
+          <div className="message success" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
               {success}
+              {hash && (
+                <a 
+                  href={`https://sepolia.etherscan.io/tx/${hash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'underline' }}
+                >
+                  Ver en Etherscan ↗
+                </a>
+              )}
             </div>
-          )}
+            <button
+              type="button"
+              onClick={handleReset}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--accent)',
+                color: 'var(--accent)',
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                fontSize: '0.7rem',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Mintear otra →
+            </button>
+          </div>
+        )}
 
-          <button
-            type="submit"
-            disabled={Boolean(!isConnected || isPending || isGeneratingMetadata || !seed || !composition || (seed && isSeedMinted))}
-            className="btn-minimal"
-            style={{
-              width: '100%',
-              padding: '1.2rem 2rem',
-              fontSize: '0.8rem',
-              marginTop: '2vh',
-            }}
-          >
-            {isGeneratingMetadata
-              ? '⏳ Generando metadata...'
-              : isPending
-                ? '⏳ Acuñando...'
-                : !isConnected
-                  ? 'Conecta tu wallet'
-                  : !seed
-                    ? 'Completa tu semilla'
-                    : !composition
-                      ? 'Generando...'
+        <button
+          type="submit"
+          disabled={Boolean(!isConnected || isPending || isGeneratingMetadata || !seed || !composition || isSeedMinted || checkingSeed)}
+          className="btn-fui btn-fui-primary"
+          style={{ width: '100%', marginTop: '1rem' }}
+        >
+          {isGeneratingMetadata
+            ? 'Generando metadata...'
+            : isPending
+              ? 'Acuñando...'
+              : !isConnected
+                ? 'Conecta tu wallet'
+                : !seed
+                  ? 'Completa tu semilla'
+                  : !composition
+                    ? 'Generando...'
+                    : isSeedMinted
+                      ? 'Semilla ya minteada'
                       : 'Acuñar VideoDanza'}
-          </button>
-        </div>
-      </form>
-    </div>
+        </button>
+      </div>
+    </form>
   )
 }

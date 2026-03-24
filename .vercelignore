@@ -4,3 +4,14 @@ data/
 scripts/
 .git/
 node_modules/
+.env
+.env.*
+*.env
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.tsbuildinfo
+next-env.d.ts
+.next/

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'edge'
 
 const IPFS_GATEWAYS = [
+  'https://ipfs.filebase.io/ipfs',
   'https://gateway.pinata.cloud/ipfs',
   'https://nftstorage.link/ipfs',
   'https://dweb.link/ipfs',

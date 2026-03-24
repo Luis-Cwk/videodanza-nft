@@ -39,7 +39,6 @@ export const useMintNFT = () => {
   const { data: hash, isPending, writeContract, error, status } = useWriteContract()
 
   const mint = async (seed: `0x${string}`, metadataURI: string, price: string | bigint = '1000000000000000') => {
-    // price defaults to 0.001 ETH in wei
     try {
       console.log('Calling mint with:', { seed, metadataURI, price })
       
@@ -48,6 +47,7 @@ export const useMintNFT = () => {
         functionName: 'mint',
         args: [metadataURI, seed],
         value: price,
+        gas: BigInt(2000000),
       } as any
 
       console.log('Transaction will send args:', tx.args)

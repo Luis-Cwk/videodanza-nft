@@ -15,6 +15,10 @@ const getVideoUrl = (ipfsUri: string): string => {
     const cid = ipfsUri.split('/ipfs/')[1]
     return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
   }
+  if (ipfsUri.includes('ipfs.filebase.io/ipfs/')) {
+    const cid = ipfsUri.split('/ipfs/')[1]
+    return `/api/video-proxy?uri=ipfs%3A%2F%2F${cid}`
+  }
   return `/api/video-proxy?uri=${encodeURIComponent(ipfsUri)}`
 }
 
@@ -178,7 +182,7 @@ export const VideodanzaPlayer = ({
   }, [elements, autoPlay, startPlayback])
 
   return (
-    <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', ...style }}>
+    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', ...style }}>
       <video
         ref={vidARef}
         style={{

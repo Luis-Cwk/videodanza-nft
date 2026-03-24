@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { useGenerativeComposition } from '@/lib/hooks/useGenerativeComposition'
 import { VideodanzaPlayer } from '@/components/player/VideodanzaPlayer'
 
-const CONTRACT_ADDRESS = '0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763'
+const CONTRACT_ADDRESS = '0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828'
 
 const SEPOLIA_RPC = 'https://ethereum-sepolia.publicnode.com'
 const SEPOLIA_RPC_FALLBACK = 'https://sepolia.drpc.org'
@@ -27,69 +27,32 @@ const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
   
   if (!composition) {
     return (
-      <div style={{
-        border: '1px solid #000',
-        aspectRatio: '3/4',
-        background: '#f5f5f5',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <span style={{ color: '#999', fontSize: '0.8rem' }}>Cargando...</span>
+      <div className="nft-card">
+        <div className="nft-card-media loading-skeleton" />
+        <div className="nft-card-info">
+          <div className="nft-card-title">Cargando...</div>
+        </div>
       </div>
     )
   }
 
   return (
     <div 
-      onClick={onClick} 
-      style={{ 
-        cursor: 'pointer',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)'
-        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = 'none'
-      }}
+      className="nft-card"
+      onClick={onClick}
     >
-      <div style={{
-        border: '1px solid #000',
-        overflow: 'hidden',
-      }}>
+      <div className="nft-card-media">
         <VideodanzaPlayer 
           elements={composition.elements} 
           autoPlay={true}
-          muted={true}
+          muted={false}
         />
       </div>
-      <div style={{ 
-        padding: '2vh 1.5vw', 
-        background: '#fff', 
-        border: '1px solid #000', 
-        borderTop: 'none' 
-      }}>
-        <h3 style={{ 
-          fontSize: '0.9rem', 
-          fontWeight: 700, 
-          textTransform: 'uppercase', 
-          marginBottom: '0.5vh', 
-          lineHeight: 1.2 
-        }}>
-          VideoDanza #{tokenId + 1}
-        </h3>
-        <p style={{ 
-          fontSize: '0.75rem', 
-          fontFamily: "'Space Grotesk', sans-serif", 
-          color: '#666', 
-          fontWeight: 300,
-          margin: 0
-        }}>
+      <div className="nft-card-info">
+        <div className="nft-card-title">VideoDanza #{tokenId + 1}</div>
+        <div className="nft-card-meta">
           {composition.theme} • {composition.elements.length} capas
-        </p>
+        </div>
       </div>
     </div>
   )
@@ -98,7 +61,6 @@ const NFTCard = ({ tokenId, seed, onClick }: NFTCardProps) => {
 const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; onClose: () => void }) => {
   const composition = useGenerativeComposition(seed as `0x${string}`)
   
-  // Cerrar con Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -107,7 +69,6 @@ const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; o
     return () => window.removeEventListener('keydown', handleEscape)
   }, [onClose])
   
-  // Bloquear scroll del body
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
@@ -117,83 +78,27 @@ const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; o
 
   return (
     <div 
+      className="modal-overlay"
       onClick={onClose}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0,0,0,0.85)',
-        zIndex: 2000,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: '2vh 2vw',
-        overflowY: 'auto',
-      }}
     >
       <div 
+        className="modal-content"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: '#fff',
-          border: '1px solid #000',
-          maxWidth: '900px',
-          width: '100%',
-          marginTop: '4vh',
-          marginBottom: '4vh',
-        }}
       >
-        {/* Header del modal */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '2vh 2vw',
-          borderBottom: '1px solid #e8e8e8',
-        }}>
-          <h2 style={{ 
-            fontSize: '1.2rem', 
-            fontWeight: 700, 
-            textTransform: 'capitalize',
-            margin: 0
-          }}>
-            VideoDanza #{tokenId + 1} — {composition.theme}
+        <div className="modal-header">
+          <h2 style={{ fontSize: '1rem', margin: 0 }}>
+            VideoDanza #{tokenId + 1} — <span className="text-accent">{composition.theme}</span>
           </h2>
           <button 
+            className="modal-close"
             onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: '2px solid #000',
-              fontSize: '1.2rem',
-              cursor: 'pointer',
-              padding: '0.5rem 1rem',
-              color: '#000',
-              fontWeight: 'bold',
-              lineHeight: 1,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#000'
-              e.currentTarget.style.color = '#fff'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = '#000'
-            }}
           >
             ✕
           </button>
         </div>
 
-        {/* Contenido del modal */}
-        <div style={{ padding: '3vh 2vw' }}>
-          {/* Video player */}
-          <div style={{
-            border: '1px solid #000',
-            overflow: 'hidden',
-            marginBottom: '3vh',
-          }}>
+        <div className="modal-body">
+          <div style={{ border: '1px solid var(--border-bright)', marginBottom: '1.5rem' }}>
             <VideodanzaPlayer 
               elements={composition.elements} 
               autoPlay={true}
@@ -201,50 +106,35 @@ const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; o
             />
           </div>
 
-          {/* Detalles */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-            gap: '1rem',
-            marginBottom: '3vh'
-          }}>
-            <div style={{ padding: '1.5vh 1vw', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, color: '#666', marginBottom: '0.5vh' }}>Tema</div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{composition.theme}</div>
+          <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
+            <div className="stat-item">
+              <div className="stat-label">Tema</div>
+              <div className="stat-value">{composition.theme}</div>
             </div>
-            <div style={{ padding: '1.5vh 1vw', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, color: '#666', marginBottom: '0.5vh' }}>Capas</div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{composition.elements.length}</div>
+            <div className="stat-item">
+              <div className="stat-label">Capas</div>
+              <div className="stat-value">{composition.elements.length}</div>
             </div>
-            <div style={{ padding: '1.5vh 1vw', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, color: '#666', marginBottom: '0.5vh' }}>Duración</div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{composition.totalDuration.toFixed(1)}s</div>
+            <div className="stat-item">
+              <div className="stat-label">Duración</div>
+              <div className="stat-value">{composition.totalDuration.toFixed(1)}s</div>
             </div>
-            <div style={{ padding: '1.5vh 1vw', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, color: '#666', marginBottom: '0.5vh' }}>Audio</div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{(composition.audioIntensity * 100).toFixed(0)}%</div>
+            <div className="stat-item">
+              <div className="stat-label">Audio</div>
+              <div className="stat-value">{(composition.audioIntensity * 100).toFixed(0)}%</div>
             </div>
           </div>
 
-          {/* Videos utilizados */}
-          <div style={{ marginBottom: '3vh' }}>
-            <h4 style={{ 
-              fontSize: '0.7rem', 
-              textTransform: 'uppercase', 
-              fontWeight: 700, 
-              marginBottom: '1vh',
-              color: '#666'
-            }}>
-              Videos utilizados
-            </h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div className="data-panel-label">Videos utilizados</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
               {composition.elements.map((el, idx) => (
                 <span key={idx} style={{
                   padding: '0.4rem 0.8rem',
-                  background: '#f5f5f5',
-                  border: '1px solid #e0e0e0',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border-bright)',
                   fontSize: '0.7rem',
-                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontFamily: "'JetBrains Mono', monospace",
                 }}>
                   {el.videoName}
                 </span>
@@ -252,25 +142,16 @@ const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; o
             </div>
           </div>
 
-          {/* Seed */}
           <div>
-            <h4 style={{ 
-              fontSize: '0.7rem', 
-              textTransform: 'uppercase', 
-              fontWeight: 700, 
-              marginBottom: '1vh',
-              color: '#666'
-            }}>
-              Seed
-            </h4>
+            <div className="data-panel-label">Seed</div>
             <code style={{ 
               fontSize: '0.7rem', 
               wordBreak: 'break-all', 
               display: 'block', 
               padding: '1rem', 
-              background: '#f5f5f5',
-              border: '1px solid #e0e0e0',
-              fontFamily: "'Space Grotesk', sans-serif",
+              background: 'var(--surface)',
+              border: '1px solid var(--border-bright)',
+              fontFamily: "'JetBrains Mono', monospace",
             }}>
               {seed}
             </code>
@@ -279,6 +160,12 @@ const NFTModal = ({ tokenId, seed, onClose }: { tokenId: number; seed: string; o
       </div>
     </div>
   )
+}
+
+const TimeDisplay = () => {
+  const [time, setTime] = useState<string>('')
+  useEffect(() => { setTime(Date.now().toString()) }, [])
+  return <>{time}</>
 }
 
 export const Gallery = () => {
@@ -374,52 +261,67 @@ export const Gallery = () => {
 
   return (
     <main>
-      <section style={{ marginBottom: '8vh', borderTop: '1px solid #000', paddingTop: '6vh' }}>
-        <h1 style={{ marginBottom: '3vh' }}>GALERÍA</h1>
+      <div className="page-content">
+        <section className="hero-section">
+          <h1>GALERÍA</h1>
 
-        {loading ? (
-          <p className="intro">Cargando tus VideoDanzas desde la blockchain...</p>
-        ) : error ? (
-          <p className="intro" style={{ color: '#d00', textAlign: 'center' }}>
-            {error}
-            <br /><br />
-            <small>
-              Contrato: <code style={{ background: '#eee', padding: '0.2rem 0.4rem' }}>
-                0x4986712a18eEc3559C29fC421Ad6D4BE38Faf763
-              </code><br />
-              Sepolia Testnet: Chain ID 11155111
-            </small>
-          </p>
-        ) : nfts.length > 0 ? (
-          <>
-            <p className="intro">
-              Tienes <strong>{nfts.length}</strong> VideoDanzas minteadas en Sepolia.
-            </p>
-
-            <section style={{ marginTop: '6vh' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '2.5vw',
-              }}>
-                {nfts.map(({ tokenId, seed }) => (
-                  <NFTCard
-                    key={tokenId}
-                    tokenId={tokenId}
-                    seed={seed}
-                    onClick={() => setSelectedNFT({ tokenId, seed })}
-                  />
-                ))}
+          {loading ? (
+            <p className="intro">Cargando tus VideoDanzas desde la blockchain...</p>
+          ) : error ? (
+            <div className="message error">
+              {error}
+              <div className="mt-2 text-muted" style={{ fontSize: '0.8rem' }}>
+                Contrato: <code>0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828</code>
+                <br />
+                Sepolia Testnet: Chain ID 11155111
               </div>
-            </section>
-          </>
-        ) : (
-          <p className="intro">
-            No tienes VideoDanzas minteadas aún.
-            Ve a "Crear NFT" para acuñar tu primera composición.
-          </p>
-        )}
-      </section>
+            </div>
+          ) : nfts.length > 0 ? (
+            <>
+              <p className="intro">
+                Tienes <span className="text-accent">{nfts.length}</span> VideoDanzas minteadas en Sepolia.
+              </p>
+
+              <section className="mt-3">
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '1px',
+                  background: 'var(--border)',
+                  border: '1px solid var(--border-bright)',
+                }}>
+                  {nfts.map(({ tokenId, seed }) => (
+                    <NFTCard
+                      key={tokenId}
+                      tokenId={tokenId}
+                      seed={seed}
+                      onClick={() => setSelectedNFT({ tokenId, seed })}
+                    />
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <p className="intro text-dim">
+              No tienes VideoDanzas minteadas aún.
+              <br />
+              Ve a <span className="text-accent">[_mint]</span> para acuñar tu primera composición.
+            </p>
+          )}
+        </section>
+
+        <section className="mt-3">
+          <div className="telemetry">
+            <span>STATUS: {loading ? 'LOADING' : error ? 'ERROR' : 'READY'}</span>
+            <span>│</span>
+            <span>TOKENS: {nfts.length}</span>
+            <span>│</span>
+            <span>NETWORK: SEPOLIA</span>
+            <span>│</span>
+            <span>TIMESTAMP: </span><TimeDisplay />
+          </div>
+        </section>
+      </div>
 
       {selectedNFT && (
         <NFTModal

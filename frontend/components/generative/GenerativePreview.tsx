@@ -11,24 +11,19 @@ interface GenerativePreviewProps {
 export const GenerativePreview = ({ composition, isLoading = false }: GenerativePreviewProps) => {
   if (!composition || isLoading) {
     return (
-      <div style={{ marginTop: '4vh', marginBottom: '4vh' }}>
-        <div style={{ marginBottom: '1.5vh' }}>
-          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666' }}>
-            Preview generativo
-          </div>
-        </div>
-        <div
-          style={{
-            border: '1px solid #e8e8e8',
-            aspectRatio: '3/4',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#999',
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: '0.95rem',
-          }}
-        >
+      <div style={{
+        border: '1px solid var(--border-bright)',
+        aspectRatio: '16/9',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--surface)',
+        color: 'var(--text-muted)',
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '0.85rem',
+      }}>
+        <div style={{ textAlign: 'center', padding: '1rem' }}>
+          <div style={{ marginBottom: '0.5rem', color: 'var(--accent)', opacity: 0.5 }}>◈</div>
           {isLoading ? 'Generando composición...' : 'Ingresa una semilla para ver preview'}
         </div>
       </div>
@@ -36,18 +31,12 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
   }
 
   return (
-    <div style={{ marginTop: '4vh', marginBottom: '4vh' }}>
-      <div style={{ marginBottom: '1.5vh' }}>
-        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px', color: '#666' }}>
-          Preview generativo
-        </div>
-      </div>
-
-      <div style={{ position: 'relative', border: '1px solid #e8e8e8' }}>
+    <div>
+      <div style={{ position: 'relative', border: '1px solid var(--border-bright)' }}>
         <VideodanzaPlayer 
           elements={composition.elements} 
           autoPlay={true}
-          muted={true}
+          muted={false}
         />
         
         <div
@@ -56,39 +45,44 @@ export const GenerativePreview = ({ composition, isLoading = false }: Generative
             bottom: 0,
             left: 0,
             right: 0,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
-            padding: '2vh 2vw',
-            color: '#fff',
+            background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+            padding: '1rem',
             zIndex: 100,
           }}
         >
-          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5vh' }}>
+          <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.3rem', color: 'var(--accent)' }}>
             {composition.theme}
           </div>
-          <div style={{ fontSize: '0.8rem', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 300 }}>
-            {composition.elements.length} capas • {composition.totalDuration.toFixed(1)}s • {composition.hash}
+          <div style={{ fontSize: '0.7rem', fontFamily: "'JetBrains Mono', monospace", color: 'var(--text-dim)' }}>
+            {composition.elements.length} capas • {composition.totalDuration.toFixed(1)}s • {composition.hash.slice(0, 8)}...
           </div>
         </div>
       </div>
 
       {composition.elements.length > 0 && (
-        <div style={{ marginTop: '2vh', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1vw' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', 
+          gap: '1px',
+          background: 'var(--border)',
+          border: '1px solid var(--border-bright)',
+          marginTop: '1px',
+        }}>
           {composition.elements.slice(0, 6).map((element, idx) => (
             <div
               key={idx}
               style={{
-                padding: '1.2vh 1vw',
-                border: '1px solid #e8e8e8',
-                background: '#f5f5f5',
-                fontSize: '0.7rem',
-                fontFamily: "'Space Grotesk', sans-serif",
+                padding: '0.8rem',
+                background: 'var(--surface)',
+                fontSize: '0.65rem',
+                fontFamily: "'JetBrains Mono', monospace",
               }}
             >
-              <div style={{ fontWeight: 600, marginBottom: '0.3vh', fontSize: '0.65rem' }}>Capa {idx + 1}</div>
-              <div style={{ color: '#666', fontSize: '0.65rem', marginBottom: '0.3vh', wordBreak: 'break-word' }}>
-                {element.videoName.slice(0, 15)}
+              <div style={{ fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text)' }}>Capa {idx + 1}</div>
+              <div style={{ color: 'var(--text-muted)', marginBottom: '0.3rem', wordBreak: 'break-word' }}>
+                {element.videoName.slice(0, 12)}..
               </div>
-              <div style={{ color: '#999', fontSize: '0.6rem' }}>
+              <div style={{ color: 'var(--accent)', fontSize: '0.6rem' }}>
                 {element.blendMode} • {Math.round(element.opacity * 100)}%
               </div>
             </div>
