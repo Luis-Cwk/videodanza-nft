@@ -1,7 +1,7 @@
 {
   "name": "entropiav2",
   "description": "Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt).",
-  "url": "https://entropiav2-production.up.railway.app",
+  "url": "https://my-agent-tau.vercel.app",
   "version": "2.0.0",
   "capabilities": {
     "streaming": true,

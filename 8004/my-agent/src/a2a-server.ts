@@ -138,9 +138,13 @@ async function handleMessageSend(
   // Get conversation history for context-aware responses
   const history = conversationHistory.get(contextId) || [];
 
-  // Check if user is requesting a smart contract
-  const contractKeywords = ['contrato', 'smart contract', 'nft', 'token', 'dao', 'marketplace', 'solidity', 'erc20', 'erc721'];
-  const isContractRequest = contractKeywords.some(keyword => userText.toLowerCase().includes(keyword.toLowerCase()));
+  // Check if user is requesting a smart contract (NOT minting an existing NFT)
+  // Distinguish: "quiero crear un contrato" vs "quiero mintear mi composicion"
+  const contractKeywords = ['crear contrato', 'generar contrato', 'escribir contrato', 'smart contract', 'codigo solidity', 'erc20', 'erc721', 'deploy contract', 'desplegar contrato'];
+  const mintKeywords = ['mintear', 'acunar', 'mint', 'mi nft', 'mi composicion', 'mi pieza'];
+  
+  const isMintRequest = mintKeywords.some(keyword => userText.toLowerCase().includes(keyword.toLowerCase()));
+  const isContractRequest = !isMintRequest && contractKeywords.some(keyword => userText.toLowerCase().includes(keyword.toLowerCase()));
   
   // Detect contract type
   let contractType = '';
