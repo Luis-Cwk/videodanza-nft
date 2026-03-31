@@ -1,0 +1,60 @@
+{
+  "name": "entropiav2",
+  "description": "Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt).",
+  "url": "https://entropiav2-production.up.railway.app",
+  "version": "2.0.0",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "authentication": null,
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "skills": [
+    {
+      "id": "videodanza_composition",
+      "name": "Composicion de VideoDanza Generativa",
+      "description": "Genera composiciones unicas de video y musica a partir de semillas deterministicas. Cada parametro emerge de un algoritmo reproducible.",
+      "tags": ["generative-art", "dance", "video", "composition", "deterministic", "seed"],
+      "examples": [
+        "Genera una composicion melancholica con cuerpo femenino",
+        "Crea una semilla para una pieza de danza abstracta",
+        "Quiero una composicion alegre con perspectiva de bailarin"
+      ]
+    },
+    {
+      "id": "smart_contract_generation",
+      "name": "Generacion de Contratos Inteligentes",
+      "description": "Crea contratos Solidity seguros para NFTs, dynamic NFTs, tokens ERC-20, marketplaces y DAOs usando OpenZeppelin.",
+      "tags": ["solidity", "blockchain", "smart-contracts", "nft", "erc20", "erc721", "openzeppelin"],
+      "examples": [
+        "Crea un NFT dinamico que evoluciona con el tiempo",
+        "Genera un contrato NFT con seed deterministica",
+        "Necesito un marketplace para vender NFTs de arte"
+      ]
+    },
+    {
+      "id": "nft_description",
+      "name": "Descripcion Poetica de NFTs",
+      "description": "Genera descripciones artisticas y poeticas para NFTs de videodanza basadas en sus parametros de composicion.",
+      "tags": ["nft", "description", "poetry", "generative-art", "metadata"],
+      "examples": [
+        "Escribe una descripcion poetica para mi NFT de danza",
+        "Genera metadata artistica para token #42"
+      ]
+    },
+    {
+      "id": "blockchain_consulting",
+      "name": "Consultoria Blockchain",
+      "description": "Explica conceptos de Web3, DeFi, NFTs, ERC-8004 y mejores practicas de seguridad en contratos inteligentes.",
+      "tags": ["web3", "education", "defi", "security", "erc8004", "agents"],
+      "examples": [
+        "Explica como funciona el estandar ERC-8004",
+        "Cuales son las mejores practicas para auditar contratos?",
+        "Que es un agente A2A?"
+      ]
+    }
+  ],
+  "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJiZyIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSJoc2woMjgwLCA3MCUsIDE1JSkiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9ImhzbCgwLCAwJSwgNSUpIi8+PC9yYWRpYWxHcmFkaWVudD48ZmlsdGVyIGlkPSJnbG93IiB4PSItNTAlIiB5PSItNTAlIiB3aWR0aD0iMjAwJSIgaGVpZ2h0PSIyMDAlIj48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIzIiByZXN1bHQ9ImJsdXIiLz48ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImJsdXIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSJ1cmwoI2JnKSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSIyIiBmaWxsPSJoc2woMjgwLCA5MCUsIDYwJSkiIG9wYWNpdHk9IjAuNyI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIwLjcuMC43IiBkdXI9IjNzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjQxMCIgY3k9IjEyMCIgcj0iMyIgZmlsbD0iaHNsKDI4MCwgOTAlLCA2MCUpIiBvcGFjaXR5PSIwLjYiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC42LjAuNiIgZHVyPSI0cyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz48L2NpcmNsZT48Y2lyY2xlIGN4PSI3NSIgY3k9IjI1NiIgcj0iMiIgZmlsbD0iaHNsKDI4MCwgOTAlLCA2MCUpIiBvcGFjaXR5PSIwLjUiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC41LjAuNSIgZHVyPSIycyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz48L2NpcmNsZT48Y2lyY2xlIGN4PSI0MzUiIGN5PSIyODAiIHI9IjIiIGZpbGw9ImhzbCgyODAsIDkwJSwgNjAlKSIgb3BhY2l0eT0iMC42Ij48YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJvcGFjaXR5IiB2YWx1ZXM9IjAuNi4wLjYiIGR1cj0iM3MiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMTUwIiBjeT0iNDAwIiByPSIzIiBmaWxsPSJoc2woMjgwLCA5MCUsIDYwJSkiIG9wYWNpdHk9IjAuNCI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIwLjQuMC40IiBkdXI9IjVzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjM2MCIgY3k9IjM4MCIgcj0iMiIgZmlsbD0iaHNsKDI4MCwgOTAlLCA2MCUpIiBvcGFjaXR5PSIwLjUiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC41LjAuNSIgZHVyPSI0cyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz48L2NpcmNsZT48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjgwIiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCgyODAsIDkwJSwgNjAlKSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjMiPjxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9InJvdGF0ZSIgZnJvbT0iMCAyNTYgMjU2IiB0bz0iMzYwIDI1NiAyNTYiIGR1cj0iNjBzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTIwIiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCgyODAsIDkwJSwgNjAlKSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMiI+PGFuaW1hdGVUcmFuc2Zvcm0gYXR0cmlidXRlTmFtZT0icm90YXRlIiBmcm9tPSIzNjAgMjU2IDI1NiIgdG89IjAgMjU2IDI1NiIgZHVyPSI5MHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+PHBhdGggZD0iTTE1NiAyNTYgTDM1NiAyNTYiIHN0cm9rZT0iaHNsKDI4MCwgOTAlLCA2MCUpIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4yIi8+PHBhdGggZD0iTTI1NiAxNTYgTDI1NiAzNTYiIHN0cm9rZT0iaHNsKDI4MCwgOTAlLCA2MCUpIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4yIi8+PHRleHQgeD0iMjU2IiB5PSIyNzAiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9ImhzbCgyODAsIDkwJSwgNjAlKSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgb3BhY2l0eT0iMC44Ij5FPC90ZXh0Pjwvc3ZnPg=="
+}

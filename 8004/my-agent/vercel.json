@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/.well-known/agent-card.json", "destination": "/api/agent-card" },
+    { "source": "/a2a", "destination": "/api/a2a" },
+    { "source": "/mcp", "destination": "/api/mcp" }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/agent-card.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, s-maxage=3600, stale-while-revalidate=86400" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ],
+  "functions": {
+    "api/a2a.ts": {
+      "maxDuration": 60
+    },
+    "api/mcp.ts": {
+      "maxDuration": 60
+    }
+  }
+}
