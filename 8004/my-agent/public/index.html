@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>entropiav2 - VideoDanza Generativa Agent</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 700px;
+      width: 100%;
+    }
+    .header {
+      border-left: 3px solid #6366f1;
+      padding-left: 1rem;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #fff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #111118;
+      border: 1px solid #222;
+      border-radius: 4px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .status-text {
+      font-size: 0.8rem;
+      color: #22c55e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .endpoints {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .endpoint {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: #111118;
+      border: 1px solid #222;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      transition: border-color 0.2s;
+    }
+    .endpoint:hover {
+      border-color: #6366f1;
+    }
+    .endpoint-method {
+      color: #6366f1;
+      font-weight: 700;
+      min-width: 50px;
+    }
+    .endpoint-path {
+      color: #aaa;
+      flex: 1;
+      margin: 0 1rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .endpoint a {
+      color: #818cf8;
+      text-decoration: none;
+      font-size: 0.7rem;
+    }
+    .endpoint a:hover {
+      text-decoration: underline;
+    }
+    .skills {
+      margin-bottom: 2rem;
+    }
+    .skills h3 {
+      font-size: 0.7rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.75rem;
+    }
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .skill-tag {
+      padding: 0.3rem 0.7rem;
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      color: #a5b4fc;
+    }
+    .footer {
+      border-top: 1px solid #222;
+      padding-top: 1rem;
+      font-size: 0.65rem;
+      color: #555;
+      display: flex;
+      justify-content: space-between;
+    }
+    .footer a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>entropiav2</h1>
+      <p class="subtitle">Agente creativo de VideoDanza Generativa &middot; ERC-8004 &middot; Creado por Petra</p>
+    </div>
+
+    <div class="status">
+      <div class="status-dot"></div>
+      <span class="status-text">Agente activo &middot; v2.0.0</span>
+    </div>
+
+    <div class="endpoints">
+      <div class="endpoint">
+        <span class="endpoint-method">GET</span>
+        <span class="endpoint-path">/.well-known/agent-card.json</span>
+        <a href="/.well-known/agent-card.json" target="_blank">ver &rarr;</a>
+      </div>
+      <div class="endpoint">
+        <span class="endpoint-method">POST</span>
+        <span class="endpoint-path">/a2a</span>
+        <span style="color:#555;font-size:0.7rem">JSON-RPC A2A</span>
+      </div>
+      <div class="endpoint">
+        <span class="endpoint-method">POST</span>
+        <span class="endpoint-path">/mcp</span>
+        <span style="color:#555;font-size:0.7rem">MCP Tools</span>
+      </div>
+    </div>
+
+    <div class="skills">
+      <h3>Capacidades</h3>
+      <div class="skill-tags">
+        <span class="skill-tag">VideoDanza Composition</span>
+        <span class="skill-tag">Smart Contracts</span>
+        <span class="skill-tag">NFT Descriptions</span>
+        <span class="skill-tag">Blockchain Consulting</span>
+        <span class="skill-tag">Generative Art</span>
+        <span class="skill-tag">Dance</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>ERC-8004 Agent on Ethereum Sepolia</span>
+      <a href="https://www.8004scan.io" target="_blank">8004scan &rarr;</a>
+    </div>
+  </div>
+</body>
+</html>
