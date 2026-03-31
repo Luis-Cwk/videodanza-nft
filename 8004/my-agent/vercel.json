@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "echo 'No build needed - serverless functions only'",
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/.well-known/agent-card.json", "destination": "/api/agent-card" },
     { "source": "/a2a", "destination": "/api/a2a" },
