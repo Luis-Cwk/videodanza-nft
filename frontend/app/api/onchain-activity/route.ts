@@ -1,6 +1,8 @@
 import { ethers } from 'ethers'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828'
 const SEPOLIA_RPC = process.env.SEPOLIA_RPC || 'https://ethereum-sepolia.publicnode.com'
@@ -113,7 +115,14 @@ export async function GET() {
         reputation: reputationData,
         activity,
       }),
-      { headers: { 'Content-Type': 'application/json' } }
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
     )
   } catch (error) {
     return new Response(
@@ -123,7 +132,12 @@ export async function GET() {
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
       }
     )
   }

@@ -53,17 +53,26 @@ function shortSeed(seed: string) {
 export function OnchainActivityPanel() {
   const [data, setData] = useState<ActivityResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const load = async () => {
+  const load = async (isManual = false) => {
     try {
-      setLoading(true)
+      if (isManual) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
       const res = await fetch('/api/onchain-activity', { cache: 'no-store' })
       const json = await res.json()
       setData(json)
     } catch {
       setData({ ok: false, error: 'No se pudo cargar actividad on-chain' })
     } finally {
-      setLoading(false)
+      if (isManual) {
+        setRefreshing(false)
+      } else {
+        setLoading(false)
+      }
     }
   }
 
@@ -71,7 +80,7 @@ export function OnchainActivityPanel() {
     void load()
     const id = setInterval(() => {
       void load()
-    }, 30000)
+    }, 10000)
     return () => clearInterval(id)
   }, [])
 
@@ -127,6 +136,24 @@ export function OnchainActivityPanel() {
             <span>STATUS: {loading ? 'SYNC...' : data?.ok ? 'LIVE' : 'ERROR'}</span>
             <span>│</span>
             <span>UPDATED: {lastUpdate}</span>
+            <span>│</span>
+            <button
+              type="button"
+              onClick={() => void load(true)}
+              disabled={refreshing || loading}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
+                fontSize: '0.65rem',
+                fontFamily: "'JetBrains Mono', monospace",
+                padding: '0.15rem 0.4rem',
+                cursor: refreshing || loading ? 'not-allowed' : 'pointer',
+                opacity: refreshing || loading ? 0.5 : 1,
+              }}
+            >
+              {refreshing ? 'ACTUALIZANDO...' : 'ACTUALIZAR AHORA'}
+            </button>
           </div>
 
           {data?.error && (
