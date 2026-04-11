@@ -114,16 +114,16 @@ async function main() {
   // Add OASF skills and domains for discoverability
   // Taxonomy: https://github.com/agntcy/oasf
   console.log('🎯 Adding OASF skills...');
-  agent.addSkill('creative_arts/visual_arts/generative_art');
-  agent.addSkill('creative_arts/performing_arts/dance');
-  agent.addSkill('technology/software_engineering/blockchain/smart_contracts');
-  agent.addSkill('technology/artificial_intelligence/natural_language_processing');
+  agent.addSkill('images_computer_vision/image_generation', true);
+  agent.addSkill('multi_modal/image_processing/text_to_image', true);
+  agent.addSkill('natural_language_processing/creative_content/storytelling', true);
+  agent.addSkill('analytical_skills/coding_skills/text_to_code', true);
 
   console.log('🌍 Adding OASF domains...');
-  agent.addDomain('arts_and_entertainment/visual_arts');
-  agent.addDomain('arts_and_entertainment/performing_arts');
-  agent.addDomain('technology/software_engineering');
-  agent.addDomain('technology/artificial_intelligence');
+  agent.addDomain('media_and_entertainment/content_creation', true);
+  agent.addDomain('media_and_entertainment/digital_media', true);
+  agent.addDomain('technology/blockchain/smart_contracts', true);
+  agent.addDomain('technology/software_engineering/software_development', true);
 
   // Register on-chain with IPFS
   console.log('⛓️  Registering agent on Ethereum Sepolia...');
