@@ -24,11 +24,15 @@ export async function POST(req: Request) {
       })
     }
 
+    const requestUrl = new URL(req.url)
+    const appOrigin = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin
+    const animationUrl = `${appOrigin}/agent?seed=${encodeURIComponent(seed)}`
+
     const metadata = {
       name: `VideoDanza #${Math.floor(Math.random() * 100000)}`,
       description: 'Pieza generativa de videodanza.',
       image: 'ipfs://QmajZaDfCnZzGGqZEJKdEaKDYVQd1qXnbMz8x4NHUcmBb',
-      animation_url: `ipfs://${seed}`,
+      animation_url: animationUrl,
       attributes: [
         { trait_type: 'Seed', value: seedPhrase || seed },
         { trait_type: 'Theme', value: composition.theme },
