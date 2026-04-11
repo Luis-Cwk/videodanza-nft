@@ -38,7 +38,8 @@ function resolveEndpoints() {
   const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
 
   return {
-    a2a: AGENT_CONFIG.a2aEndpoint || `${normalizedBase}/a2a`,
+    // A2A discovery should point to the agent card URL
+    a2a: AGENT_CONFIG.a2aEndpoint || `${normalizedBase}/.well-known/agent-card.json`,
     mcp: AGENT_CONFIG.mcpEndpoint || `${normalizedBase}/mcp`,
   };
 }
