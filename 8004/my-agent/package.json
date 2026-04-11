@@ -7,7 +7,8 @@
     "build": "tsc",
     "register": "tsx src/register.ts",
     "start:a2a": "tsx src/a2a-server.ts",
-    "start:mcp": "tsx src/mcp-server.ts"
+    "start:mcp": "tsx src/mcp-server.ts",
+    "give-feedback": "node scripts/give-feedback.mjs"
   },
   "dependencies": {
     "agent0-sdk": "latest",

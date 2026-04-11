@@ -68,6 +68,33 @@ export default function AgentPage() {
 
         <section className="mt-4">
           <div className="data-panel">
+            <div className="data-panel-label" data-coord="FEEDBACK.001">
+              Dejar Feedback On-Chain
+            </div>
+            <div style={{ marginTop: '1rem', display: 'grid', gap: '0.65rem' }}>
+              <p className="text-dim" style={{ margin: 0, fontSize: '0.84rem' }}>
+                Si eres dev o tester, ayúdanos a subir reputación real del agente dejando feedback on-chain en Sepolia.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                <a className="btn-fui" href="https://www.8004scan.io/agents/sepolia/2387" target="_blank" rel="noopener noreferrer">Ver agente 2387</a>
+                <a className="btn-fui" href="https://my-agent-tau.vercel.app/.well-known/agent-card.json" target="_blank" rel="noopener noreferrer">Ver Agent Card</a>
+              </div>
+              <div style={{ border: '1px solid var(--border)', background: 'var(--surface)', padding: '0.75rem' }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  Pasos rapidos:
+                </div>
+                <ol style={{ margin: '0.45rem 0 0 1rem', padding: 0, fontSize: '0.8rem', color: 'var(--text)' }}>
+                  <li>Prueba el estudio (/agent) o el MCP del agente.</li>
+                  <li>Ejecuta el script de feedback con tu wallet de Sepolia.</li>
+                  <li>Comparte tx hash + comentario para trazabilidad.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-4">
+          <div className="data-panel">
             <div className="data-panel-label" data-coord="STUDIO.001">
               Como Funciona el Estudio
             </div>

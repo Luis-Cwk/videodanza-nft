@@ -1,110 +1,79 @@
-# entropiav2
+# entropiav2 (ERC-8004 Agent)
 
-Eres un agente que habla espanol latino, eres un desarrollador creativo interesado en la interseccion de blockchain a IA y estas experimentando con arte de nuevos medios, net art, coreografia expandida, danza generativa y meta improvisacion.
+Agente creativo para VideoDanza Generativa. Soporta A2A y MCP sobre Sepolia, con registro ERC-8004 activo.
 
-## Quick Start
+## Estado actual
 
-### 1. Install dependencies
+- Agent ID: `11155111:2387`
+- Explorer: `https://www.8004scan.io/agents/sepolia/2387`
+- Agent card: `https://my-agent-tau.vercel.app/.well-known/agent-card.json`
+- A2A endpoint: `https://my-agent-tau.vercel.app/a2a`
+- MCP endpoint: `https://my-agent-tau.vercel.app/mcp`
+
+## Requisitos
+
+- Node.js 18+
+- Wallet Sepolia con ETH para gas
+- Variables en `.env`
+
+```env
+PRIVATE_KEY=0x...
+PINATA_JWT=...
+RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
+
+# LLM
+LLM_PROVIDER=openrouter
+LLM_MODEL=qwen/qwen3-coder:free
+OPENROUTER_API_KEY=...
+
+# Opcional
+AGENT_ID=11155111:2387
+AGENT_BASE_URL=https://my-agent-tau.vercel.app
+```
+
+## Scripts
 
 ```bash
 npm install
+npm run build
+npm run register
+npm run start:a2a
+npm run start:mcp
+npm run give-feedback
 ```
 
-### 2. Configure environment
+## Probar MCP rápido
 
-Edit `.env` and add your API keys:
+```bash
+curl -X POST https://my-agent-tau.vercel.app/mcp \
+  -H "Content-Type: application/json" \
+  -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}"
+```
+
+## Script para feedback on-chain
+
+Este repo incluye `scripts/give-feedback.mjs` para que testers suban reputación real.
+
+Variables opcionales para el script:
 
 ```env
-# Already set if wallet was auto-generated
-PRIVATE_KEY=your_private_key
-
-# Get from https://pinata.cloud (free tier works)
-PINATA_JWT=your_pinata_jwt
-
-# Get from https://platform.openai.com
-OPENAI_API_KEY=your_openai_key
+FEEDBACK_AGENT_ID=11155111:2387
+FEEDBACK_PRIVATE_KEY=0x...
+FEEDBACK_VALUE=5
+FEEDBACK_TAG1=studio
+FEEDBACK_TAG2=videodanza
+FEEDBACK_ENDPOINT=https://my-agent-tau.vercel.app/.well-known/agent-card.json
+FEEDBACK_REASON=Probado flujo A2A/MCP + estudio creativo. Buena experiencia.
 ```
 
-### 3. Fund your wallet
-
-Your agent wallet: `0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa`
-
-Get testnet ETH from: https://cloud.google.com/application/web3/faucet/ethereum/sepolia
-
-### 4. Register on-chain
+Ejecutar:
 
 ```bash
-npm run register
+npm run give-feedback
 ```
 
-This will:
-- Upload your agent metadata to IPFS
-- Register your agent on Ethereum Sepolia
-- Output your agent ID and 8004scan link
+## Notas de operación
 
-### 5. Start the A2A server
-
-```bash
-npm run start:a2a
-```
-
-Test locally: http://localhost:3000/.well-known/agent-card.json
-
-### 6. Start the MCP server
-
-```bash
-npm run start:mcp
-```
-
-## Project Structure
-
-```
-entropiav2/
-├── src/
-│   ├── register.ts      # Registration script
-│   ├── agent.ts         # LLM logic
-│   └── a2a-server.ts   # A2A server
-│   └── mcp-server.ts   # MCP server
-├── .env                 # Environment variables (keep secret!)
-└── package.json
-```
-
-## OASF Skills & Domains (Optional)
-
-Add capabilities and domain expertise to help others discover your agent.
-
-Edit `src/register.ts` and uncomment/add before `registerIPFS()`:
-
-```typescript
-// Add skills (what your agent can do)
-agent.addSkill('natural_language_processing/natural_language_generation/summarization');
-agent.addSkill('analytical_skills/coding_skills/text_to_code');
-
-// Add domains (areas of expertise)  
-agent.addDomain('technology/software_engineering');
-agent.addDomain('finance_and_business/investment_services');
-```
-
-Browse the full taxonomy: https://schema.oasf.outshift.com/0.8.0
-
-## Going Live
-
-By default, your agent is registered with `active: false`. This is intentional - it lets you test without appearing in explorer listings.
-
-When you're ready for production:
-1. Edit `src/register.ts` and change `agent.setActive(false)` to `agent.setActive(true)`
-2. Re-run `npm run register` to update your agent's metadata
-
-## Next Steps
-
-1. Update the endpoint URLs in `src/register.ts` with your production domain
-2. Customize the agent logic in `src/agent.ts`
-3. Deploy to a cloud provider (Vercel, Railway, etc.)
-4. Re-run `npm run register` if you change metadata
-
-## Resources
-
-- [ERC-8004 Standard](https://eips.ethereum.org/EIPS/eip-8004)
-- [8004scan Explorer](https://www.8004scan.io/)
-- [Agent0 SDK Docs](https://sdk.ag0.xyz/)
-- [OASF Taxonomy](https://github.com/8004-org/oasf)
+- `GET /mcp` devuelve `405 Method not allowed` por diseño. MCP usa `POST` JSON-RPC.
+- A2A se publica para discovery en `/.well-known/agent-card.json`.
+- El registro se actualiza sobre el agente existente (`2387`) para mantener continuidad reputacional.
