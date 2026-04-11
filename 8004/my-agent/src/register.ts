@@ -38,7 +38,7 @@ function resolveEndpoints() {
   const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
 
   return {
-    a2a: AGENT_CONFIG.a2aEndpoint || `${normalizedBase}/.well-known/agent-card.json`,
+    a2a: AGENT_CONFIG.a2aEndpoint || `${normalizedBase}/a2a`,
     mcp: AGENT_CONFIG.mcpEndpoint || `${normalizedBase}/mcp`,
   };
 }

@@ -20,7 +20,7 @@ export default function handler(req: any, res: any) {
   };
 
   if (typeof normalizedCard.a2aEndpoint === 'string') {
-    normalizedCard.a2aEndpoint = `${baseUrl}/.well-known/agent-card.json`;
+    normalizedCard.a2aEndpoint = `${baseUrl}/a2a`;
   }
 
   if (typeof normalizedCard.mcpEndpoint === 'string') {
