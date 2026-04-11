@@ -21,7 +21,6 @@ export default function AgentPage() {
   return (
     <main>
       <div className="page-content">
-        {/* HERO */}
         <section className="hero-section">
           <h1>ESTUDIO CREATIVO</h1>
           <p className="intro">
@@ -30,7 +29,15 @@ export default function AgentPage() {
           </p>
         </section>
 
-        {/* STUDIO: Chat + Preview */}
+        <section className="mt-3">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+            <a className="btn-fui" href="https://my-agent-tau.vercel.app/.well-known/agent-card.json" target="_blank" rel="noopener noreferrer">Agent Card</a>
+            <a className="btn-fui" href="https://my-agent-tau.vercel.app/a2a" target="_blank" rel="noopener noreferrer">A2A Endpoint</a>
+            <a className="btn-fui" href="https://my-agent-tau.vercel.app/mcp" target="_blank" rel="noopener noreferrer">MCP Endpoint</a>
+            <a className="btn-fui" href="https://www.8004scan.io/agents/sepolia/2387" target="_blank" rel="noopener noreferrer">8004scan / ID 2387</a>
+          </div>
+        </section>
+
         <section className="mt-4">
           <div style={{
             display: 'grid',
@@ -40,7 +47,6 @@ export default function AgentPage() {
             border: '1px solid var(--border-bright)',
             minHeight: '70vh',
           }}>
-            {/* Left: Agent Chat */}
             <div style={{ background: 'var(--bg)', minHeight: '70vh' }}>
               <AgentChat
                 onSeedSelect={handleSeedFromAgent}
@@ -48,7 +54,6 @@ export default function AgentPage() {
               />
             </div>
 
-            {/* Right: Composition Panel */}
             <div style={{ background: 'var(--bg)', minHeight: '70vh' }}>
               <CompositionPanel
                 suggestedSeed={suggestedSeed}
@@ -60,7 +65,6 @@ export default function AgentPage() {
 
         <OnchainActivityPanel />
 
-        {/* HOW IT WORKS */}
         <section className="mt-4">
           <div className="data-panel">
             <div className="data-panel-label" data-coord="STUDIO.001">
@@ -103,7 +107,6 @@ export default function AgentPage() {
           </div>
         </section>
 
-        {/* TELEMETRY */}
         <section className="mt-3" style={{ borderTop: '1px solid var(--border-bright)', paddingTop: '1rem' }}>
           <div className="telemetry">
             <span>MODE: STUDIO</span>

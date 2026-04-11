@@ -24,6 +24,28 @@ export default function HomePage() {
             <Link href="/mint" className="btn-fui btn-fui-primary">
               → Iniciar Generación
             </Link>
+            <Link href="/agent" className="btn-fui" style={{ marginLeft: '0.75rem' }}>
+              → Entrar al Estudio con Agente
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-3">
+          <div className="data-panel">
+            <div className="data-panel-label" data-coord="AGENT.ROOT">
+              Agente Conectado
+            </div>
+            <div style={{ marginTop: '1rem', display: 'grid', gap: '0.6rem' }}>
+              <p className="text-dim" style={{ margin: 0 }}>
+                Este sitio integra <span className="text-accent">entropiav2</span> para co-crear composiciones desde lenguaje natural.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                <a className="btn-fui" href="/agent">Abrir Estudio /agent</a>
+                <a className="btn-fui" href="https://my-agent-tau.vercel.app/.well-known/agent-card.json" target="_blank" rel="noopener noreferrer">Agent Card</a>
+                <a className="btn-fui" href="https://www.8004scan.io/agents/sepolia/2387" target="_blank" rel="noopener noreferrer">8004scan ID 2387</a>
+                <a className="btn-fui" href="/.well-known/agents" target="_blank" rel="noopener noreferrer">Manifest /well-known</a>
+              </div>
+            </div>
           </div>
         </section>
 
