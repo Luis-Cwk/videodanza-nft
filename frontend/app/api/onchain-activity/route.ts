@@ -107,9 +107,9 @@ export async function GET() {
         },
         links: {
           agent: `https://www.8004scan.io/agents/sepolia/${AGENT_ID}`,
-          owner: `https://www.8004scan.io/address/sepolia/${AGENT_OWNER}`,
-          identityContract: `https://www.8004scan.io/address/sepolia/${AGENT_IDENTITY_CONTRACT}`,
-          reputationContract: `https://www.8004scan.io/address/sepolia/${AGENT_REPUTATION_CONTRACT}`,
+          owner: `https://sepolia.etherscan.io/address/${AGENT_OWNER}`,
+          identityContract: `https://sepolia.etherscan.io/address/${AGENT_IDENTITY_CONTRACT}`,
+          reputationContract: `https://sepolia.etherscan.io/address/${AGENT_REPUTATION_CONTRACT}`,
           collection: `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`,
         },
         reputation: reputationData,

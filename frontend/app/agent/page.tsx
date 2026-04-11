@@ -35,6 +35,7 @@ export default function AgentPage() {
             <a className="btn-fui" href="https://my-agent-tau.vercel.app/a2a" target="_blank" rel="noopener noreferrer">A2A Endpoint</a>
             <a className="btn-fui" href="https://my-agent-tau.vercel.app/mcp" target="_blank" rel="noopener noreferrer">MCP Endpoint</a>
             <a className="btn-fui" href="https://www.8004scan.io/agents/sepolia/2387" target="_blank" rel="noopener noreferrer">8004scan / ID 2387</a>
+            <a className="btn-fui" href="https://sepolia.etherscan.io/address/0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa" target="_blank" rel="noopener noreferrer">Owner en Etherscan</a>
           </div>
         </section>
 
