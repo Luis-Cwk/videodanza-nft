@@ -93,16 +93,29 @@ async function handleMessageSend(params: {
 
   const history = conversationHistory.get(contextId) || [];
 
-  // Detect contract requests
-  const contractKeywords = ['contrato', 'smart contract', 'nft', 'token', 'dao', 'marketplace', 'solidity', 'erc20', 'erc721'];
-  const isContractRequest = contractKeywords.some(keyword => userText.toLowerCase().includes(keyword.toLowerCase()));
-  
+  // Detect explicit smart-contract requests (avoid hijacking mint/composition chats)
+  const text = userText.toLowerCase();
+  const mintKeywords = ['mintear', 'acuñar', 'acunar', 'mint', 'mi nft', 'mi composicion', 'mi pieza'];
+  const contractIntentKeywords = [
+    'crear contrato',
+    'generar contrato',
+    'escribir contrato',
+    'codigo solidity',
+    'contract code',
+    'smart contract',
+    'desplegar contrato',
+    'deploy contract',
+  ];
+
+  const isMintRequest = mintKeywords.some((keyword) => text.includes(keyword));
+  const isContractRequest = !isMintRequest && contractIntentKeywords.some((keyword) => text.includes(keyword));
+
   let contractType = '';
   if (isContractRequest) {
-    if (userText.toLowerCase().includes('nft') || userText.toLowerCase().includes('erc721')) contractType = 'nft';
-    else if (userText.toLowerCase().includes('token') || userText.toLowerCase().includes('erc20')) contractType = 'token';
-    else if (userText.toLowerCase().includes('marketplace')) contractType = 'marketplace';
-    else if (userText.toLowerCase().includes('dao')) contractType = 'dao';
+    if (text.includes('nft') || text.includes('erc721')) contractType = 'nft';
+    else if (text.includes('token') || text.includes('erc20')) contractType = 'token';
+    else if (text.includes('marketplace') || text.includes('mercado')) contractType = 'marketplace';
+    else if (text.includes('dao')) contractType = 'dao';
   }
 
   // Non-streaming response (Vercel serverless doesn't support SSE well on free tier)
