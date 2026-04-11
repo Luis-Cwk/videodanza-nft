@@ -112,7 +112,9 @@ async function main() {
   agent.setActive(true);
   agent.setX402Support(false);
 
-  // OASF skills/domains disabled for now to avoid explorer taxonomy warnings
+  // Remove stale OASF service when no skills/domains are declared
+  // (avoids IA025: OASF service has neither skills nor domains)
+  agent.removeEndpoint('OASF');
 
   // Register on-chain with IPFS
   console.log('⛓️  Registering agent on Ethereum Sepolia...');
