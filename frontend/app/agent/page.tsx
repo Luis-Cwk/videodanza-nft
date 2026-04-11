@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { AgentChat } from '@/components/agent/AgentChat'
 import { CompositionPanel } from '@/components/agent/CompositionPanel'
+import { OnchainActivityPanel } from '@/components/agent/OnchainActivityPanel'
 
 const TimeDisplay = () => {
   const [time] = useState<string>(Date.now().toString())
@@ -56,6 +57,8 @@ export default function AgentPage() {
             </div>
           </div>
         </section>
+
+        <OnchainActivityPanel />
 
         {/* HOW IT WORKS */}
         <section className="mt-4">

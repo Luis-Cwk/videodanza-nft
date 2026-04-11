@@ -26,10 +26,22 @@ const AGENT_CONFIG = {
   name: 'entropiav2',
   description: 'Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt).',
   image: 'https://x.com/LuisBetx9/photo',
-  // Placeholder endpoints - se actualizan al deploy en Vercel
-  a2aEndpoint: process.env.A2A_ENDPOINT || 'https://entropiav2.vercel.app/.well-known/agent-card.json',
-  mcpEndpoint: process.env.MCP_ENDPOINT || 'https://entropiav2.vercel.app/mcp',
+  // Endpoints can be set explicitly or derived from AGENT_BASE_URL
+  a2aEndpoint: process.env.A2A_ENDPOINT || '',
+  mcpEndpoint: process.env.MCP_ENDPOINT || '',
 };
+
+const EXISTING_AGENT_ID = process.env.AGENT_ID || '11155111:2387';
+
+function resolveEndpoints() {
+  const base = process.env.AGENT_BASE_URL || 'https://my-agent-tau.vercel.app';
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+
+  return {
+    a2a: AGENT_CONFIG.a2aEndpoint || `${normalizedBase}/.well-known/agent-card.json`,
+    mcp: AGENT_CONFIG.mcpEndpoint || `${normalizedBase}/mcp`,
+  };
+}
 
 // ============================================================================
 // Main Registration Flow
@@ -59,19 +71,36 @@ async function main() {
     pinataJwt,
   });
 
-  // Create agent
-  console.log('📝 Creating agent...');
-  const agent = sdk.createAgent(
-    AGENT_CONFIG.name,
-    AGENT_CONFIG.description,
-    AGENT_CONFIG.image
-  );
+  // Load existing agent when AGENT_ID is configured; otherwise create a new one
+  let agent: any;
+  if (EXISTING_AGENT_ID) {
+    console.log(`📝 Loading existing agent (${EXISTING_AGENT_ID})...`);
+    try {
+      agent = await sdk.loadAgent(EXISTING_AGENT_ID);
+      agent.updateInfo(AGENT_CONFIG.name, AGENT_CONFIG.description, AGENT_CONFIG.image);
+    } catch (error) {
+      console.log('⚠️  Could not load existing agent, creating a new one.');
+      agent = sdk.createAgent(
+        AGENT_CONFIG.name,
+        AGENT_CONFIG.description,
+        AGENT_CONFIG.image
+      );
+    }
+  } else {
+    console.log('📝 Creating agent...');
+    agent = sdk.createAgent(
+      AGENT_CONFIG.name,
+      AGENT_CONFIG.description,
+      AGENT_CONFIG.image
+    );
+  }
 
   // Configure endpoints
-  console.log('🔗 Setting A2A endpoint...');
-  await agent.setA2A(AGENT_CONFIG.a2aEndpoint);
-  console.log('🔗 Setting MCP endpoint...');
-  await agent.setMCP(AGENT_CONFIG.mcpEndpoint);
+  const endpoints = resolveEndpoints();
+  console.log('🔗 Setting A2A endpoint:', endpoints.a2a);
+  await agent.setA2A(endpoints.a2a);
+  console.log('🔗 Setting MCP endpoint:', endpoints.mcp);
+  await agent.setMCP(endpoints.mcp);
 
   // Configure trust models
   console.log('🔐 Setting trust models...');
@@ -104,18 +133,48 @@ async function main() {
   console.log('   3. Set agent URI on-chain');
   console.log('');
 
-  const result = await agent.registerIPFS() as any;
+  const tx = await agent.registerIPFS() as any;
+  const mined = await tx.waitMined({ confirmations: 1 });
+  const result = mined?.result ?? {};
+  const txHash = tx?.hash || mined?.receipt?.transactionHash;
+
+  const agentIdRaw =
+    result?.agentId ??
+    result?.agentID ??
+    result?.id ??
+    result?.tokenId ??
+    result?.registration?.agentId ??
+    result?.registerResult?.agentId;
+  const agentUriRaw =
+    result?.agentURI ??
+    result?.agentUri ??
+    result?.uri ??
+    result?.registration?.agentURI ??
+    result?.registerResult?.agentURI;
+
+  const printableAgentId =
+    typeof agentIdRaw === 'bigint' ? agentIdRaw.toString() : String(agentIdRaw ?? 'N/A');
+
+  const agentIdNum = printableAgentId.includes(':')
+    ? printableAgentId.split(':')[1]
+    : printableAgentId;
 
   // Output results
   console.log('');
   console.log('✅ Agent registered successfully!');
   console.log('');
-  console.log('🆔 Agent ID:', result.agentId);
-  console.log('📄 Agent URI:', result.agentURI);
+  console.log('🆔 Agent ID:', printableAgentId);
+  console.log('📄 Agent URI:', agentUriRaw ?? 'N/A');
+  if (txHash) {
+    console.log('🧾 Tx Hash:', txHash);
+  }
+  if (agentIdRaw == null) {
+    console.log('ℹ️  Debug payload:');
+    console.log(JSON.stringify(result, null, 2));
+  }
   console.log('');
-   console.log('🌐 View your agent on 8004scan:');
-   const agentIdNum = result.agentId?.split(':')[1] || result.agentId;
-   console.log(`   https://www.8004scan.io/agents/sepolia/${agentIdNum}`);
+  console.log('🌐 View your agent on 8004scan:');
+  console.log(`   https://www.8004scan.io/agents/sepolia/${agentIdNum}`);
   console.log('');
   console.log('📋 Next steps:');
   console.log('   1. Update AGENT_CONFIG endpoints with your production URLs');
