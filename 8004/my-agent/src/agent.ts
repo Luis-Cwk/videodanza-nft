@@ -16,9 +16,10 @@ import { createHash } from 'crypto';
 // Configuration
 // ============================================================================
 
-const LLM_PROVIDER = process.env.LLM_PROVIDER || 'ollama';
+const LLM_PROVIDER = process.env.LLM_PROVIDER || 'nvidia';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434/api/chat';
-const MODEL = process.env.LLM_MODEL || 'qwen3.4:4b';
+const NVIDIA_URL = process.env.NVIDIA_URL || 'https://integrate.api.nvidia.com/v1/chat/completions';
+const MODEL = process.env.LLM_MODEL || 'moonshotai/kimi-k2.6';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
@@ -454,6 +455,24 @@ async function callOpenAI(messages: AgentMessage[]): Promise<Response> {
   });
 }
 
+async function callNVIDIA(messages: AgentMessage[]): Promise<Response> {
+  const apiKey = process.env.NVIDIA_API;
+  if (!apiKey) throw new Error('NVIDIA_API not set in .env');
+  return fetch(NVIDIA_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      temperature: 0.7,
+      max_tokens: 2048,
+    }),
+  });
+}
+
 async function callLLM(messages: AgentMessage[], stream: boolean = false): Promise<Response> {
   switch (LLM_PROVIDER.toLowerCase()) {
     case 'ollama':
@@ -462,6 +481,8 @@ async function callLLM(messages: AgentMessage[], stream: boolean = false): Promi
       return callOpenRouter(messages);
     case 'openai':
       return callOpenAI(messages);
+    case 'nvidia':
+      return callNVIDIA(messages);
     default:
       throw new Error(`Unknown LLM provider: ${LLM_PROVIDER}`);
   }
