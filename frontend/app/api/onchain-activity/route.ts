@@ -11,6 +11,17 @@ const AGENT_OWNER = '0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa'
 const AGENT_IDENTITY_CONTRACT = '0x8004A818BFB912233c491871b3d84c89A494BD9e'
 const AGENT_REPUTATION_CONTRACT = '0x8004B663056A597Dffe9eCcC1965A193B7388713'
 
+// Los RPC publicos (publicnode, etc.) podan historial viejo de logs:
+// eth_getLogs sobre bloques antiguos responde "pruned history unavailable"
+// (code 4444) o "query returned more than N results". Por eso:
+// 1. Escaneamos chunk por chunk, del MAS NUEVO al mas viejo.
+// 2. Cada chunk tiene su propio try/catch: un chunk podado se omite,
+//    NUNCA tumba la ruta completa.
+// 3. Corte temprano al juntar MAX_EVENTS eventos.
+const LOOKBACK_BLOCKS = 120000
+const CHUNK_SIZE = 45000
+const MAX_EVENTS = 12
+
 const ABI = [
   'event Minted(uint256 indexed tokenId, address indexed to, bytes32 indexed seed, string metadataURI)',
 ]
@@ -29,6 +40,18 @@ type MintActivity = {
   timestamp: number | null
 }
 
+function isPrunedOrRangeError(err: unknown): boolean {
+  const msg = String((err as Error)?.message || err).toLowerCase()
+  return (
+    msg.includes('pruned') ||
+    msg.includes('4444') ||
+    msg.includes('more than') ||
+    msg.includes('exceed') ||
+    msg.includes('limit') ||
+    msg.includes('range too large')
+  )
+}
+
 export async function GET() {
   try {
     const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC)
@@ -36,37 +59,80 @@ export async function GET() {
     const reputation = new ethers.Contract(AGENT_REPUTATION_CONTRACT, REPUTATION_ABI, provider)
     const numericAgentId = BigInt(AGENT_ID)
 
-    const latest = await provider.getBlockNumber()
-    const fromBlock = Math.max(0, latest - 120000)
-    const maxRange = 45000
-    const logs: any[] = []
+    let activity: MintActivity[] = []
+    let activityError: string | null = null
 
-    for (let start = fromBlock; start <= latest; start += maxRange + 1) {
-      const end = Math.min(latest, start + maxRange)
-      const batch = await contract.queryFilter(contract.filters.Minted(), start, end)
-      logs.push(...batch)
+    try {
+      const latest = await provider.getBlockNumber()
+      const fromBlock = Math.max(0, latest - LOOKBACK_BLOCKS)
+
+      // Chunks del mas nuevo al mas viejo: el historial reciente nunca
+      // esta podado y ahi vive la actividad que mostramos.
+      const chunks: Array<[number, number]> = []
+      for (let start = fromBlock; start <= latest; start += CHUNK_SIZE + 1) {
+        chunks.push([start, Math.min(latest, start + CHUNK_SIZE)])
+      }
+      chunks.reverse()
+
+      const logs: any[] = []
+      let prunedChunks = 0
+
+      for (const [start, end] of chunks) {
+        if (logs.length >= MAX_EVENTS) break
+        try {
+          const batch = await contract.queryFilter(contract.filters.Minted(), start, end)
+          logs.unshift(...batch.reverse())
+        } catch (logErr) {
+          if (isPrunedOrRangeError(logErr)) {
+            // Bloques podados en el RPC publico: esperable en chunks viejos.
+            prunedChunks++
+            continue
+          }
+          console.warn(`queryFilter fallo en rango ${start}-${end}:`, logErr)
+        }
+        if (logs.length >= MAX_EVENTS) break
+      }
+
+      const recent = logs.slice(0, MAX_EVENTS)
+      activity = await Promise.all(
+        recent.map(async (log) => {
+          try {
+            const block = await provider.getBlock(log.blockNumber)
+            const parsed = log as unknown as {
+              args: { tokenId: bigint; to: string; seed: string }
+              transactionHash: string
+              blockNumber: number
+            }
+
+            return {
+              tokenId: parsed.args.tokenId.toString(),
+              to: parsed.args.to,
+              seed: parsed.args.seed,
+              txHash: parsed.transactionHash,
+              blockNumber: parsed.blockNumber,
+              timestamp: block ? Number(block.timestamp) : null,
+            }
+          } catch (blockErr) {
+            console.warn('Error fetching block:', blockErr)
+            return {
+              tokenId: '0',
+              to: '0x0',
+              seed: '0x0',
+              txHash: '',
+              blockNumber: 0,
+              timestamp: null,
+            }
+          }
+        })
+      )
+
+      if (prunedChunks > 0 && activity.length === 0) {
+        activityError = `RPC publico podo ${prunedChunks} rango(s) viejo(s); sin mints recientes visibles. Configura SEPOLIA_RPC con un proveedor de archivo completo para historial extendido.`
+      }
+    } catch (err) {
+      console.warn('Activity fetching failed (non-critical):', err)
+      activityError = err instanceof Error ? err.message : 'Activity fetch failed'
     }
-
-    const recent = logs.slice(-12).reverse()
-    const activity: MintActivity[] = await Promise.all(
-      recent.map(async (log) => {
-        const block = await provider.getBlock(log.blockNumber)
-        const parsed = log as unknown as {
-          args: { tokenId: bigint; to: string; seed: string }
-          transactionHash: string
-          blockNumber: number
-        }
-
-        return {
-          tokenId: parsed.args.tokenId.toString(),
-          to: parsed.args.to,
-          seed: parsed.args.seed,
-          txHash: parsed.transactionHash,
-          blockNumber: parsed.blockNumber,
-          timestamp: block ? Number(block.timestamp) : null,
-        }
-      })
-    )
 
     let reputationData: {
       feedbackCount: number
@@ -90,7 +156,8 @@ export async function GET() {
         decimals,
         clients: clients.length,
       }
-    } catch {
+    } catch (err) {
+      console.warn('Reputation fetch failed (non-critical):', err)
       reputationData = null
     }
 
@@ -98,6 +165,7 @@ export async function GET() {
       JSON.stringify({
         ok: true,
         updatedAt: Date.now(),
+        activityError,
         agent: {
           id: AGENT_ID,
           chainId: 11155111,
