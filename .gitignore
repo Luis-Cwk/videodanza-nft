@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 package-lock.json
+# Los lockfiles de los proyectos desplegados en Vercel SI se commitean:
+# sin ellos cada build resuelve dependencias desde cero y el drift de
+# versiones rompio el build del frontend (cdp-sdk 1.58 importo @x402/*).
+!frontend/package-lock.json
+!8004/my-agent/package-lock.json
 yarn.lock
 
 # Environment variables (secrets)
