@@ -50,6 +50,22 @@ curl -X POST https://my-agent-tau.vercel.app/mcp \
   -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}"
 ```
 
+## Endpoint premium x402 (estilo TIA)
+
+`GET /v1/premium-composition` cobra $0.10 USDC en Base Sepolia por llamada, sin API key.
+
+```bash
+# Sin pago regresa 402 con los requisitos en el body
+curl -i "https://my-agent-tau.vercel.app/v1/premium-composition?seed=cuerpo-en-orbita&token_id=42"
+
+# Con pago: cliente x402 firma USDC y reintenta con header X-PAYMENT
+# (x402-fetch en TypeScript)
+```
+
+PayTo: `0x6bce199069a02917114dd8a9bdca5e6886f2afaa` (wallet del agente).
+Facilitator: `https://x402.org/facilitator` (testnet).
+Configurable via env `X402_PAY_TO`.
+
 ## Script para feedback on-chain
 
 Este repo incluye `scripts/give-feedback.mjs` para que testers suban reputación real.
