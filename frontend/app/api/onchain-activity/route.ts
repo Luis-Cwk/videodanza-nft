@@ -1,15 +1,22 @@
-import { ethers } from 'ethers'
+import { createPublicClient, http, parseAbiItem, type Address } from 'viem'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828'
+const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+  '0xe3145Ad5b6889DEd5659aC07051BD513Ae32B828') as Address
 const SEPOLIA_RPC = process.env.SEPOLIA_RPC || 'https://ethereum-sepolia.publicnode.com'
 const AGENT_ID = process.env.NEXT_PUBLIC_AGENT_ID || '2387'
 const AGENT_OWNER = '0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa'
 const AGENT_IDENTITY_CONTRACT = '0x8004A818BFB912233c491871b3d84c89A494BD9e'
-const AGENT_REPUTATION_CONTRACT = '0x8004B663056A597Dffe9eCcC1965A193B7388713'
+const AGENT_REPUTATION_CONTRACT = '0x8004B663056A597Dffe9eCcC1965A193B7388713' as Address
+
+// Nota (8 oct 2026): esta ruta usaba ethers v6. En el bundle serverless de
+// Next.js, ethers v6 revienta al decodificar resultados con
+// "TypeError: Cannot assign to read only property '0'" (Result congelados).
+// Por eso se reescribio con viem, que ya es dependencia directa del frontend
+// y devuelve objetos planos. NO volver a ethers en rutas de servidor.
 
 // Los RPC publicos (publicnode, etc.) podan historial viejo de logs:
 // eth_getLogs sobre bloques antiguos responde "pruned history unavailable"
@@ -18,18 +25,39 @@ const AGENT_REPUTATION_CONTRACT = '0x8004B663056A597Dffe9eCcC1965A193B7388713'
 // 2. Cada chunk tiene su propio try/catch: un chunk podado se omite,
 //    NUNCA tumba la ruta completa.
 // 3. Corte temprano al juntar MAX_EVENTS eventos.
-const LOOKBACK_BLOCKS = 120000
-const CHUNK_SIZE = 45000
+const LOOKBACK_BLOCKS = 120000n
+const CHUNK_SIZE = 45000n
 const MAX_EVENTS = 12
 
-const ABI = [
-  'event Minted(uint256 indexed tokenId, address indexed to, bytes32 indexed seed, string metadataURI)',
-]
+const MINTED_EVENT = parseAbiItem(
+  'event Minted(uint256 indexed tokenId, address indexed to, bytes32 indexed seed, string metadataURI)'
+)
 
 const REPUTATION_ABI = [
-  'function getClients(uint256 agentId) view returns (address[])',
-  'function getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2) view returns (uint64 count, int128 summaryValue, uint8 summaryValueDecimals)',
-]
+  {
+    type: 'function',
+    name: 'getClients',
+    stateMutability: 'view',
+    inputs: [{ name: 'agentId', type: 'uint256' }],
+    outputs: [{ type: 'address[]' }],
+  },
+  {
+    type: 'function',
+    name: 'getSummary',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddresses', type: 'address[]' },
+      { name: 'tag1', type: 'string' },
+      { name: 'tag2', type: 'string' },
+    ],
+    outputs: [
+      { name: 'count', type: 'uint64' },
+      { name: 'summaryValue', type: 'int128' },
+      { name: 'summaryValueDecimals', type: 'uint8' },
+    ],
+  },
+] as const
 
 type MintActivity = {
   tokenId: string
@@ -41,7 +69,8 @@ type MintActivity = {
 }
 
 function isPrunedOrRangeError(err: unknown): boolean {
-  const msg = String((err as Error)?.message || err).toLowerCase()
+  const e = err as { message?: string; cause?: { message?: string } }
+  const msg = `${e?.message || err} ${e?.cause?.message || ''}`.toLowerCase()
   return (
     msg.includes('pruned') ||
     msg.includes('4444') ||
@@ -54,41 +83,51 @@ function isPrunedOrRangeError(err: unknown): boolean {
 
 export async function GET() {
   try {
-    const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC)
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider)
-    const reputation = new ethers.Contract(AGENT_REPUTATION_CONTRACT, REPUTATION_ABI, provider)
+    const client = createPublicClient({ transport: http(SEPOLIA_RPC) })
     const numericAgentId = BigInt(AGENT_ID)
 
     let activity: MintActivity[] = []
     let activityError: string | null = null
 
     try {
-      const latest = await provider.getBlockNumber()
-      const fromBlock = Math.max(0, latest - LOOKBACK_BLOCKS)
+      const latest = await client.getBlockNumber()
+      const fromBlock = latest > LOOKBACK_BLOCKS ? latest - LOOKBACK_BLOCKS : 0n
 
       // Chunks del mas nuevo al mas viejo: el historial reciente nunca
       // esta podado y ahi vive la actividad que mostramos.
-      const chunks: Array<[number, number]> = []
-      for (let start = fromBlock; start <= latest; start += CHUNK_SIZE + 1) {
-        chunks.push([start, Math.min(latest, start + CHUNK_SIZE)])
+      const chunks: Array<[bigint, bigint]> = []
+      for (let start = fromBlock; start <= latest; start += CHUNK_SIZE + 1n) {
+        const end = latest < start + CHUNK_SIZE ? latest : start + CHUNK_SIZE
+        chunks.push([start, end])
       }
       chunks.reverse()
 
-      const logs: any[] = []
+      type LogItem = {
+        args: { tokenId?: bigint; to?: Address; seed?: string }
+        transactionHash?: string
+        blockNumber?: bigint
+      }
+      const logs: LogItem[] = []
       let prunedChunks = 0
 
       for (const [start, end] of chunks) {
         if (logs.length >= MAX_EVENTS) break
         try {
-          const batch = await contract.queryFilter(contract.filters.Minted(), start, end)
-          logs.unshift(...batch.reverse())
+          const batch = await client.getLogs({
+            address: CONTRACT_ADDRESS,
+            event: MINTED_EVENT,
+            fromBlock: start,
+            toBlock: end,
+          })
+          // newest-first: los mas recientes al principio
+          logs.unshift(...batch.slice().reverse())
         } catch (logErr) {
           if (isPrunedOrRangeError(logErr)) {
             // Bloques podados en el RPC publico: esperable en chunks viejos.
             prunedChunks++
             continue
           }
-          console.warn(`queryFilter fallo en rango ${start}-${end}:`, logErr)
+          console.warn(`getLogs fallo en rango ${start}-${end}:`, logErr)
         }
         if (logs.length >= MAX_EVENTS) break
       }
@@ -97,19 +136,15 @@ export async function GET() {
       activity = await Promise.all(
         recent.map(async (log) => {
           try {
-            const block = await provider.getBlock(log.blockNumber)
-            const parsed = log as unknown as {
-              args: { tokenId: bigint; to: string; seed: string }
-              transactionHash: string
-              blockNumber: number
-            }
-
+            const block = log.blockNumber
+              ? await client.getBlock({ blockNumber: log.blockNumber })
+              : null
             return {
-              tokenId: parsed.args.tokenId.toString(),
-              to: parsed.args.to,
-              seed: parsed.args.seed,
-              txHash: parsed.transactionHash,
-              blockNumber: parsed.blockNumber,
+              tokenId: (log.args.tokenId ?? 0n).toString(),
+              to: log.args.to ?? '0x0',
+              seed: log.args.seed ?? '0x0',
+              txHash: log.transactionHash ?? '',
+              blockNumber: Number(log.blockNumber ?? 0),
               timestamp: block ? Number(block.timestamp) : null,
             }
           } catch (blockErr) {
@@ -142,18 +177,26 @@ export async function GET() {
     } | null = null
 
     try {
-      const clients: string[] = await reputation.getClients(numericAgentId)
-      const summary = await reputation.getSummary(numericAgentId, clients, '', '')
-      const count = Number(summary.count)
-      const summaryValue = Number(summary.summaryValue)
-      const decimals = Number(summary.summaryValueDecimals)
-      const scale = 10 ** decimals
-      const average = scale > 0 ? summaryValue / scale : summaryValue
+      const clients = await client.readContract({
+        address: AGENT_REPUTATION_CONTRACT,
+        abi: REPUTATION_ABI,
+        functionName: 'getClients',
+        args: [numericAgentId],
+      })
+      const summary = await client.readContract({
+        address: AGENT_REPUTATION_CONTRACT,
+        abi: REPUTATION_ABI,
+        functionName: 'getSummary',
+        args: [numericAgentId, clients, '', ''],
+      })
+      const [count, summaryValue, decimals] = summary
+      const scale = 10 ** Number(decimals)
+      const average = scale > 0 ? Number(summaryValue) / scale : Number(summaryValue)
 
       reputationData = {
-        feedbackCount: count,
+        feedbackCount: Number(count),
         average,
-        decimals,
+        decimals: Number(decimals),
         clients: clients.length,
       }
     } catch (err) {
