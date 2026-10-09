@@ -251,7 +251,7 @@ Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
 
 ---
 
-## 6. RPCs publicos y pruned history (frontend)
+## 6. RPCs publicos, pruned history y ethers vs viem (frontend)
 
 Error real visto en la pagina del agente:
 `code 4444 "pruned history unavailable"` en `eth_getLogs` con rangos de 45000
@@ -267,7 +267,16 @@ Reglas:
    los eventos necesarios, y degradacion graciosa con `activityError` informativo.
 3. Una API route nunca debe devolver 500 porque un tramo del historial este
    podado: devolver `ok: true` con datos parciales y nota.
-4. Para historial completo: proveedor con archivo (Alchemy/Infura con key) via
+4. **NO usar ethers v6 en rutas de servidor de Next.js.** En el bundle
+   serverless de Vercel, ethers v6 revienta al decodificar resultados con
+   `TypeError: Cannot assign to read only property '0' of object '[object Array]'`
+   (sus Result extienden Array y llegan congelados; el entorno de Next los
+   rompe). Falla SOLO en Vercel, local pasa, lo que vuelve loco el diagnostico.
+   Usar **viem** (ya es dependencia directa del frontend): devuelve objetos
+   planos, probado en produccion (commit `251c27f`, reputacion onchain viva).
+   El diagnostico salio de `npx vercel logs <dominio>`: ahi aparece el warn real
+   que el response JSON no muestra.
+5. Para historial completo: proveedor con archivo (Alchemy/Infura con key) via
    env `SEPOLIA_RPC`, o datos pre-indexados (8004scan API para reputacion).
 
 ---
