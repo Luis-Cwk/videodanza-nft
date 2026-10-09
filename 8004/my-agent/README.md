@@ -66,6 +66,15 @@ PayTo: `0x6bce199069a02917114dd8a9bdca5e6886f2afaa` (wallet del agente).
 Facilitator: `https://x402.org/facilitator` (testnet).
 Configurable via env `X402_PAY_TO`.
 
+Primera llamada pagada verificada (Oct 8 2026):
+tx `0xb63c10b60ef17ce33eae03e789434fcab14fd60496eb2f8f672996f49c19d75c` en Base Sepolia,
+0.10 USDC, payer `0x9732...DD13`, recibo `success: true` en header `X-PAYMENT-RESPONSE`.
+
+Gotcha serverless: el cuerpo del handler debe correr DENTRO del callback
+`next()` de `paymentMiddleware`. Correrlo despues de `await middleware(...)`
+causa deadlock (el middleware espera `res.end()` para hacer settle) y la
+funcion muere a los 60s con 504 sin liquidar el pago.
+
 ## Script para feedback on-chain
 
 Este repo incluye `scripts/give-feedback.mjs` para que testers suban reputación real.
