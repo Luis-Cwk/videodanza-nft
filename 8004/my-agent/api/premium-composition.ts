@@ -72,6 +72,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const t0 = Date.now();
     const query = req.query || {};
     const seed = (query.seed as string) || undefined;
     const mood = (query.mood as string) || undefined;
@@ -83,10 +84,21 @@ export default async function handler(req: any, res: any) {
     const composition = generateComposition({ seed, mood, gender, energy, perspective });
     const poetic = generateNFTDescription(composition, token_id);
 
-    const curatorial = await generateResponse(
-      `Escribe un texto curatorial breve (maximo 60 palabras, sin markdown) para una pieza de videodanza generativa con estos parametros: semilla ${composition.seed}, ${composition.videoIds.length} capas de video, track musical ${composition.musicTrack}, blend ${composition.blendMode}. Tono poetico latinoamericano, cuerpo y tecnologia.`,
-      []
-    ).catch(() => 'El cuerpo recuerda lo que el algoritmo apenas aprende.');
+    // Texto curatorial: LLM con timeout corto y fallback determinista.
+    // El settle de x402 corre despues del handler; si el LLM se pasa de
+    // ~60s la funcion muere (504) y el pago queda sin liquidar.
+    const curatorialFallback = `El cuerpo recuerda lo que el algoritmo apenas aprende. En "${composition.seed}", ${composition.videoIds.length} capas de movimiento se superponen como memorias que insisten, con blend ${composition.blendMode} y un pulso musical que cuenta hasta ${composition.musicTrack}. La danza no se genera: se revela, semilla a semilla, verificable en blockchain.`;
+    const curatorial = await Promise.race([
+      generateResponse(
+        `Escribe un texto curatorial breve (maximo 60 palabras, sin markdown) para una pieza de videodanza generativa con estos parametros: semilla ${composition.seed}, ${composition.videoIds.length} capas de video, track musical ${composition.musicTrack}, blend ${composition.blendMode}. Tono poetico latinoamericano, cuerpo y tecnologia.`,
+        []
+      ).catch(() => curatorialFallback),
+      new Promise<string>((resolve) => {
+        const timer = setTimeout(() => resolve(curatorialFallback), 12000);
+        if (typeof timer.unref === 'function') timer.unref();
+      }),
+    ]);
+    console.log(`[premium] composicion+curatorial en ${Date.now() - t0}ms`);
 
     return res.status(200).json({
       composition,
