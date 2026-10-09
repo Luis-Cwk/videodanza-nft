@@ -24,7 +24,7 @@ import { SDK } from 'agent0-sdk';
 
 const AGENT_CONFIG = {
   name: 'entropiav2',
-  description: 'Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt).',
+  description: 'Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt). Gratis via A2A/MCP: chat, composiciones deterministicas, contratos Solidity, descripciones poeticas. Premium via x402: composicion curatorial con texto para metadata NFT por $0.10 USDC en Base Sepolia.',
   image: 'https://my-agent-tau.vercel.app/logo.svg',
   // Endpoints can be set explicitly or derived from AGENT_BASE_URL
   a2aEndpoint: process.env.A2A_ENDPOINT || '',
@@ -112,9 +112,26 @@ async function main() {
   agent.setActive(true);
   agent.setX402Support(true);
 
-  // Remove stale OASF service when no skills/domains are declared
-  // (avoids IA025: OASF service has neither skills nor domains)
-  agent.removeEndpoint('OASF');
+  // OASF taxonomy: skills y domains validados contra la taxonomia embebida
+  // del SDK (validateOASF=true). Pobla tags/categorias en 8004scan y el tier
+  // de discoverability. NO remover el endpoint OASF (el error IA025 solo
+  // ocurre cuando se declara sin skills ni domains).
+  const OASF_SKILLS = [
+    'multi_modal/image_processing/text_to_video',
+    'multi_modal/image_processing/text_to_image',
+    'multi_modal/audio_processing/audio_processing',
+    'natural_language_processing/natural_language_generation/summarization',
+    'natural_language_processing/information_retrieval_synthesis/search',
+    'tool_interaction/api_schema_understanding',
+  ];
+  const OASF_DOMAINS = [
+    'media_and_entertainment/content_creation',
+    'technology/blockchain/cryptocurrency',
+    'technology/software_engineering/apis_integration',
+  ];
+  console.log('🏷️  Setting OASF skills/domains...');
+  for (const slug of OASF_SKILLS) agent.addSkill(slug, true);
+  for (const slug of OASF_DOMAINS) agent.addDomain(slug, true);
 
   // Register on-chain with IPFS
   console.log('⛓️  Registering agent on Ethereum Sepolia...');
