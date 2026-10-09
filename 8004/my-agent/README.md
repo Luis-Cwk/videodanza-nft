@@ -74,6 +74,7 @@ npm run give-feedback
 
 ## Notas de operación
 
-- `GET /mcp` devuelve `405 Method not allowed` por diseño. MCP usa `POST` JSON-RPC.
+- `GET /mcp` responde 200 con info del servidor y lista de tools. `POST /mcp` ejecuta JSON-RPC (`initialize`, `tools/list`, `tools/call`, `ping`).
+- `GET /health` responde 200 gratis con estado, version y endpoints, al estilo TIA para chequeos de agentes y 8004scan.
 - A2A se publica para discovery en `/.well-known/agent-card.json`.
 - El registro se actualiza sobre el agente existente (`2387`) para mantener continuidad reputacional.

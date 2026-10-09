@@ -4,188 +4,101 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>entropiav2 - VideoDanza Generativa Agent</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      background: #0a0a0f;
-      color: #e0e0e0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    .container {
-      max-width: 700px;
-      width: 100%;
-    }
-    .header {
-      border-left: 3px solid #6366f1;
-      padding-left: 1rem;
-      margin-bottom: 2rem;
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: #fff;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    .subtitle {
-      color: #888;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-    }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-      padding: 1rem;
-      background: #111118;
-      border: 1px solid #222;
-      border-radius: 4px;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #22c55e;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-    .status-text {
-      font-size: 0.8rem;
-      color: #22c55e;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .endpoints {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 2rem;
-    }
-    .endpoint {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1rem;
-      background: #111118;
-      border: 1px solid #222;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      transition: border-color 0.2s;
-    }
-    .endpoint:hover {
-      border-color: #6366f1;
-    }
-    .endpoint-method {
-      color: #6366f1;
-      font-weight: 700;
-      min-width: 50px;
-    }
-    .endpoint-path {
-      color: #aaa;
-      flex: 1;
-      margin: 0 1rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .endpoint a {
-      color: #818cf8;
-      text-decoration: none;
-      font-size: 0.7rem;
-    }
-    .endpoint a:hover {
-      text-decoration: underline;
-    }
-    .skills {
-      margin-bottom: 2rem;
-    }
-    .skills h3 {
-      font-size: 0.7rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 0.75rem;
-    }
-    .skill-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .skill-tag {
-      padding: 0.3rem 0.7rem;
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
-      border-radius: 3px;
-      font-size: 0.7rem;
-      color: #a5b4fc;
-    }
-    .footer {
-      border-top: 1px solid #222;
-      padding-top: 1rem;
-      font-size: 0.65rem;
-      color: #555;
-      display: flex;
-      justify-content: space-between;
-    }
-    .footer a {
-      color: #6366f1;
-      text-decoration: none;
-    }
+    body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+    .container { max-width: 760px; width: 100%; }
+    .header { border-left: 3px solid #a855f7; padding-left: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; }
+    .header img { width: 56px; height: 56px; border-radius: 8px; }
+    h1 { font-size: 1.6rem; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
+    .subtitle { color: #888; font-size: 0.85rem; margin-top: 0.4rem; }
+    .status { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; padding: 0.9rem 1rem; background: #111118; border: 1px solid #222; border-radius: 6px; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-text { font-size: 0.78rem; color: #22c55e; text-transform: uppercase; letter-spacing: 1px; }
+    h2 { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 2px; margin: 1.8rem 0 0.8rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; background: #111118; border: 1px solid #222; border-radius: 6px; overflow: hidden; }
+    th, td { text-align: left; padding: 0.65rem 0.8rem; border-bottom: 1px solid #1e1e2a; }
+    th { color: #888; font-weight: 400; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 1px; }
+    td code { color: #c4b5fd; }
+    .free { color: #22c55e; }
+    pre { background: #0d0d14; border: 1px solid #222; border-radius: 6px; padding: 1rem; font-size: 0.7rem; overflow-x: auto; margin-top: 0.7rem; line-height: 1.6; }
+    .card { background: #111118; border: 1px solid #222; border-radius: 6px; padding: 1rem; font-size: 0.75rem; line-height: 1.8; }
+    .card a { color: #818cf8; text-decoration: none; word-break: break-all; }
+    .card a:hover { text-decoration: underline; }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .tag { padding: 0.3rem 0.7rem; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 3px; font-size: 0.7rem; color: #a5b4fc; }
+    .footer { border-top: 1px solid #222; margin-top: 2rem; padding-top: 1rem; font-size: 0.65rem; color: #555; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .footer a { color: #a855f7; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>entropiav2</h1>
-      <p class="subtitle">Agente creativo de VideoDanza Generativa &middot; ERC-8004 &middot; Creado por Petra</p>
+      <img src="/logo.svg" alt="entropiav2 logo">
+      <div>
+        <h1>entropiav2</h1>
+        <p class="subtitle">Agente creativo de VideoDanza Generativa, ERC-8004 en Sepolia, por Petra</p>
+      </div>
     </div>
 
     <div class="status">
       <div class="status-dot"></div>
-      <span class="status-text">Agente activo &middot; v2.0.0</span>
+      <span class="status-text">Agente activo, v2.0.0, testnet gratis sin API key</span>
     </div>
 
-    <div class="endpoints">
-      <div class="endpoint">
-        <span class="endpoint-method">GET</span>
-        <span class="endpoint-path">/.well-known/agent-card.json</span>
-        <a href="/.well-known/agent-card.json" target="_blank">ver &rarr;</a>
-      </div>
-      <div class="endpoint">
-        <span class="endpoint-method">POST</span>
-        <span class="endpoint-path">/a2a</span>
-        <span style="color:#555;font-size:0.7rem">JSON-RPC A2A</span>
-      </div>
-      <div class="endpoint">
-        <span class="endpoint-method">POST</span>
-        <span class="endpoint-path">/mcp</span>
-        <span style="color:#555;font-size:0.7rem">MCP Tools</span>
-      </div>
+    <h2>Endpoints y precios</h2>
+    <table>
+      <tr><th>Endpoint</th><th>Descripcion</th><th>Precio</th></tr>
+      <tr><td><code>GET /.well-known/agent-card.json</code></td><td>Discovery A2A, 4 skills</td><td class="free">Gratis</td></tr>
+      <tr><td><code>POST /a2a</code></td><td>Chat y composicion via A2A JSON-RPC</td><td class="free">Gratis</td></tr>
+      <tr><td><code>GET /mcp</code></td><td>Info y lista de tools MCP</td><td class="free">Gratis</td></tr>
+      <tr><td><code>POST /mcp</code></td><td>Ejecucion de 5 tools MCP</td><td class="free">Gratis</td></tr>
+      <tr><td><code>GET /health</code></td><td>Estado, version y endpoints</td><td class="free">Gratis</td></tr>
+    </table>
+
+    <h2>Prueba rapida</h2>
+    <pre># Discovery, sin pagar
+curl -s https://my-agent-tau.vercel.app/.well-known/agent-card.json | head -c 300
+
+# Salud, gratis
+curl -s https://my-agent-tau.vercel.app/health
+
+# Tools MCP disponibles
+curl -s -X POST https://my-agent-tau.vercel.app/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+
+# Chat A2A
+curl -s -X POST https://my-agent-tau.vercel.app/a2a \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"Hola, quien eres?"}]}}}'</pre>
+
+    <h2>Prueba onchain</h2>
+    <div class="card">
+      Agente Sepolia <b>2387</b><br>
+      Identity Registry: <a href="https://sepolia.etherscan.io/address/0x8004A818BFB912233c491871b3d84c89A494BD9e">0x8004A818BFB912233c491871b3d84c89A494BD9e</a><br>
+      Tx de registro: <a href="https://sepolia.etherscan.io/tx/0x055c572a0e25586ec7719903d7671af3e607da868315071e03b085083b7a64c4">0x055c...64c4</a><br>
+      Ver en 8004scan: <a href="https://testnet.8004scan.io/agents/sepolia/2387">testnet.8004scan.io/agents/sepolia/2387</a>
     </div>
 
-    <div class="skills">
-      <h3>Capacidades</h3>
-      <div class="skill-tags">
-        <span class="skill-tag">VideoDanza Composition</span>
-        <span class="skill-tag">Smart Contracts</span>
-        <span class="skill-tag">NFT Descriptions</span>
-        <span class="skill-tag">Blockchain Consulting</span>
-        <span class="skill-tag">Generative Art</span>
-        <span class="skill-tag">Dance</span>
-      </div>
+    <h2>Capacidades</h2>
+    <div class="tags">
+      <span class="tag">VideoDanza Composition</span>
+      <span class="tag">Smart Contracts</span>
+      <span class="tag">NFT Descriptions</span>
+      <span class="tag">Blockchain Consulting</span>
+      <span class="tag">Generative Art</span>
+      <span class="tag">Dance</span>
     </div>
+
+    <h2>Stack</h2>
+    <div class="card">TypeScript, Vercel Serverless, MCP SDK, A2A JSON-RPC, LLM via NVIDIA y OpenRouter, Registro ERC-8004 con Agent0 SDK</div>
 
     <div class="footer">
       <span>ERC-8004 Agent on Ethereum Sepolia</span>
-      <a href="https://www.8004scan.io" target="_blank">8004scan &rarr;</a>
+      <span><a href="https://github.com/Luis-Cwk/videodanza-nft">GitHub</a> · <a href="https://www.8004scan.io">8004scan</a></span>
     </div>
   </div>
 </body>

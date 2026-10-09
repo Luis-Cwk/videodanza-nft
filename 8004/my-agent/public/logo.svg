@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+<radialGradient id="bg" cx="50%" cy="50%" r="70%">
+<stop offset="0%" stop-color="hsl(280, 70%, 15%)"/>
+<stop offset="100%" stop-color="hsl(0, 0%, 5%)"/>
+</radialGradient>
+</defs>
+<rect width="512" height="512" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="80" fill="none" stroke="hsl(280, 90%, 60%)" stroke-width="1" opacity="0.3"/>
+<circle cx="256" cy="256" r="120" fill="none" stroke="hsl(280, 90%, 60%)" stroke-width="0.5" opacity="0.2"/>
+<text x="256" y="270" font-family="monospace" font-size="96" fill="hsl(280, 90%, 60%)" text-anchor="middle" opacity="0.9">E</text>
+<circle cx="100" cy="80" r="2" fill="hsl(280, 90%, 60%)" opacity="0.7"/>
+<circle cx="410" cy="120" r="3" fill="hsl(280, 90%, 60%)" opacity="0.6"/>
+<circle cx="150" cy="400" r="3" fill="hsl(280, 90%, 60%)" opacity="0.4"/>
+<circle cx="360" cy="380" r="2" fill="hsl(280, 90%, 60%)" opacity="0.5"/>
+</svg>

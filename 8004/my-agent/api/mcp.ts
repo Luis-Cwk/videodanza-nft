@@ -9,11 +9,27 @@ import { tools, handleToolCall } from '../src/tools.js';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      name: 'entropiav2-mcp',
+      version: '1.0.0',
+      protocolVersion: '2025-06-18',
+      status: 'healthy',
+      description: 'MCP endpoint de entropiav2. Usa POST con JSON-RPC 2.0 para tools/list y tools/call.',
+      tools: tools.map((t) => t.name),
+      toolsCount: tools.length,
+      endpoints: {
+        mcp: '/mcp',
+        agentCard: '/.well-known/agent-card.json',
+      },
+    });
   }
 
   if (req.method !== 'POST') {
@@ -27,6 +43,26 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    if (method === 'initialize') {
+      return res.json({
+        jsonrpc: '2.0',
+        result: {
+          protocolVersion: '2025-06-18',
+          capabilities: { tools: {} },
+          serverInfo: { name: 'entropiav2-mcp', version: '1.0.0' },
+        },
+        id,
+      });
+    }
+
+    if (method === 'notifications/initialized' || method === 'notifications/cancelled') {
+      return res.status(202).end();
+    }
+
+    if (method === 'ping') {
+      return res.json({ jsonrpc: '2.0', result: {}, id });
+    }
+
     if (method === 'tools/list') {
       return res.json({ jsonrpc: '2.0', result: { tools }, id });
     }

@@ -5,7 +5,8 @@
   "rewrites": [
     { "source": "/.well-known/agent-card.json", "destination": "/api/agent-card" },
     { "source": "/a2a", "destination": "/api/a2a" },
-    { "source": "/mcp", "destination": "/api/mcp" }
+    { "source": "/mcp", "destination": "/api/mcp" },
+    { "source": "/health", "destination": "/api/health" }
   ],
   "headers": [
     {
@@ -22,6 +23,9 @@
     },
     "api/mcp.ts": {
       "maxDuration": 60
+    },
+    "api/health.ts": {
+      "maxDuration": 10
     }
   }
 }
