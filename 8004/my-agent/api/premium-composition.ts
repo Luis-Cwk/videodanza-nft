@@ -28,6 +28,20 @@ const middleware = paymentMiddleware(
 );
 
 export default async function handler(req: any, res: any) {
+  // Vercel serverless no expone req.path ni req.protocol (son de Express).
+  // x402-express los necesita, asi que los polypilleamos antes de llamarlo.
+  if (!req.path) {
+    const rawUrl = req.url || '/v1/premium-composition';
+    req.path = rawUrl.split('?')[0];
+    // la rewrite de Vercel entrega /api/premium-composition; normalizamos
+    if (req.path === '/api/premium-composition') {
+      req.path = '/v1/premium-composition';
+    }
+  }
+  if (!req.protocol) {
+    req.protocol = 'https';
+  }
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-PAYMENT');
