@@ -28,8 +28,9 @@ const middleware = paymentMiddleware(
 );
 
 export default async function handler(req: any, res: any) {
-  // Vercel serverless no expone req.path ni req.protocol (son de Express).
-  // x402-express los necesita, asi que los polypilleamos antes de llamarlo.
+  // Vercel serverless no expone req.path, req.protocol, req.header ni
+  // req.originalUrl (son de Express). x402-express los necesita, asi que
+  // los polypilleamos antes de llamarlo.
   if (!req.path) {
     const rawUrl = req.url || '/v1/premium-composition';
     req.path = rawUrl.split('?')[0];
@@ -38,8 +39,17 @@ export default async function handler(req: any, res: any) {
       req.path = '/v1/premium-composition';
     }
   }
+  if (!req.originalUrl) {
+    req.originalUrl = req.url || req.path;
+  }
   if (!req.protocol) {
     req.protocol = 'https';
+  }
+  if (typeof req.header !== 'function') {
+    req.header = (name: string) => {
+      const v = req.headers?.[String(name).toLowerCase()];
+      return Array.isArray(v) ? v[0] : v;
+    };
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
