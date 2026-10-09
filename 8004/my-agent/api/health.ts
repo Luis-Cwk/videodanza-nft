@@ -39,7 +39,18 @@ export default function handler(req: any, res: any) {
     },
     tools: tools.map((t) => t.name),
     toolsCount: tools.length,
-    pricing: 'free on testnet, sin API key',
+    pricing: {
+      free: ['agent-card', 'a2a', 'mcp', 'health'],
+      x402: [
+        {
+          endpoint: 'GET /v1/premium-composition',
+          price: '$0.10',
+          asset: 'USDC',
+          network: 'eip155:84532',
+          scheme: 'exact',
+        },
+      ],
+    },
     timestamp: new Date().toISOString(),
   });
 }

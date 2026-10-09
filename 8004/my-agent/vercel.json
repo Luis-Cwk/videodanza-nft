@@ -6,7 +6,8 @@
     { "source": "/.well-known/agent-card.json", "destination": "/api/agent-card" },
     { "source": "/a2a", "destination": "/api/a2a" },
     { "source": "/mcp", "destination": "/api/mcp" },
-    { "source": "/health", "destination": "/api/health" }
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/v1/premium-composition", "destination": "/api/premium-composition" }
   ],
   "headers": [
     {
@@ -22,6 +23,9 @@
       "maxDuration": 60
     },
     "api/mcp.ts": {
+      "maxDuration": 60
+    },
+    "api/premium-composition.ts": {
       "maxDuration": 60
     },
     "api/health.ts": {

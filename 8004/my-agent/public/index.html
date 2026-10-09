@@ -23,6 +23,7 @@
     th { color: #888; font-weight: 400; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 1px; }
     td code { color: #c4b5fd; }
     .free { color: #22c55e; }
+    .paid { color: #f59e0b; }
     pre { background: #0d0d14; border: 1px solid #222; border-radius: 6px; padding: 1rem; font-size: 0.7rem; overflow-x: auto; margin-top: 0.7rem; line-height: 1.6; }
     .card { background: #111118; border: 1px solid #222; border-radius: 6px; padding: 1rem; font-size: 0.75rem; line-height: 1.8; }
     .card a { color: #818cf8; text-decoration: none; word-break: break-all; }
@@ -56,6 +57,7 @@
       <tr><td><code>GET /mcp</code></td><td>Info y lista de tools MCP</td><td class="free">Gratis</td></tr>
       <tr><td><code>POST /mcp</code></td><td>Ejecucion de 5 tools MCP</td><td class="free">Gratis</td></tr>
       <tr><td><code>GET /health</code></td><td>Estado, version y endpoints</td><td class="free">Gratis</td></tr>
+      <tr><td><code>GET /v1/premium-composition</code></td><td>Composicion premium con texto curatorial y descripcion poetica</td><td class="paid">$0.10 USDC (Base Sepolia, x402)</td></tr>
     </table>
 
     <h2>Prueba rapida</h2>
@@ -73,7 +75,16 @@ curl -s -X POST https://my-agent-tau.vercel.app/mcp \
 # Chat A2A
 curl -s -X POST https://my-agent-tau.vercel.app/a2a \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"Hola, quien eres?"}]}}}'</pre>
+  -d '{"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"Hola, quien eres?"}]}}}'
+
+# Endpoint premium x402: sin pago regresa 402 con PAYMENT-REQUIRED
+curl -i "https://my-agent-tau.vercel.app/v1/premium-composition?seed=cuerpo-en-orbita&token_id=42"
+
+# Con pago: un cliente x402 firma USDC en Base Sepolia y reintenta con X-PAYMENT
+# Ejemplo con x402-fetch (TypeScript):
+#   import { wrapFetchWithPayment } from "x402-fetch";
+#   const fetchWithPayment = wrapFetchWithPayment(fetch, privateKey);
+#   await fetchWithPayment("https://my-agent-tau.vercel.app/v1/premium-composition?seed=cuerpo-en-orbita");</pre>
 
     <h2>Prueba onchain</h2>
     <div class="card">

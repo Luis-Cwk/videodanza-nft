@@ -110,7 +110,7 @@ async function main() {
   // Set status flags
   // Agent is now active and will appear in explorer listings
   agent.setActive(true);
-  agent.setX402Support(false);
+  agent.setX402Support(true);
 
   // Remove stale OASF service when no skills/domains are declared
   // (avoids IA025: OASF service has neither skills nor domains)
