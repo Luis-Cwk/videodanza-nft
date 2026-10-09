@@ -17,8 +17,9 @@
 import { paymentMiddleware } from 'x402-express';
 import { generateComposition, generateNFTDescription, generateResponse } from '../src/agent.js';
 
-// Wallet del agente (mismo address que agentWallet en el registro ERC-8004)
-const PAY_TO = (process.env.X402_PAY_TO || '0x6bce199069a02917114dd8a9bdca5e6886f2afaa') as `0x${string}`;
+// Wallet del agente (duena del NFT 2387 desde la rotacion del 9 oct 2026;
+// la wallet anterior 0x6bce...faa quedo retirada por llave expuesta en git)
+const PAY_TO = (process.env.X402_PAY_TO || '0xD70ECAff906A739167EFD20275D0a1d518AC40cF') as `0x${string}`;
 
 const middleware = paymentMiddleware(
   PAY_TO,

@@ -84,7 +84,8 @@ clava el score en el piso (banda 5 a 15). El POST sigue siendo el JSON-RPC real.
 | Dato | Valor |
 |---|---|
 | Agent ID | `11155111:2387` (Sepolia) |
-| Owner / agentWallet | `0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa` |
+| Owner / agentWallet (desde rotacion 9 oct 2026) | `0xD70ECAff906A739167EFD20275D0a1d518AC40cF` (llave en `8004/my-agent/.owner-wallet.json`, gitignored) |
+| Wallet vieja RETIRADA | `0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa` (llave expuesta en repo publico mar-oct 2026; NO usarla; le quedan 0.1 USDC en Base Sepolia sin gas para moverlos) |
 | Identity Registry Sepolia | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
 | Reputation Registry Sepolia | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
 | Explorer | https://testnet.8004scan.io/agents/sepolia/2387 |
@@ -179,7 +180,8 @@ const receipt = decodeXPaymentResponse(res.headers.get('x-payment-response'));
 
 - Tx: `0xb63c10b60ef17ce33eae03e789434fcab14fd60496eb2f8f672996f49c19d75c`
   (Base Sepolia, bloque 47876441, 0.10 USDC, payer `0x9732...DD13`,
-  payTo `0x6bce...faa`, recibo success:true, HTTP 200 en 6.4s).
+  payTo `0x6bce...faa` (wallet vieja, previa a la rotacion del 9 oct 2026;
+  el payTo actual es `0xD70E...40cF`), recibo success:true, HTTP 200 en 6.4s).
 - USDC Base Sepolia: `0x036CbD53842c5426634e7929541eC2318f3dCF7e` (6 decimales).
 - RPC Base Sepolia: `https://sepolia.base.org`.
 
@@ -283,13 +285,20 @@ Reglas:
 
 ## 7. Seguridad
 
-1. **NUNCA commitear llaves privadas.** Historico: la llave del owner quedo
-   expuesta en `skills/entropiav2/SKILL.md` y `8004/my-agent/DEPLOY-VERCEL.md`
-   (scrubbed el 8 oct 2026). Si una llave real se commiteo alguna vez, tratarla
-   como comprometida: rotar (mover activos y agentes a wallet nueva).
+1. **NUNCA commitear llaves privadas.** Historico: la llave del owner viejo
+   (`0x6bce...faa`) quedo expuesta en `8004/my-agent/DEPLOY-VERCEL.md` desde el
+   commit `42c5aab` (30 mar 2026) en repo PUBLICO, y en el working copy de
+   `skills/entropiav2/SKILL.md` (este nunca se commiteo con la llave). Scrub el
+   8 oct 2026 (`b65991a`), pero la llave sigue en el historial de git.
+   **Rotacion ejecutada el 9 oct 2026:** NFT 2387 transferido a la wallet nueva
+   `0xD70ECAff906A739167EFD20275D0a1d518AC40cF` (tx `0x645060...e23f`), ETH
+   barrido, metadata re-registrada (tx `0xedecfd...`), payTo x402 y AGENT_OWNER
+   del frontend actualizados. La wallet vieja quedo retirada: NO volver a usarla
+   ni referenciarla como owner.
 2. Archivos sensibles y sus protecciones en `.gitignore`:
-   - `8004/my-agent/.env`, `.env*` (llaves del owner, PINATA_JWT, API keys LLM)
+   - `8004/my-agent/.env`, `.env*` (llave del owner, PINATA_JWT, API keys LLM)
    - `8004/my-agent/.feedback-wallet.json` (llave de la wallet tester)
+   - `8004/my-agent/.owner-wallet.json` (llave del owner NUEVO)
    - Verificar SIEMPRE con `git check-ignore -v <archivo>` despues de crear
      archivos con secretos.
 3. Las env vars de produccion viven en Vercel (`npx vercel env ls production`),
@@ -378,6 +387,9 @@ Txs onchain del dia:
 0x816cbc...  feedback #1 value 5 tags studio/videodanza (Sepolia, Reputation Registry)
 0xa7a15a...  feedback #2 value 5 tags a2a/mcp-health (Sepolia)
 0xb63c10...  primera llamada premium pagada 0.10 USDC (Base Sepolia)
+0x645060...  ROTACION: NFT 2387 transferido a wallet nueva 0xD70E...40cF (Sepolia)
+0x4870b1...  ROTACION: barrido de ETH viejo -> nuevo (Sepolia)
+0xedecfd...  ROTACION: re-registro de metadata con owner nuevo (Sepolia)
 ```
 
 Estado final verificado: landing 200, health 200, MCP GET/POST 200, agent-card
