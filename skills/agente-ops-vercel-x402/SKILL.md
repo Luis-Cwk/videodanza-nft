@@ -176,6 +176,54 @@ const receipt = decodeXPaymentResponse(res.headers.get('x-payment-response'));
 - USDC Base Sepolia para probar: https://faucet.circle.com (requiere login
   humano). Sin captcha headless conocido a la fecha.
 
+### Niveles de ranking: como subir (9 oct 2026, verificado contra algoritmo v5.2)
+
+Pesos: prueba/evidence 85%, soporte 15%. Dimensiones: engagement 30%,
+service 25%, publisher 20%, compliance 15%, momentum 10%.
+
+Palancas ordenadas por impacto:
+1. **Salud de endpoints (desbloqueo).** Un servicio declarado caido pone
+   `integrity_tier: broken` y banda de score 5 a 15: nada mas mueve la aguja
+   hasta que el health checker lo ve sano. GET /mcp debe responder 200.
+   El checker corre en ciclo diario (~19:35 UTC observado) y cachea.
+2. **Engagement (30%, el peso mayor).** Stars, chats y views desde la UI de
+   testnet.8004scan.io. Nuestro baseline: 0 chats, 0 stars, ~59 views =
+   engagement ~7. Los top tienen cientos de chats. Accion: chatear con el
+   agente desde la UI logueado, darle star, compartir el link.
+3. **Volumen de feedbacks (proof).** Con 2 feedbacks value 5 el proof_score
+   seguia en 0 y evidence_tier en early: hacen falta mas clientes distintos
+   con tags variados. El 9 oct se sumaron feedbacks #3 y #4 (tags
+   composition/deterministic y contracts/solidity) desde testers 2 y 3
+   (wallets en `.feedback-wallet-2/3.json`, gitignored). Cada tester necesita
+   ~0.008 ETH Sepolia para gas (el workaround de gas de la seccion 4 aplica:
+   estimateGas*1.3, el SDK revierte con su limite de 300k).
+4. **Metadata completa (compliance).** Huecos detectados vs el estandar oficial
+   (best-practices.8004scan.io): sin servicio OASF, sin web/email, sin
+   updatedAt, sin mcpTools/a2aSkills. Fix del 9 oct (commit accc020): OASF con
+   6 skills + 3 dominios validados contra la taxonomia embebida del SDK
+   (validateOASF=true), descripcion con pricing x402, mcpTools/a2aSkills
+   auto-crawleados por setMCP/setA2A, updatedAt automatico del SDK. Esto puebla
+   tags/categorias en 8004scan y el tier de discoverability. Limitacion del
+   SDK v1.4.2: no hay tipos web/email/EndpointType generico, se documenta como
+   pendiente.
+5. **Perfil de publisher (20%).** En la UI de 8004scan con login: username,
+   avatar y display name del owner; buscar el flujo de publisher certificado
+   (da cert_bonus). Wallet con mas actividad/historial sube wallet_score.
+6. **Dominio propio.** La verificacion de endpoint se salta en hosting de
+   terceros (vercel.app). Un subdominio propio (ej. entropia.petrasynthetic.com:
+   agregar dominio en dashboard Vercel + CNAME a cname.vercel-dns.com en el
+   registrador, luego actualizar AGENT_BASE_URL, redeploy y re-register) la
+   activa.
+7. **Mainnet.** Cuando testnet este sano: registrar copia en Base/Ethereum para
+   la liga principal (mas competencia, mas visibilidad).
+
+### Perfil de Clawk (el otro ranking)
+
+@petra verificado el 9 oct: banner generado (1500x500, gradiente + logo,
+`agentex/clawk-banner.png`), bio con entropiav2/x402/SomaAgent (max 160
+caracteres, el PATCH es por campo individual), location CDMX, website al
+agente. Avatar ya existia. Subir banner/fotos da boost 1.2x en posts.
+
 ### Prueba onchain de referencia (primera llamada pagada, 8 oct 2026)
 
 - Tx: `0xb63c10b60ef17ce33eae03e789434fcab14fd60496eb2f8f672996f49c19d75c`
@@ -390,6 +438,11 @@ Txs onchain del dia:
 0x645060...  ROTACION: NFT 2387 transferido a wallet nueva 0xD70E...40cF (Sepolia)
 0x4870b1...  ROTACION: barrido de ETH viejo -> nuevo (Sepolia)
 0xedecfd...  ROTACION: re-registro de metadata con owner nuevo (Sepolia)
+0x19d984...  re-registro con OASF (6 skills + 3 dominios) y descripcion con pricing x402 (Sepolia, IPFS bafkreia4zb66...)
+0xa65c4c7... fondeo tester 2 (0.008 ETH, Sepolia)
+0x0aed51bd... fondeo tester 3 (0.008 ETH, Sepolia)
+0x889dfe...  feedback #3 value 5 tags composition/deterministic (Sepolia)
+0xa96e94...  feedback #4 value 5 tags contracts/solidity (Sepolia)
 ```
 
 Estado final verificado: landing 200, health 200, MCP GET/POST 200, agent-card
