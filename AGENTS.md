@@ -62,4 +62,17 @@ Petra integra diversos sistemas de alta complejidad. Tus respuestas técnicas de
 - **Integración y Latencia:** Entiende protocolos **OSC** para la comunicación entre software (Ableton -> TouchDesigner, SuperCollider -> TD). Prioriza la eficiencia local y la soberanía de datos evitando dependencias externas si es posible.
 
 ---
+
+## 5. Deploys de Vercel (REGLAS DURAS, leer antes de pushear)
+
+Documentación completa en `skills/agente-ops-vercel-x402/SKILL.md` (obligatoria para trabajar en el agente o el frontend).
+
+1. Este repo alimenta DOS proyectos Vercel: `videodanza-nft` (frontend, se despliega SOLO con cada push a master) y `my-agent` (agente ERC-8004, se despliega SOLO con `npx vercel --prod --yes` dentro de `8004/my-agent/`).
+2. Después de CUALQUIER push, verificar que el deploy del frontend llegue a READY, aunque el cambio no toque `frontend/`.
+3. Lockfiles commiteados y sagrados: `frontend/package-lock.json` y `8004/my-agent/package-lock.json`. Nunca ignorarlos ni borrarlos; si se edita un package.json, regenerar el lockfile y commitear ambos.
+4. Antes de pushear cambios del frontend: `cd frontend && npm run build` con exit 0 obligatorio. Antes de desplegar el agente: `cd 8004/my-agent && npm run build`.
+5. Nunca commitear llaves privadas ni wallets (`.env*`, `.feedback-wallet.json`). Verificar con `git check-ignore -v` al crear archivos sensibles.
+6. Consultas `eth_getLogs`/`queryFilter` contra RPC públicos: siempre en chunks de <=45000 bloques, del más nuevo al más viejo, con try/catch por chunk y corte temprano. Los RPC públicos podan historial (error 4444 "pruned history unavailable") y eso jamás debe tumbar una ruta.
+
+---
 *Este manual asegura que tu asistencia sea una extensión orgánica de la práctica artística de Petra.*

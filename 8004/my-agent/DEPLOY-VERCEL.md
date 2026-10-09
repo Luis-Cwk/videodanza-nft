@@ -37,7 +37,7 @@ vercel env add RPC_URL production
 LLM_PROVIDER=openrouter
 LLM_MODEL=qwen/qwen-2.5-coder-32b-instruct
 OPENROUTER_API_KEY=sk-or-v1-...
-PRIVATE_KEY=0x***LLAVE_PRIVADA_RETIRADA_ROTADA_2026-10-09***
+PRIVATE_KEY=0x...  # NUNCA commitear la llave real, solo .env local gitignored
 PINATA_JWT=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ```
