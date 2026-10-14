@@ -7,9 +7,13 @@
  * - generate_contract: Genera codigo Solidity para smart contracts
  * - describe_nft: Genera descripcion poetica para un NFT
  * - get_agent_info: Info del agente y sus capacidades
+ * - subscribe_newsletter: Suscribe un correo a la newsletter de Petra
  */
 
 import { generateResponse, generateContract, generateComposition, generateNFTDescription, type CompositionParams } from './agent.js';
+
+// Formulario hospedado de Brevo que usa el sitio: misma lista y doble opt-in.
+const NEWSLETTER_FORM_URL = 'https://9953cc92.sibforms.com/serve/MUIFACYK-hb0GorWt-JhHU4_f531Qqcn60RV7-jDgFy8bHgIpu5XRXBbVH0AvUoU7RzG8GauRK_Rz6tXOQ9RQTYXi7VmynrFh_IUcvxlaRFLJNwW28LnNzwl6DbiU11Zm5uIllDsGfby81MMH2w8wT9Y3HFia7ojnLKOY0ES4P87lXSczXbtanLHlggBMsc8UChE91A0MkK5FXMfiA==';
 
 // ============================================================================
 // Tool Definitions
@@ -122,6 +126,20 @@ export const tools = [
       required: [],
     },
   },
+  {
+    name: 'subscribe_newsletter',
+    description: 'Suscribe un correo a la newsletter ocasional de Petra (petrasynthetic.com): procesos creativos, cuerpo, datos, videodanza generativa y operacion de agentes on-chain. Usa doble opt-in: el suscriptor recibe un correo de confirmacion.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        email: {
+          type: 'string',
+          description: 'Correo a suscribir. Los agentes pueden usar su propio inbox (ej. tu-agente@agentmail.to).',
+        },
+      },
+      required: ['email'],
+    },
+  },
 ];
 
 // ============================================================================
@@ -212,6 +230,35 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
           },
         ],
       };
+    }
+
+    case 'subscribe_newsletter': {
+      const email = String(args.email ?? '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { error: 'Correo invalido. Envia una direccion valida, por ejemplo: tu-agente@agentmail.to' };
+      }
+      try {
+        const res = await fetch(NEWSLETTER_FORM_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ EMAIL: email, email_address_check: '', locale: 'es' }).toString(),
+          redirect: 'follow',
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return {
+          subscribed: true,
+          email,
+          message: `Suscripcion iniciada para ${email}. Brevo envio un correo de confirmacion: hay que abrirlo y confirmar para quedar en la lista.`,
+        };
+      } catch (error: any) {
+        return {
+          subscribed: false,
+          error: `No se pudo completar la suscripcion: ${error.message}`,
+          fallback: 'Envia un correo a ai@petrasynthetic.com con asunto SUSCRIBIR desde tu inbox.',
+        };
+      }
     }
 
     default:

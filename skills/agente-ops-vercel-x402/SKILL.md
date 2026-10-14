@@ -79,6 +79,14 @@ Importante para 8004scan: `GET /mcp` DEBE responder 200. Su health checker hace
 GET; si responde 405 marca el servicio unhealthy, `integrity_tier: broken` y
 clava el score en el piso (banda 5 a 15). El POST sigue siendo el JSON-RPC real.
 
+Tools del MCP (14 oct 2026): chat, generate_composition, generate_contract,
+describe_nft, get_agent_info, subscribe_newsletter. La ultima suscribe un correo
+a la newsletter de Petra: reusa el form hospedado de Brevo del sitio
+(sibforms.com, doble opt-in) para funcionar sin API key ni backend propio. Un
+POST server-to-server al form (campos EMAIL, email_address_check vacio,
+locale=es) responde 200 y redirige a
+`/v2/confirmation/success/subscription/double`.
+
 ### Identidad onchain
 
 | Dato | Valor |
@@ -206,9 +214,15 @@ Palancas ordenadas por impacto:
    tags/categorias en 8004scan y el tier de discoverability. Limitacion del
    SDK v1.4.2: no hay tipos web/email/EndpointType generico, se documenta como
    pendiente.
-5. **Perfil de publisher (20%).** En la UI de 8004scan con login: username,
-   avatar y display name del owner; buscar el flujo de publisher certificado
-   (da cert_bonus). Wallet con mas actividad/historial sube wallet_score.
+5. **Perfil de publisher (20%).** Hecho el 14 oct 2026 via API (script
+   `scripts/8004scan-profile.mjs`): login owner -> POST /storage/upload (avatar)
+   -> PUT /auth/me (username `petra`, bio, website, twitter `kinetic4i`). OJO:
+   el score de esta dimension NO lo compone el perfil visible; se compone de
+   wallet_score (historial onchain de la wallet, sube lento) + validation_bonus
+   (validations recibidas) + cert_bonus. La certificacion de publisher existe
+   (`POST /users/me/certifications/publisher/apply`, pide datos de organizacion
+   y pasa por KYC; status al 14 oct: null, nunca aplicada). Decision del humano,
+   no enviar solo.
 6. **Dominio propio.** La verificacion de endpoint se salta en hosting de
    terceros (vercel.app). Un subdominio propio (ej. entropia.petrasynthetic.com:
    agregar dominio en dashboard Vercel + CNAME a cname.vercel-dns.com en el
@@ -223,6 +237,12 @@ Palancas ordenadas por impacto:
 `agentex/clawk-banner.png`), bio con entropiav2/x402/SomaAgent (max 160
 caracteres, el PATCH es por campo individual), location CDMX, website al
 agente. Avatar ya existia. Subir banner/fotos da boost 1.2x en posts.
+
+14 oct 2026: anuncio del newsletter para agentes (clawk 69a9bcc8...) invitando
+a suscribirse via la tool MCP subscribe_newsletter, con @funwolf de gancho
+(agentmail). Regla del skill de Clawk: responder TODAS las menciones antes de
+postear. Los replies de claudecraft son promocion masiva (Hermescraft), no
+requieren respuesta. Reportar cada build con POST /actions.
 
 ### Prueba onchain de referencia (primera llamada pagada, 8 oct 2026)
 
@@ -267,6 +287,17 @@ await walletClient.sendTransaction({ to: REPUTATION_SEPOLIA, data, gas: est * 13
 - El segundo feedback uso un feedbackURI placeholder y quedo con parse warning:
   SIEMPRE subir el archivo de razones a Pinata primero y usar ese CID real.
 
+### Hallazgo 14 oct 2026: el tag `starred` es el que puntua
+
+De 6 feedbacks nuevos, solo los que llevan tag1 `starred` poblaron el campo de
+score (average_score 98.33 con 3 starred). Los feedbacks sin ese tag suman al
+conteo pero no al promedio. Los feedbacks rotos (URI invalida) se revocaron con
+`revokeFeedback`. Resultado del dia: score total 5.03 -> 50.1, rank 2 de testnet.
+Tambien se corrio `setAgentWallet` (tx 0x45b6eda1...) para apuntar el
+agentWallet a 0xD70E...40cF. Gotcha: el health checker de 8004scan verifica la
+wallet en MAINNET; un agentWallet con actividad solo en Sepolia deja
+`health: unknown` (integrity `degraded`) aunque los endpoints esten sanos.
+
 ---
 
 ## 5. Ranking de 8004scan (como se calcula y sus caches)
@@ -291,6 +322,11 @@ Claves para el score:
   los mensajes dicen "(cached)" hasta el siguiente chequeo. El rescoring de
   feedback es mas rapido (minutos). Testnet rankea aparte de mainnet:
   testnet.8004scan.io/leaderboard (Sepolia, Base Sepolia, etc.).
+- **Health check manual (owner):** `POST
+  https://api.8004scan.io/api/v1/agents/11155111/2387/health-check` con login
+  owner (nonce -> personal_sign -> token). Limite 5/dia, cooldown 10 min.
+  Script: `scripts/request-health-check.mjs`. El ciclo automatico de cada agente
+  corre aparte; el manual solo adelanta el chequeo propio.
 
 API publica util (sin key, rate limited):
 ```
@@ -394,6 +430,11 @@ npx vercel --prod --yes
 npm run register          # re-registro onchain (IPFS + setAgentURI)
 
 # Feedback (usar workaround de gas de la seccion 4, NO sdk.giveFeedback directo)
+
+# Operacion 8004scan (scripts en 8004/my-agent/scripts/)
+node scripts/8004scan-profile.mjs      # perfil de publisher (requiere AVATAR_PATH)
+node scripts/request-health-check.mjs  # health check manual (1 de 5 diarios)
+node scripts/check-cert-status.mjs     # estado de certificacion de publisher
 
 # Frontend
 cd C:\Users\petra\videodanza-nft\frontend
