@@ -1,0 +1,13 @@
+# Secretos y artefactos que NUNCA deben subirse a Vercel.
+# IMPORTANTE: el CLI de Vercel NO respeta .gitignore, solo .vercelignore.
+# Antes de este archivo, cada `vercel --prod` subia .env (llave del owner),
+# .env.production, .feedback-wallet.json y dist/ a la nube.
+.env
+.env.*
+.owner-wallet.json
+.feedback-wallet*.json
+dist/
+node_modules/
+.vercel
+*.log
+nul
