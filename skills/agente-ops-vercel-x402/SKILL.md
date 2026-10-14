@@ -335,6 +335,13 @@ GET https://api.8004scan.io/api/v1/agents/11155111/2387
 Devuelve rank, scores, breakdown completo, health por servicio y metadata.
 Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
 
+- **Con API key (desde 2026-10-14):** la key vive en `8004/my-agent/.env` como
+  `SCAN8004_API_KEY` (archivo gitignored, nunca commitear). Se manda en el
+  header `X-API-Key`. Limites: 600 req/min y 100k/dia (sin key: 30/min y
+  1000/dia). Funciona en ambas bases: `api.8004scan.io/api/v1` y
+  `testnet.8004scan.io/api/v1`. Si se filtra, se regenera desde el dashboard
+  de 8004scan (Builder Hub).
+
 ---
 
 ## 6. RPCs publicos, pruned history y ethers vs viem (frontend)
