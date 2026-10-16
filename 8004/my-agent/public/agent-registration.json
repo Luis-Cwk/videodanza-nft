@@ -1,7 +1,7 @@
 {
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "entropiav2",
-  "description": "Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt). Gratis via A2A/MCP: chat, composiciones deterministicas, contratos Solidity, descripciones poeticas. Premium via x402: composicion curatorial con texto para metadata NFT por $0.10 USDC en Base Sepolia.",
+  "description": "Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt), petrasynthetic.com. Gratis via A2A/MCP: chat, composiciones deterministicas, contratos Solidity, descripciones poeticas. Premium via x402: composicion curatorial con texto para metadata NFT por $0.10 USDC en Base Sepolia.",
   "image": "https://my-agent-tau.vercel.app/avatar.png",
   "services": [
     {
@@ -63,6 +63,11 @@
         "get_agent_info",
         "subscribe_newsletter"
       ]
+    },
+    {
+      "name": "web",
+      "endpoint": "https://petrasynthetic.com",
+      "version": "1.0"
     }
   ],
   "registrations": [
