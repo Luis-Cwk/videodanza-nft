@@ -7,6 +7,7 @@
     { "source": "/a2a", "destination": "/api/a2a" },
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/health", "destination": "/api/health" },
+    { "source": "/webhook", "destination": "/api/webhook-8004" },
     { "source": "/v1/premium-composition", "destination": "/api/premium-composition" }
   ],
   "headers": [
