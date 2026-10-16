@@ -313,8 +313,11 @@ Claves para el score:
   Un servicio declarado caido => `integrity_tier: broken` + banda de score 5 a 15
   (piso). Por eso GET /mcp debe responder 200.
 - Metadata completa (tags, imagen http valida, descripcion) => compliance.
-  La imagen debe ser URL directa (svg/png), NO un link a x.com ni data: URIs
-  gigantes.
+  La imagen debe ser URL directa, NO un link a x.com ni data: URIs
+  gigantes. **OJO con SVG (2026-10-15):** el proxy de 8004scan NO sirve SVG
+  (devuelve 404 `"No safe image is available"` y lo cachea). Usar PNG de
+  512x512 (`public/avatar.png` del my-agent). Tras re-registrar, su proxy
+  tarda unos minutos en refrescar y convierte la imagen a webp.
 - engagement: stars, views, chats desde la UI de testnet.8004scan.io.
 - Verificacion de dominio: con hosting de terceros (vercel.app) la verificacion
   se marca `skipped` (Third-party hosting domain). Un dominio propio lo resuelve.
