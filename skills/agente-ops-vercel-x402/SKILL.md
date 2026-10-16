@@ -354,11 +354,21 @@ Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
   documenta el skill `8004scan` instalado en `~/.opencode/skills/8004scan`).
 - **Webhooks (2026-10-15):** 8004scan tiene webhooks con eventos
   `feedback.received`, `star.received`, `star.removed`, `validation.requested`,
-  `validation.completed`, `feedback.revoked`, firmados con HMAC-SHA256. Skill
-  de referencia: `~/.opencode/skills/8004scan-webhooks` (repo
+  `validation.completed`, `feedback.revoked`, firmados con HMAC-SHA256.
+  **HECHO para entropiav2:** webhook id `0f3fe0b3-267c-4dbe-8395-64bdfbf70b6f`
+  apuntando a `https://my-agent-tau.vercel.app/webhook` (funcion
+  `api/webhook-8004.ts`): verifica firma HMAC (secret que devuelve 8004scan al
+  registrar, guardado como `WEBHOOK_SECRET_8004` en Vercel y .env) y reenvia
+  correo a dfrmnc22@gmail.com via Brevo. Registro/renovacion:
+  `node scripts/register-webhook.mjs` (login owner nonce->firma->JWT).
+  OJO: el endpoint de registro (`POST /api/v1/webhooks/register`, campo
+  `webhook_url`) pide **JWT de sesion**, NO la API key; y el secret lo genera
+  el servidor (el skill `8004scan-webhooks` documenta un flujo distinto con
+  `url` y `secret` propios: el OpenAPI real manda). Las entregas se consultan
+  con `GET /api/v1/webhooks/{id}/deliveries` (tambien con JWT). Su emisor de
+  eventos corre con el mismo retraso que su indexador (minutos a horas).
+  Skills de referencia: `~/.opencode/skills/8004scan-webhooks` (repo
   github.com/jiayaoqijia/8004, skills 8004 / 8004scan / 8004scan-webhooks).
-  Idea pendiente: un webhook que avise a Petra cuando alguien interactue con
-  entropiav2 (necesita endpoint receptor; podria ser una funcion del my-agent).
 
 ---
 
