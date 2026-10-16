@@ -25,7 +25,7 @@ import { SDK } from 'agent0-sdk';
 const AGENT_CONFIG = {
   name: 'entropiav2',
   description: 'Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt). Gratis via A2A/MCP: chat, composiciones deterministicas, contratos Solidity, descripciones poeticas. Premium via x402: composicion curatorial con texto para metadata NFT por $0.10 USDC en Base Sepolia.',
-  image: 'https://my-agent-tau.vercel.app/logo.svg',
+  image: 'https://my-agent-tau.vercel.app/avatar.png',
   // Endpoints can be set explicitly or derived from AGENT_BASE_URL
   a2aEndpoint: process.env.A2A_ENDPOINT || '',
   mcpEndpoint: process.env.MCP_ENDPOINT || '',
