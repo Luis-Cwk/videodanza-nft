@@ -1,7 +1,9 @@
-// Reintenta el metadata-refresh de 8004scan para el #2387 (ya con URI HTTPS).
+// Reintenta el metadata-refresh de 8004scan para un agente (login owner).
+// Uso: node scripts/refresh-metadata.mjs [agentId]   (default 2387)
 import 'dotenv/config';
 import { privateKeyToAccount } from 'viem/accounts';
 
+const agentId = process.argv[2] || '2387';
 const API = 'https://api.8004scan.io/api/v1';
 const account = privateKeyToAccount(process.env.PRIVATE_KEY);
 
@@ -12,5 +14,5 @@ const loginJson = await (await fetch(`${API}/auth/login`, { method: 'POST', head
 const token = loginJson.access_token || loginJson.token || loginJson.data?.access_token;
 console.log('login:', token ? 'OK' : 'FALLO');
 
-const mr = await fetch(`${API}/agents/11155111/2387/metadata-refresh`, { method: 'POST', headers: { 'X-Access-Token': token } });
-console.log('metadata-refresh:', mr.status, (await mr.text()).slice(0, 300));
+const mr = await fetch(`${API}/agents/11155111/${agentId}/metadata-refresh`, { method: 'POST', headers: { 'X-Access-Token': token } });
+console.log(`metadata-refresh #${agentId}:`, mr.status, (await mr.text()).slice(0, 300));

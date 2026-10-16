@@ -384,12 +384,16 @@ Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
   Su refresh de metadata exige URI HTTP(S): con `ipfs://` responde 400 ("Agent
   metadata URI must use HTTP or HTTPS"). **MIGRADO (16 oct):** el registro se
   hostea en `https://my-agent-tau.vercel.app/agent-registration.json`
-  (`public/agent-registration.json` en my-agent) y la URI onchain del 2387 se
-  actualizo con `setAgentURI` (tx 0x899578db). OJO: el endpoint de refresh valida
-  contra su `offchain_uri` CACHEADO, asi que sigue dando 400 hasta que su indexer
-  procese el evento URIUpdated; reintentar con
-  `scripts/refresh-metadata-2387.mjs`. El gap de wallet metrics quedo reportado
-  como issue #60 en su tracker (github.com/alt-research/8004scan-issue-tracker).
+  (`public/agent-registration.json` en my-agent) y la URI onchain se actualizo
+  en AMBOS agentes: 2387 con `setAgentURI` directo (tx 0x899578db) y 11150 via
+  `adapter.setAgentURI` (tx 0xd07bf57b). OJO: el endpoint de refresh valida
+  contra su `offchain_uri` CACHEADO (400 hasta que su indexer procese el evento
+  URIUpdated) y ademas esta gateado por el owner DEL REGISTRY: para el 11150 da
+  403 ("Only the agent owner can request") porque su owner onchain es el adapter
+  (el indexer lo actualiza solo; no requiere accion). Reintentar el refresh con
+  `scripts/refresh-metadata.mjs <agentId>`. El gap de wallet metrics quedo
+  reportado como issue #60 en su tracker
+  (github.com/alt-research/8004scan-issue-tracker).
 
 ---
 
