@@ -369,6 +369,20 @@ Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
   eventos corre con el mismo retraso que su indexador (minutos a horas).
   Skills de referencia: `~/.opencode/skills/8004scan-webhooks` (repo
   github.com/jiayaoqijia/8004, skills 8004 / 8004scan / 8004scan-webhooks).
+- **Health check y wallet metrics (16 oct):** el health check evalua los
+  servicios declarados + `owner_wallet`. Solo chequea tipos conocidos (a2a,
+  mcp); `oasf`/`web`/`docs`/etc salen `skipped` ("Service type not
+  health-checked") y eso NO baja el score (Otto tiene 7 skipped y 100). El
+  `owner_wallet` SI pesa: si su pipeline de metricas no tiene datos de la
+  wallet del owner -> "No wallet data available" -> overall `unknown` y
+  health_score 76.67. Verificado 16 oct: NINGUNA wallet nueva tiene metricas
+  (`GET /api/v1/wallets/{addr}/metrics` da 404, hasta para los agentes "bench"
+  de otros; las wallets viejas si tienen) -> es su pipeline, no nuestro agente.
+  Health check manual (login owner nonce->firma->JWT):
+  `POST /api/v1/agents/{chain}/{id}/health-check` -> queued; 5/dia, cooldown 10
+  min, el ranking refresca cada hora; script `scripts/request-health-check.mjs`.
+  Su refresh de metadata exige URI HTTP(S): con `ipfs://` responde 400 ("Agent
+  metadata URI must use HTTP or HTTPS").
 
 ---
 
