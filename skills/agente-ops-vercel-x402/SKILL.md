@@ -567,6 +567,19 @@ con exito -> agente ERC-8004 NUEVO **#11150** (owner en el registry = adapter
 de 1 gwei). OJO: esto NO convierte al 2387 (sigue aparte); la identidad de cuenta
 ahora es agente 8004 real. Script: `scripts/adapterscan-register-full.cjs`.
 
+**Expansion del #11150 (16 oct):** (a) metadata rica en el perfil con eventos
+baratos (~36k gas c/u): `description`, `x402`, `mcp`, `a2a`, `skills` (txs
+0x26fd9166, 0xb26cad9e, 0xe9917c09, 0x8878174b, 0x1aaaade2). (b) Doble link de
+wallet: agentWallet OFICIAL del #11150 en el registry = la ops `0xFc4f...` (firma
+EIP-712 de la ops con owner = ADAPTER, el adapter reenvia; typehash
+`AgentWalletSet(uint256 agentId,address newWallet,address owner,uint256 deadline)`,
+dominio `ERC8004IdentityRegistry` v1, deadline <= now+5min; tx 0xad11668a; 8004scan
+ya muestra la wallet). (c) 3 feedbacks al #11150 desde las testers (txs 0x389f875d,
+0x12375321, 0x44dc064c). GOTCHA: giveFeedback para #11150 estima ~840k gas (vs
+397k del 2o feedback al 2387): estimar siempre, no fijar gas a ojo (el primer
+intento revirtio con 160k). Scripts: `scripts/adapterscan-expand.cjs` y
+`scripts/adapterscan-feedbacks-11150.cjs`.
+
 **Lo que NO se puede:** el adapter RECHAZA el registry como token ligado (revert en
 `_requireValidTokenContract`), asi que el agente 2387 no se puede "fusionar" con su
 UBID de registry; y `bindExisting` (jalar agentes ya minteados) aun no esta
