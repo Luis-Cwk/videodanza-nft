@@ -559,6 +559,14 @@ Txs: claim `0xa9d1f0a8...` (bloque 11925198), metadata `0x79510b5b...`, wallet
 `0xbb528c4d...`, confirmacion ops `0xbf78a7e6...`, ratings `0xf0726c49` /
 `0x0504b067` / `0xc2fe502f`, record `0x12e39fae...`
 
+**Registro completo (misma sesion):** `register(5, owner, 0, uri, [name])` ejecutado
+con exito -> agente ERC-8004 NUEVO **#11150** (owner en el registry = adapter
+`0x7621630c...` por diseno; `bindingOf(11150)` = (5, `0xD70E...40cF`, 0);
+`tokenURI` = la IPFS; `getMetadata(11150,'name')` = entropiav2; agentWallet unset
+`0x0`). Tx `0x1978ad92...` (bloque 11925346, 987,303 gas, ~0.001 ETH con base fee
+de 1 gwei). OJO: esto NO convierte al 2387 (sigue aparte); la identidad de cuenta
+ahora es agente 8004 real. Script: `scripts/adapterscan-register-full.cjs`.
+
 **Lo que NO se puede:** el adapter RECHAZA el registry como token ligado (revert en
 `_requireValidTokenContract`), asi que el agente 2387 no se puede "fusionar" con su
 UBID de registry; y `bindExisting` (jalar agentes ya minteados) aun no esta
