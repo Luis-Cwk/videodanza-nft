@@ -528,7 +528,61 @@ checker vea GET /mcp en 200).
 
 ---
 
-## 11. Referencias
+## 11. Identidad Adapterscan (adapter ERC-8004, 15 oct 2026)
+
+Adapterscan (docs.adapterscan.com, explorer testnet.adapterscan.com) es el scanner
+del "adapter" de ERC-8004: contrato open source (MIT, unruggable-labs/adapter) que
+se monta ENCIMA del registry y liga la identidad a un token o cuenta externa. La
+identidad se llama UBID = `hashBinding(standard, boundAddress, tokenId)`, derivado,
+no emitido. El registro "contrafactual" vive solo en el event log (1 tx, sin mint
+ni storage); el `register()` completo mintea un ERC-8004 con las mismas
+coordenadas y la historia se une sola.
+
+Direcciones (Sepolia):
+- Adapter proxy: `0x7621630cB63a73a194f45A3E6801B8C6A7eC2f92`
+- Registry ERC-8004: `0x8004A818BFB912233c491871b3d84c89A494BD9e`
+- delegate.xyz v2: `0x00000000000000447e69651d841bD8D104Bed493`
+
+Standards en el contrato DESPLEGADO (ojo: la rama main del repo es mas nueva y no
+coincide): 0 ERC721, 1 ERC1155, 2 ERC6909, 3 ERC1155F, 4 ERC6909F, 5 ACCOUNT,
+6 CONTRACT_OWNABLE, 7 CONTRACT_ADMIN. ACCOUNT = ligar a una cuenta (tokenId 0).
+
+**Lo que hicimos (verificado onchain):** identidad de entropiav2 anclada a la owner
+`0xD70E...40cF` (standard 5 ACCOUNT, tokenId 0), URI = ipfs del registro, metadata
+name "entropiav2", wallet operativa nueva `0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f`
+(llave en `.agent-wallet.json`, gitignored) linkeada con las dos firmas, mas rating
+de las 3 testers y transaction record del pago x402 real. UBID:
+`0x0806e9749b2940c22f04a666f578755e479e106e9dd5e6d785b0f82b9353be80`.
+Script reproducible: `scripts/adapterscan-run.cjs`.
+
+Txs: claim `0xa9d1f0a8...` (bloque 11925198), metadata `0x79510b5b...`, wallet
+`0xbb528c4d...`, confirmacion ops `0xbf78a7e6...`, ratings `0xf0726c49` /
+`0x0504b067` / `0xc2fe502f`, record `0x12e39fae...`
+
+**Lo que NO se puede:** el adapter RECHAZA el registry como token ligado (revert en
+`_requireValidTokenContract`), asi que el agente 2387 no se puede "fusionar" con su
+UBID de registry; y `bindExisting` (jalar agentes ya minteados) aun no esta
+desplegado en ninguna cadena (README del repo). La identidad en Adapterscan es
+NUEVA y paralela, anclada a cuenta.
+
+Funciones utiles: `counterfactualRegister` / `counterfactualSetMetadata` /
+`counterfactualSetAgentWallet` / `setWalletUBID` (cada wallet declara "trabajo para
+esta identidad") / `counterfactualSetAgentWalletAndUBID` (ambas mitades si el caller
+es ambos) / `attest(variante, ubid, variant, data)`: variante 3 = rating (score de
+1 byte + texto, una viva por wallet), variante 5 = transaction record (score + tx
+hash + nota, el hash tambien va en el slot variant). Las atestaciones funcionan
+antes del claim.
+
+Gotchas (15 oct): Tenderly gateway rate-limitea `eth_sendRawTransaction` (usar
+publicnode o drpc); publicnode limita `eth_getLogs` a 50k bloques; viem
+`estimateGas` fallaba con ExecutionRevertedError sin datos aunque el RPC crudo
+pasaba, asi que los scripts firman local con `account.signTransaction` y mandan
+crudo; el event log del adapter indexa el registrationHash (el UBID), se filtra con
+`topics: [null, UBID]`.
+
+---
+
+## 12. Referencias
 
 - x402 (Coinbase): https://github.com/coinbase/x402 y https://www.x402.org/
 - ERC-8004: https://eips.ethereum.org/EIPS/eip-8004
@@ -536,4 +590,6 @@ checker vea GET /mcp en 200).
 - Agent0 SDK: https://sdk.ag0.xyz/
 - TIA (modelo de API pagada para agentes): https://stellar.holatia.app/
 - Faucet USDC testnet (login humano): https://faucet.circle.com/
+- Adapterscan (docs): https://docs.adapterscan.com y explorer https://testnet.adapterscan.com
+- Adapter ERC-8004 (codigo): https://github.com/unruggable-labs/adapter
 - Skill hermana: `skills/entropiav2/SKILL.md` (arquitectura y contenido del agente)
