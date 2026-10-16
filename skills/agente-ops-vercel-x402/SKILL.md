@@ -96,6 +96,7 @@ locale=es) responde 200 y redirige a
 | Wallet vieja RETIRADA | `0x6bcE199069A02917114DD8a9BDca5E6886f2Afaa` (llave expuesta en repo publico mar-oct 2026; NO usarla; le quedan 0.1 USDC en Base Sepolia sin gas para moverlos) |
 | Identity Registry Sepolia | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
 | Reputation Registry Sepolia | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
+| Validation Registry (testnet y mainnet, misma) | `0x8004Cb1BFb31DAf7788923b405b754f57acEB4272` |
 | Explorer | https://testnet.8004scan.io/agents/sepolia/2387 |
 | Metadata IPFS (oct 2026) | `ipfs://bafkreifse2ewnhrxmd47p5yw6vk7b67anrtwaeeeasnmnbmslrlpgsb3ui` |
 | Wallet de feedback/tester | `0x9732e0f07b17b1360d15F2456FC5f2Baf858DD13` (llave en `8004/my-agent/.feedback-wallet.json`, gitignored) |
@@ -318,6 +319,11 @@ Claves para el score:
   (devuelve 404 `"No safe image is available"` y lo cachea). Usar PNG de
   512x512 (`public/avatar.png` del my-agent). Tras re-registrar, su proxy
   tarda unos minutos en refrescar y convierte la imagen a webp.
+- **Etiquetas de confianza de 8004scan** (segun el skill oficial `8004`):
+  No Data (0 feedbacks), Emerging (1-4), Established (>=5 y avg>=50),
+  Trusted (>=10 y avg>=70), Highly Trusted (>=20 y avg>=80), Caution (avg<0),
+  Untrusted (>=5 y avg<-50). entropiav2 con 7 feedbacks y avg 93.75 esta en
+  **Established**: con 10 feedbacks pasa a **Trusted**.
 - engagement: stars, views, chats desde la UI de testnet.8004scan.io.
 - Verificacion de dominio: con hosting de terceros (vercel.app) la verificacion
   se marca `skipped` (Third-party hosting domain). Un dominio propio lo resuelve.
@@ -344,6 +350,15 @@ Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
   1000/dia). Funciona en ambas bases: `api.8004scan.io/api/v1` y
   `testnet.8004scan.io/api/v1`. Si se filtra, se regenera desde el dashboard
   de 8004scan (Builder Hub).
+- **API publica alternativa:** `https://www.8004scan.io/api/v1/public` (la que
+  documenta el skill `8004scan` instalado en `~/.opencode/skills/8004scan`).
+- **Webhooks (2026-10-15):** 8004scan tiene webhooks con eventos
+  `feedback.received`, `star.received`, `star.removed`, `validation.requested`,
+  `validation.completed`, `feedback.revoked`, firmados con HMAC-SHA256. Skill
+  de referencia: `~/.opencode/skills/8004scan-webhooks` (repo
+  github.com/jiayaoqijia/8004, skills 8004 / 8004scan / 8004scan-webhooks).
+  Idea pendiente: un webhook que avise a Petra cuando alguien interactue con
+  entropiav2 (necesita endpoint receptor; podria ser una funcion del my-agent).
 
 ---
 
