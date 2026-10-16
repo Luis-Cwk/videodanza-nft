@@ -565,6 +565,15 @@ UBID de registry; y `bindExisting` (jalar agentes ya minteados) aun no esta
 desplegado en ninguna cadena (README del repo). La identidad en Adapterscan es
 NUEVA y paralela, anclada a cuenta.
 
+OJO con los ABIs desactualizados: la implementacion VIVA de Sepolia (15 oct 2026,
+leida del slot EIP-1967 del proxy) es `0xab4188fa94aba7a6cf4605032ccd1be461406719`
+(AdapterImplementation, 42 funciones; incluye attest, setWalletUBID, hashBinding,
+counterfactual*; NO incluye bindExisting ni setPrimaryAgent). La direccion
+`0x31a68E5b...` que lista el README del repo esta vieja y el ABI de Blockscout ahi
+esta incompleto. Para saber si ya soltaron `bindExisting`: leer el slot
+`0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc` del proxy y
+revisar el ABI de la implementacion que devuelva.
+
 Funciones utiles: `counterfactualRegister` / `counterfactualSetMetadata` /
 `counterfactualSetAgentWallet` / `setWalletUBID` (cada wallet declara "trabajo para
 esta identidad") / `counterfactualSetAgentWalletAndUBID` (ambas mitades si el caller
