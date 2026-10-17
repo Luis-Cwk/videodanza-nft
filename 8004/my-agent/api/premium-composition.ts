@@ -29,6 +29,31 @@ const middleware = paymentMiddleware(
       network: 'base-sepolia',
       config: {
         description: 'Composicion premium de VideoDanza Generativa con descripcion poetica, parametros deterministas y texto curatorial listo para metadata NFT.',
+        discoverable: true,
+        inputSchema: {
+          properties: {
+            seed: { type: 'string', description: 'Semilla deterministica: la misma semilla produce la misma composicion.' },
+            mood: { type: 'string', description: 'Tono emocional (ej. melancolia, euforia, calma).' },
+            gender: { type: 'string', description: 'Perspectiva de genero del cuerpo (ej. femenino, masculino, hibrido).' },
+            energy: { type: 'string', description: 'Nivel de energia (baja, media, alta).' },
+            perspective: { type: 'string', description: 'Punto de vista de la danza (ej. bailarin, espectador).' },
+            token_id: { type: 'integer', description: 'ID de token para el texto poetico de metadata (default 1).' },
+          },
+        },
+        outputSchema: {
+          example: {
+            composition: {
+              seed: 'melancolia-espectador-7',
+              videoIds: [3, 8, 12],
+              musicTrack: 5,
+              blendMode: 'screen',
+            },
+            poetic_description: 'Texto poetico listo para metadata NFT.',
+            curatorial_text: 'Texto curatorial breve en espanol latinoamericano.',
+            token_id: 1,
+            deterministic: true,
+          },
+        },
       },
     },
   }

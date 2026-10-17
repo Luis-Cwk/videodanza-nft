@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Luis-Cwk/entropiav2",
+  "title": "entropiav2",
+  "description": "Videodance compositions, Solidity contracts and poetic NFT metadata from Petra Synthetic's agent.",
+  "websiteUrl": "https://my-agent-tau.vercel.app",
+  "repository": {
+    "url": "https://github.com/Luis-Cwk/videodanza-nft",
+    "source": "github"
+  },
+  "version": "2.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://my-agent-tau.vercel.app/mcp"
+    }
+  ]
+}

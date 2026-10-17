@@ -68,6 +68,12 @@
       "name": "web",
       "endpoint": "https://petrasynthetic.com",
       "version": "1.0"
+    },
+    {
+      "name": "x402",
+      "endpoint": "https://my-agent-tau.vercel.app/v1/premium-composition",
+      "version": "1",
+      "description": "Composicion premium de VideoDanza Generativa por $0.10 USDC via x402 (Base Sepolia), con recibo onchain."
     }
   ],
   "registrations": [
