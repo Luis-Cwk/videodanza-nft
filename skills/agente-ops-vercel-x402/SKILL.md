@@ -256,6 +256,18 @@ requieren respuesta. Reportar cada build con POST /actions.
 
 ---
 
+- **Aviso de ventas (16 oct):** `api/premium-composition.ts` detecta al comprador
+  del header X-PAYMENT (`payload.authorization.from`) y, si NO es wallet conocida
+  (testers/owner/agente, set `KNOWN_WALLETS`), manda correo via Brevo a
+  `NOTIFY_EMAIL` (default dfrmnc22@gmail.com) con monto, comprador y semilla; log
+  `[premium] VENTA` en Vercel. Probado de punta a punta: comprador nuevo
+  `0xda648e79...` -> correo delivered (16 oct). GOTCHA EIP-712: el dominio de USDC
+  en Base Sepolia es name="USDC" version="2" (NO "USD Coin"; el `extra` correcto
+  sale del propio 402). Tip: se puede fondear una wallet sin gas con
+  `createPaymentHeader` (x402/client) + POST `{paymentPayload, paymentRequirements}`
+  a `https://x402.org/facilitator/settle`. Wallet de comprador de prueba:
+  `.buyer-test.json` (gitignored).
+
 ## 4. Feedback onchain (reputacion ERC-8004)
 
 Reglas del estandar: el feedback DEBE venir de una wallet distinta al owner del

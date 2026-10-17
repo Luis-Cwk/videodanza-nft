@@ -12,3 +12,4 @@ dist/
 .feedback-wallet-3.json
 .owner-wallet.json
 .agent-wallet.json
+.buyer-test.json
