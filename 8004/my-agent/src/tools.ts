@@ -11,6 +11,7 @@
  */
 
 import { generateResponse, generateContract, generateComposition, generateNFTDescription, type CompositionParams } from './agent.js';
+import { KNOWN_WALLETS, notifySale } from './notify.js';
 
 // Formulario hospedado de Brevo que usa el sitio: misma lista y doble opt-in.
 const NEWSLETTER_FORM_URL = 'https://9953cc92.sibforms.com/serve/MUIFACYK-hb0GorWt-JhHU4_f531Qqcn60RV7-jDgFy8bHgIpu5XRXBbVH0AvUoU7RzG8GauRK_Rz6tXOQ9RQTYXi7VmynrFh_IUcvxlaRFLJNwW28LnNzwl6DbiU11Zm5uIllDsGfby81MMH2w8wT9Y3HFia7ojnLKOY0ES4P87lXSczXbtanLHlggBMsc8UChE91A0MkK5FXMfiA==';
@@ -140,6 +141,58 @@ export const tools = [
       required: ['email'],
     },
   },
+  {
+    name: 'variaciones_estilo',
+    description: 'Genera variaciones de estilo desde una misma semilla: varias versiones con distintos moods y energias. Util para explorar direcciones antes de encargar una comision.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        seed: {
+          type: 'string',
+          description: 'Semilla base; las variaciones la conservan como raiz.',
+        },
+        count: {
+          type: 'number',
+          description: 'Numero de variaciones (2 a 4, default 3).',
+        },
+      },
+      required: ['seed'],
+    },
+  },
+  {
+    name: 'commission_brief',
+    description: 'Recibe un brief creativo y regresa una propuesta de comision: mood y semilla sugeridos, borrador de pieza, que se entrega y como pagarla. Flujo de encargo: brief -> entrega -> pago x402.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        brief: {
+          type: 'string',
+          description: 'Descripcion del encargo: tema, tono, uso previsto (NFT, video, poster).',
+        },
+      },
+      required: ['brief'],
+    },
+  },
+  {
+    name: 'composicion_premium',
+    description: 'Composicion premium de videodanza: pieza determinista + descripcion poetica para metadata NFT + texto curatorial. Es PAGADA via x402 (0.10 USDC en Base Sepolia). Sin el parametro payment regresa los requisitos de pago; con payment (base64 del header X-PAYMENT) verifica, entrega y liquida onchain.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        seed: { type: 'string', description: 'Semilla deterministica (opcional).' },
+        mood: { type: 'string', description: 'Tono emocional (opcional).' },
+        gender: { type: 'string', description: 'Perspectiva de cuerpo (opcional).' },
+        energy: { type: 'string', description: 'Energia: low, medium, high (opcional).' },
+        perspective: { type: 'string', description: 'Punto de vista (opcional).' },
+        token_id: { type: 'number', description: 'ID de token para el texto poetico (default 1).' },
+        payment: {
+          type: 'string',
+          description: 'Header X-PAYMENT en base64 que produce tu cliente x402 despues de pagar. Sin esto, la tool responde con los requisitos de pago.',
+        },
+      },
+      required: [],
+    },
+  },
 ];
 
 // ============================================================================
@@ -259,6 +312,132 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
           fallback: 'Envia un correo a ai@petrasynthetic.com con asunto SUSCRIBIR desde tu inbox.',
         };
       }
+    }
+
+    case 'variaciones_estilo': {
+      const seed = String(args.seed ?? '').trim();
+      if (!seed) {
+        return { error: 'Falta la semilla base (seed).' };
+      }
+      const count = Math.min(Math.max(Number(args.count) || 3, 2), 4);
+      const moods = ['melancholic', 'joyful', 'abstract', 'ambient'];
+      const energies = ['low', 'medium', 'high'];
+      const variations = [];
+      for (let i = 0; i < count; i += 1) {
+        const composition = generateComposition({
+          seed: `${seed}-v${i + 1}`,
+          mood: moods[i % moods.length],
+          energy: energies[i % energies.length],
+        });
+        variations.push({ variation: i + 1, ...composition });
+      }
+      return {
+        seed,
+        count: variations.length,
+        variations,
+        message: `${variations.length} variaciones generadas desde la semilla "${seed}". Cada una es reproducible: misma semilla, misma pieza.`,
+      };
+    }
+
+    case 'commission_brief': {
+      const brief = String(args.brief ?? '').trim();
+      if (!brief) {
+        return { error: 'Falta el brief del encargo.' };
+      }
+      const lower = brief.toLowerCase();
+      const mood = /melan|nostal|trist|oscuro|duelo/.test(lower)
+        ? 'melancholic'
+        : /alegr|fiesta|luz|celebr|gozo/.test(lower)
+          ? 'joyful'
+          : /abstract|experim|ruido|glitch/.test(lower)
+            ? 'abstract'
+            : 'ambient';
+      const seedBase = lower.slice(0, 32).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'commission';
+      const draft = generateComposition({ seed: seedBase, mood });
+      return {
+        brief,
+        propuesta: {
+          mood_sugerido: mood,
+          seed_sugerida: seedBase,
+          pieza_draft: draft,
+          entrega: [
+            'composicion determinista (JSON con capas, blend y musica)',
+            'descripcion poetica lista para metadata NFT',
+            'texto curatorial breve (60 palabras)',
+          ],
+          precio: '0.10 USDC (x402, Base Sepolia)',
+          como_pagar: 'GET https://my-agent-tau.vercel.app/v1/premium-composition (responde 402; firma el pago USDC y reintenta), o llama la tool composicion_premium de este MCP con el parametro payment.',
+        },
+      };
+    }
+
+    case 'composicion_premium': {
+      const payTo = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as string;
+      const requirements = {
+        scheme: 'exact',
+        network: 'base-sepolia',
+        maxAmountRequired: '100000',
+        resource: 'mcp://tool/composicion_premium',
+        description: 'Composicion premium de VideoDanza Generativa via MCP (x402).',
+        mimeType: 'application/json',
+        payTo,
+        maxTimeoutSeconds: 600,
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        extra: { name: 'USDC', version: '2' },
+      };
+      const payment = args.payment as string | undefined;
+      if (!payment) {
+        return {
+          status: 402,
+          error: 'X-PAYMENT requerido',
+          accepts: [requirements],
+          como_pagar:
+            'Firma un transferWithAuthorization (EIP-3009) de 0.10 USDC a payTo con tu wallet cliente y reintenta esta tool con payment = base64 del payload X-PAYMENT.',
+        };
+      }
+      let paymentPayload: any;
+      try {
+        paymentPayload = JSON.parse(Buffer.from(payment, 'base64').toString('utf8'));
+      } catch {
+        return { status: 400, error: 'payment no es base64 JSON valido.' };
+      }
+      const verifyRes = await fetch('https://x402.org/facilitator/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentPayload, paymentRequirements: requirements }),
+      });
+      const verifyJson: any = await verifyRes.json();
+      if (!verifyJson.isValid) {
+        return { status: 402, error: 'pago invalido', detalle: verifyJson };
+      }
+      const composition = generateComposition({
+        seed: args.seed as string | undefined,
+        mood: args.mood as string | undefined,
+        gender: args.gender as string | undefined,
+        energy: args.energy as string | undefined,
+        perspective: args.perspective as string | undefined,
+      });
+      const tokenId = Number(args.token_id) || 1;
+      const poetic = generateNFTDescription(composition, tokenId);
+      const settleRes = await fetch('https://x402.org/facilitator/settle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentPayload, paymentRequirements: requirements }),
+      });
+      const settleJson: any = await settleRes.json();
+      const payerAddr = String(settleJson?.payer || paymentPayload?.payload?.authorization?.from || '');
+      if (payerAddr && !KNOWN_WALLETS.has(payerAddr.toLowerCase())) {
+        notifySale(payerAddr, requirements.maxAmountRequired, composition.seed, 'mcp').catch((e) => console.error('[mcp] notifySale:', e?.message));
+      }
+      return {
+        composition,
+        poetic_description: poetic,
+        token_id: tokenId,
+        deterministic: true,
+        pago: settleJson,
+        feedback_hint:
+          'Si esta pieza te sirvio, deja feedback onchain en el Reputation Registry (prueba de interaccion real): https://testnet.8004scan.io/agents/sepolia/2387',
+      };
     }
 
     default:
