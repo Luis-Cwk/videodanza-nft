@@ -268,6 +268,16 @@ requieren respuesta. Reportar cada build con POST /actions.
   a `https://x402.org/facilitator/settle`. Wallet de comprador de prueba:
   `.buyer-test.json` (gitignored).
 
+- **Venta por MCP (17 oct):** tool `composicion_premium` en el MCP: sin `payment`
+  responde 402 con requisitos; con `payment` (base64 X-PAYMENT) verifica (/verify),
+  entrega y liquida (/settle) via x402.org. Tools nuevas: `variaciones_estilo`
+  (2-4 variaciones de una semilla) y `commission_brief` (brief -> propuesta +
+  precio). El aviso de ventas es helper compartido `src/notify.ts` (HTTP + MCP;
+  KNOWN_WALLETS incluye al comprador de prueba 0xda648e79...). Probado: pago real
+  por MCP liquidado (tx 0x1a0c6a27). La respuesta premium incluye `feedback_hint`
+  (invita al Registry). Card actualizada: provider, pricing en descripcion,
+  imagen = avatar.png.
+
 ## 4. Feedback onchain (reputacion ERC-8004)
 
 Reglas del estandar: el feedback DEBE venir de una wallet distinta al owner del
