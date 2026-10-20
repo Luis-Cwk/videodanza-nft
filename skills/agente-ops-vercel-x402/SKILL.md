@@ -280,6 +280,16 @@ requieren respuesta. Reportar cada build con POST /actions.
 
 ## 4. Feedback onchain (reputacion ERC-8004)
 
+**Registries por red (CRITICO, no confundir):** Base mainnet usa
+`IdentityRegistry 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` y
+`ReputationRegistry 0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`. Base Sepolia usa
+`0x8004A818...` y `0x8004B663...`. La reputacion de mainnet NO es la misma vanity que
+testnet: si mandas feedback mainnet a la direccion de testnet, revierte con data
+vacia (~30k gas). Fuente: github.com/erc-8004/erc-8004-contracts (README por red).
+Las estrellas de 8004scan NO son transacciones: `POST /api/v1/agents/stars/{chain}/{token}`
+con JWT de usuario (cada wallet distinta suma). Feedback onchain con saldos chicos:
+tope `maxFeePerGas` 0.1 gwei (con 1 gwei el nodo pide 0.00025 ETH de balance previo).
+
 Reglas del estandar: el feedback DEBE venir de una wallet distinta al owner del
 agente (el owner no puede autoevaluarse). Usar la wallet de tester.
 
@@ -324,6 +334,20 @@ wallet en MAINNET; un agentWallet con actividad solo en Sepolia deja
 ---
 
 ## 5. Ranking de 8004scan (como se calcula y sus caches)
+
+**Formula v5.2 (vista 20 oct 2026):** dimensiones con pesos: `service` 0.25
+(has_a2a/has_mcp + skills del card + tools del MCP + health + discoverability),
+`engagement` 0.30 (feedbacks count + promedio + estrellas + vistas + chats),
+`publisher` 0.20 (wallet_score de las metricas de wallet + validation bonus +
+cert_bonus), `compliance` 0.15 (parse + metadata_completeness + endpoint
+verificado), `momentum` 0.10 (actividad + freshness). Score final bandeado
+(floor 78 / ceiling 95) por `proof` 0.7 y `support` 0.3 con tiers de evidencia.
+Palancas que controlamos: card con mas skills A2A (4 -> 9 sube service), tools MCP,
+metadata (94), verificacion de endpoint (sirve `/.well-known/agent-registration.json`
+en el dominio del agente: `public/well-known-agent-registration.json` + rewrite),
+estrellas via API y feedbacks onchain. Lo que depende de ELLOS: su pipeline de
+wallet metrics (issue #60) para publisher, la certificacion de publisher y el
+indexado de feedbacks (tarda horas).
 
 Algoritmo `v5_leaderboard_policy` (version 5.2), peso: 85% prueba (evidence),
 15% soporte. Dimensiones: service (25%), engagement (30%), publisher (20%),
