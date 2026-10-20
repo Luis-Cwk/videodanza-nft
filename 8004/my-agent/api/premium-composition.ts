@@ -15,6 +15,7 @@
  * y el handler espera al middleware, hasta el timeout de 60s (504).
  */
 import { paymentMiddleware } from 'x402-express';
+import { createSign, randomBytes } from 'crypto';
 import { generateComposition, generateNFTDescription, generateResponse } from '../src/agent.js';
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 
@@ -22,12 +23,53 @@ import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 // la wallet anterior 0x6bce...faa quedo retirada por llave expuesta en git)
 const PAY_TO = (process.env.X402_PAY_TO || '0xD70ECAff906A739167EFD20275D0a1d518AC40cF') as `0x${string}`;
 
+// Red y facilitador configurables por entorno. Default: testnet (x402.org).
+// Mainnet: X402_NETWORK=base, X402_FACILITATOR_URL=https://api.cdp.coinbase.com/platform/v2/x402
+// + CDP_API_KEY_ID / CDP_API_KEY_SECRET (el facilitador de CDP pide JWT ES256).
+const X402_NETWORK = (process.env.X402_NETWORK || 'base-sepolia') as 'base-sepolia' | 'base';
+const X402_PRICE = process.env.X402_PRICE || '$0.10';
+const FACILITATOR_URL = process.env.X402_FACILITATOR_URL || 'https://x402.org/facilitator';
+const CDP_KEY_ID = process.env.CDP_API_KEY_ID || '';
+const CDP_KEY_SECRET = process.env.CDP_API_KEY_SECRET || '';
+
+function base64url(input: Buffer | string): string {
+  return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** JWT ES256 de CDP para el facilitador de Coinbase. */
+function cdpAuthHeader(method: string, path: string): Record<string, string> {
+  if (!CDP_KEY_ID || !CDP_KEY_SECRET) return {};
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: 'ES256', kid: CDP_KEY_ID, nonce: randomBytes(16).toString('hex') };
+  const payload = {
+    sub: CDP_KEY_ID,
+    iss: 'cdp',
+    aud: ['cdp_service'],
+    nbf: now,
+    exp: now + 120,
+    uri: `${method} api.cdp.coinbase.com${path}`,
+  };
+  const signingInput = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
+  const signature = createSign('sha256').update(signingInput).sign({ key: CDP_KEY_SECRET, dsaEncoding: 'ieee-p1363' });
+  return { Authorization: `Bearer ${signingInput}.${base64url(signature)}` };
+}
+
+const facilitator = FACILITATOR_URL.includes('cdp.coinbase.com')
+  ? {
+      url: FACILITATOR_URL,
+      createAuthHeaders: async () => ({
+        verify: cdpAuthHeader('POST', '/platform/v2/x402/verify'),
+        settle: cdpAuthHeader('POST', '/platform/v2/x402/settle'),
+      }),
+    }
+  : undefined;
+
 const middleware = paymentMiddleware(
   PAY_TO,
   {
     'GET /v1/premium-composition': {
-      price: '$0.10',
-      network: 'base-sepolia',
+      price: X402_PRICE,
+      network: X402_NETWORK,
       config: {
         description: 'Composicion premium de VideoDanza Generativa con descripcion poetica, parametros deterministas y texto curatorial listo para metadata NFT.',
         discoverable: true,
@@ -57,8 +99,8 @@ const middleware = paymentMiddleware(
         },
       },
     },
-  }
-  // facilitator por defecto: https://x402.org/facilitator (testnet)
+  },
+  facilitator as any
 );
 
 // Aviso de ventas: helper compartido en src/notify.ts (HTTP + MCP).

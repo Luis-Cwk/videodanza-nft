@@ -13,3 +13,4 @@ dist/
 .owner-wallet.json
 .agent-wallet.json
 .buyer-test.json
+.cdp-keys.json
