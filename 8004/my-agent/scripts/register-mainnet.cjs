@@ -1,6 +1,7 @@
 // Registro del agente en Base MAINNET (ERC-8004) + agentWallet de la wallet operativa.
 // Uso: node scripts/register-mainnet.cjs
 // Requiere: PRIVATE_KEY (owner) con ETH en Base y .agent-wallet.json.
+require('dotenv').config();
 const fs = require('fs');
 const { encodeFunctionData, parseAbi, decodeEventLog, decodeAbiParameters, toHex } = require('viem');
 const { privateKeyToAccount } = require('viem/accounts');

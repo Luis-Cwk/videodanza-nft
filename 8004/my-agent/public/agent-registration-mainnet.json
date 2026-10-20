@@ -79,7 +79,12 @@
       "description": "Composicion premium de VideoDanza Generativa por $0.10 USDC via x402 en Base mainnet, con recibo onchain."
     }
   ],
-  "registrations": [],
+  "registrations": [
+    {
+      "agentId": 356966,
+      "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    }
+  ],
   "supportedTrust": [
     "reputation",
     "crypto-economic",
