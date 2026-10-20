@@ -507,6 +507,23 @@ export async function chat(messages: AgentMessage[]): Promise<string> {
   }
 }
 
+export function stripMarkdown(text: string): string {
+  return text
+    .replace(/```[a-zA-Z]*\n?/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/(^|\s)\*([^*\n]+)\*/g, '$1$2')
+    .replace(/(^|\s)_([^_\n]+)_/g, '$1$2')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export async function generateResponse(userMessage: string, history: AgentMessage[] = []): Promise<string> {
   const systemPrompt: AgentMessage = {
     role: 'system',
@@ -536,6 +553,7 @@ Ejemplos de semillas:
 - semilla: "flotar-en-gravedad-cero"
 
 REGLAS IMPORTANTES:
+- Responde SIEMPRE en texto plano: sin markdown. Nada de asteriscos para negritas, ni # para titulos, ni guiones para listas, ni backticks, ni bloques de codigo, ni tablas. Frases corridas y limpias, faciles de leer en un chat.
 - Cuando el usuario diga "mintear", "acunar" o "mint": NO generes codigo. Dile que use el panel de la derecha para mintear.
 - Cuando el usuario pida "crear contrato" o "generar codigo": ahi SI generas codigo Solidity.
 - NUNCA pidas la private key del usuario
@@ -543,7 +561,7 @@ REGLAS IMPORTANTES:
   };
 
   const messages: AgentMessage[] = [systemPrompt, ...history, { role: 'user', content: userMessage }];
-  return chat(messages);
+  return stripMarkdown(await chat(messages));
 }
 
 export function generateContract(contractType: string, params: any): string {
@@ -580,7 +598,7 @@ export function generateContract(contractType: string, params: any): string {
 export async function* streamResponse(userMessage: string, history: AgentMessage[] = []): AsyncGenerator<string> {
   const systemPrompt: AgentMessage = {
     role: 'system',
-    content: 'Eres entropiav2, agente creativo de VideoDanza Generativa. Hablas espanol latino. Eres poeta y tecnico a la vez: exploras danza, blockchain, IA y arte generativo. Responde con creatividad pero precision.',
+    content: 'Eres entropiav2, agente creativo de VideoDanza Generativa. Hablas espanol latino. Eres poeta y tecnico a la vez: exploras danza, blockchain, IA y arte generativo. Responde con creatividad pero precision. Responde SIEMPRE en texto plano, sin markdown: sin asteriscos, sin #, sin listas con guiones, sin backticks ni bloques de codigo.',
   };
 
   const messages: AgentMessage[] = [systemPrompt, ...history, { role: 'user', content: userMessage }];

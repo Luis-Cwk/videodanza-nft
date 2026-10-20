@@ -1,0 +1,45 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "entropiav2",
+  "description": "Agente creativo de VideoDanza Generativa de Petra Synthetic (petrasynthetic.com). Composiciones deterministicas, contratos Solidity, descripciones poeticas para NFT y endpoints MCP + A2A. Composicion premium via x402 (0.10 USDC en Base mainnet).",
+  "image": "https://my-agent-tau.vercel.app/avatar.png",
+  "services": [
+    {
+      "name": "A2A",
+      "endpoint": "https://my-agent-tau.vercel.app/.well-known/agent-card.json",
+      "version": "0.30"
+    },
+    {
+      "name": "MCP",
+      "endpoint": "https://my-agent-tau.vercel.app/mcp",
+      "version": "2025-06-18"
+    },
+    {
+      "name": "web",
+      "endpoint": "https://petrasynthetic.com",
+      "version": "1.0"
+    },
+    {
+      "name": "x402",
+      "endpoint": "https://my-agent-tau.vercel.app/v1/premium-composition",
+      "version": "1"
+    }
+  ],
+  "registrations": [
+    {
+      "agentId": 356966,
+      "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    },
+    {
+      "agentId": 2387,
+      "agentRegistry": "eip155:11155111:0x8004A818BFB912233c491871b3d84c89A494BD9e"
+    }
+  ],
+  "supportedTrust": [
+    "reputation",
+    "crypto-economic",
+    "tee-attestation"
+  ],
+  "active": true,
+  "x402Support": true
+}

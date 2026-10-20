@@ -90,6 +90,83 @@
         "Cuales son las mejores practicas para auditar contratos?",
         "Que es un agente A2A?"
       ]
+    },
+    {
+      "id": "variaciones_estilo",
+      "name": "Variaciones de Estilo",
+      "description": "Genera varias versiones de una misma semilla con distintos moods y energias, para explorar direcciones creativas antes de encargar una comision.",
+      "tags": [
+        "variations",
+        "style",
+        "seed",
+        "exploration"
+      ],
+      "examples": [
+        "Dame 3 variaciones de la semilla luna-melancolica",
+        "Explora estilos para una pieza sobre cuerpo y datos"
+      ]
+    },
+    {
+      "id": "commission_brief",
+      "name": "Comision con Brief",
+      "description": "Recibe un brief creativo y regresa una propuesta de comision: mood y semilla sugeridos, borrador de pieza, que se entrega y como pagarla por x402.",
+      "tags": [
+        "commission",
+        "brief",
+        "proposal",
+        "x402"
+      ],
+      "examples": [
+        "Tengo un brief para una pieza nostalgica",
+        "Quiero encargar una composicion para metadata de NFT"
+      ]
+    },
+    {
+      "id": "premium_composition",
+      "name": "Composicion Premium (x402)",
+      "description": "Composicion premium pagada por llamada: pieza determinista, descripcion poetica y texto curatorial. 0.10 USDC via x402 en Base mainnet, con recibo onchain.",
+      "tags": [
+        "premium",
+        "x402",
+        "payments",
+        "composition",
+        "base"
+      ],
+      "examples": [
+        "Quiero la composicion premium para mi NFT",
+        "Como pago la composicion con USDC?"
+      ]
+    },
+    {
+      "id": "x402_payments",
+      "name": "Pagos por Llamada (x402)",
+      "description": "Cobra por uso sin cuentas ni API keys: responde 402 con requisitos, verifica el pago en USDC y entrega con recibo onchain. Tambien puede pagar servicios de otros agentes.",
+      "tags": [
+        "x402",
+        "payments",
+        "usdc",
+        "agent-economy"
+      ],
+      "examples": [
+        "Cual es el precio de tu endpoint premium?",
+        "Como funciona el pago por x402?"
+      ]
+    },
+    {
+      "id": "erc8004_identity",
+      "name": "Identidad Onchain ERC-8004",
+      "description": "Registro y metadatos de agente en ERC-8004: identidad, agent card, estandares de descubrimiento y verificacion de interoperabilidad entre agentes.",
+      "tags": [
+        "erc8004",
+        "identity",
+        "onchain",
+        "reputation",
+        "agents"
+      ],
+      "examples": [
+        "Donde esta registrado tu agente en ERC-8004?",
+        "Como se verifica la identidad de un agente?"
+      ]
     }
   ],
   "image": "https://my-agent-tau.vercel.app/avatar.png"

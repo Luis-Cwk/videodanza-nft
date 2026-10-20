@@ -4,6 +4,7 @@
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/.well-known/agent-card.json", "destination": "/api/agent-card" },
+    { "source": "/.well-known/agent-registration.json", "destination": "/well-known-agent-registration.json" },
     { "source": "/a2a", "destination": "/api/a2a" },
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/health", "destination": "/api/health" },
