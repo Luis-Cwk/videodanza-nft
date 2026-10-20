@@ -15,7 +15,7 @@
  * y el handler espera al middleware, hasta el timeout de 60s (504).
  */
 import { paymentMiddleware } from 'x402-express';
-import { createSign, randomBytes } from 'crypto';
+import { createPrivateKey, sign as cryptoSign, randomBytes } from 'crypto';
 import { generateComposition, generateNFTDescription, generateResponse } from '../src/agent.js';
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 
@@ -36,11 +36,19 @@ function base64url(input: Buffer | string): string {
   return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-/** JWT ES256 de CDP para el facilitador de Coinbase. */
+/** JWT de CDP para el facilitador de Coinbase (soporta ES256 y Ed25519 segun la key). */
 function cdpAuthHeader(method: string, path: string): Record<string, string> {
   if (!CDP_KEY_ID || !CDP_KEY_SECRET) return {};
+  let keyObj;
+  let alg: 'ES256' | 'EdDSA';
+  try {
+    keyObj = createPrivateKey(CDP_KEY_SECRET);
+    alg = keyObj.asymmetricKeyType === 'ed25519' ? 'EdDSA' : 'ES256';
+  } catch {
+    return {};
+  }
   const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'ES256', kid: CDP_KEY_ID, nonce: randomBytes(16).toString('hex') };
+  const header = { alg, kid: CDP_KEY_ID, nonce: randomBytes(16).toString('hex') };
   const payload = {
     sub: CDP_KEY_ID,
     iss: 'cdp',
@@ -50,7 +58,9 @@ function cdpAuthHeader(method: string, path: string): Record<string, string> {
     uri: `${method} api.cdp.coinbase.com${path}`,
   };
   const signingInput = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
-  const signature = createSign('sha256').update(signingInput).sign({ key: CDP_KEY_SECRET, dsaEncoding: 'ieee-p1363' });
+  const signature = alg === 'EdDSA'
+    ? cryptoSign(null, Buffer.from(signingInput), keyObj)
+    : cryptoSign('sha256', Buffer.from(signingInput), { key: keyObj, dsaEncoding: 'ieee-p1363' });
   return { Authorization: `Bearer ${signingInput}.${base64url(signature)}` };
 }
 
