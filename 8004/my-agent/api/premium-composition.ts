@@ -218,7 +218,7 @@ async function servePremium(req: any, res: any, tStart: number) {
   // Aviso de venta si el comprador es una wallet nueva (no tester/owner/agente).
   const payer = getPayer(req);
   if (payer && !KNOWN_WALLETS.has(payer.from.toLowerCase())) {
-    notifySale(payer.from, payer.value, composition.seed, 'http').catch((e) => console.error('[premium] notifySale:', e?.message));
+    notifySale(payer.from, payer.value, composition.seed, 'http', X402_NETWORK).catch((e) => console.error('[premium] notifySale:', e?.message));
   }
 
   res.status(200).json({

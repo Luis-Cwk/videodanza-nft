@@ -373,17 +373,20 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
 
     case 'composicion_premium': {
       const payTo = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as string;
+      const net = process.env.X402_NETWORK || 'base-sepolia';
+      const asset = net === 'base' ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' : '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+      const extra = net === 'base' ? { name: 'USD Coin', version: '2' } : { name: 'USDC', version: '2' };
       const requirements = {
         scheme: 'exact',
-        network: 'base-sepolia',
+        network: net,
         maxAmountRequired: '100000',
         resource: 'mcp://tool/composicion_premium',
         description: 'Composicion premium de VideoDanza Generativa via MCP (x402).',
         mimeType: 'application/json',
         payTo,
         maxTimeoutSeconds: 600,
-        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-        extra: { name: 'USDC', version: '2' },
+        asset,
+        extra,
       };
       const payment = args.payment as string | undefined;
       if (!payment) {
@@ -427,7 +430,7 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
       const settleJson: any = await settleRes.json();
       const payerAddr = String(settleJson?.payer || paymentPayload?.payload?.authorization?.from || '');
       if (payerAddr && !KNOWN_WALLETS.has(payerAddr.toLowerCase())) {
-        notifySale(payerAddr, requirements.maxAmountRequired, composition.seed, 'mcp').catch((e) => console.error('[mcp] notifySale:', e?.message));
+        notifySale(payerAddr, requirements.maxAmountRequired, composition.seed, 'mcp', requirements.network).catch((e) => console.error('[mcp] notifySale:', e?.message));
       }
       return {
         composition,
