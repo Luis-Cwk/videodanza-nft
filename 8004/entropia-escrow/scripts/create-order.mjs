@@ -1,5 +1,6 @@
 /**
- * Crea una orden en el escrow desde la cuenta buyer (genlayer-js 1.1.8).
+ * Crea una orden en el escrow desde la cuenta buyer (genlayer-js 2.0.0-rc.2).
+ * Estima y adjunta las fees del protocolo ademas del deposito.
  * Imprime JSON: {"orderId": "...", "hash": "0x..."}
  *
  * Uso: CONTRACT_ADDRESS=0x... node scripts/create-order.mjs
@@ -19,11 +20,24 @@ const orderId = `ord-${count}`;
 const brief = process.env.BRIEF ||
   "Pieza de videodanza generativa sobre cuerpo y tecnologia. Tema: soberania de datos y danza contemporanea expandida. Formato: texto poetico para metadata NFT.";
 
+const args = [brief, 3600];
+const value = 500000000000000000n;
+const estimate = await client.estimateTransactionFeesForWrite({
+  address,
+  functionName: "create_order",
+  args,
+  value,
+});
 const hash = await client.writeContract({
   address,
   functionName: "create_order",
-  args: [brief, 3600],
-  value: 500000000000000000n,
+  args,
+  value,
+  fees: {
+    distribution: estimate.distribution,
+    messageAllocations: estimate.messageAllocations,
+    feeValue: estimate.feeValue,
+  },
 });
 
 console.log(JSON.stringify({ orderId, hash }));
