@@ -7,12 +7,11 @@
  */
 import { readFileSync, existsSync } from "fs";
 import { createAccount } from "genlayer-js";
-import { studionet, testnetBradbury, testnetAsimov } from "genlayer-js/chains";
+import { studionet, testnetBradbury } from "genlayer-js/chains";
 
 const NETWORKS = {
   studionet,
   testnet_bradbury: testnetBradbury,
-  testnet_asimov: testnetAsimov,
 };
 
 const network = process.env.GENLAYER_NETWORK || "testnet_bradbury";

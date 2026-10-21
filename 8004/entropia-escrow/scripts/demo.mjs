@@ -1,28 +1,28 @@
 /**
- * Demo end-to-end del escrow de composiciones en GenLayer.
+ * Demo end-to-end del escrow de composiciones en Studio.
  *
- * Flujo: buyer deposita GEN -> seller entrega URL -> buyer disputa ->
- * resolve_dispute corre consenso real (web + LLM) y libera o reembolsa.
+ * Usa genlayer-js 1.1.8 (legacy) porque el SDK 2.0.0-rc.2 todavía no habla
+ * con el RPC de Studio (`sim_getFeeConfig`). Para Bradbury Phase 2 usa
+ * scripts/demo-bradbury.ps1 + scripts/create-order.mjs.
  *
  * Uso:
- *   node scripts/demo.mjs                    # studionet (default)
- *   GENLAYER_NETWORK=testnet_bradbury node scripts/demo.mjs
- *   CONTRACT_ADDRESS=0x... node scripts/demo.mjs   # reutiliza un contrato ya desplegado
+ *   node scripts/demo.mjs
+ *   CONTRACT_ADDRESS=0x... node scripts/demo.mjs
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { createClient, createAccount, generatePrivateKey } from "genlayer-js";
-import { studionet, testnetBradbury, testnetAsimov } from "genlayer-js/chains";
-import { TransactionStatus } from "genlayer-js/types";
+import { createClient, createAccount, generatePrivateKey } from "genlayer-js-legacy";
+import { studionet } from "genlayer-js-legacy/chains";
+import { TransactionStatus } from "genlayer-js-legacy/types";
 
 const NETWORKS = {
   studionet,
-  testnet_bradbury: testnetBradbury,
-  testnet_asimov: testnetAsimov,
 };
 
 const network = process.env.GENLAYER_NETWORK || "studionet";
+if (network !== "studionet") {
+  throw new Error("demo.mjs es solo Studio; para Bradbury Phase 2 usa scripts/demo-bradbury.ps1");
+}
 const chain = NETWORKS[network];
-if (!chain) throw new Error(`Red desconocida: ${network}`);
 
 const KEYS_PATH = ".secrets/demo-keys.json";
 const CONTRACT_PATH = "contracts/composition_escrow.py";
@@ -67,7 +67,8 @@ async function waitSuccess(client, hash, label) {
       retries: 300,
     }),
   );
-  const result = receipt.consensus_data?.leader_receipt?.[0]?.execution_result;
+  const executionResult = receipt.consensus_data?.leader_receipt?.[0]?.execution_result;
+  const result = executionResult || receipt.result_name;
   console.log(`  ${label}: ${hash} -> ${result || receipt.status_name}`);
   if (result && result !== "SUCCESS") {
     const stderr = receipt.consensus_data?.leader_receipt?.[0]?.genvm_result?.stderr || "";
@@ -82,6 +83,8 @@ function extractContractAddress(receipt) {
     receipt.contractAddress ||
     receipt.tx_data_decoded?.contract_address ||
     receipt.consensus_data?.leader_receipt?.[0]?.contract_address ||
+    receipt.to_address ||
+    receipt.recipient ||
     null
   );
 }

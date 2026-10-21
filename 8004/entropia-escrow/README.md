@@ -17,7 +17,9 @@ Es el experimento de la "capa de adjudicación" aplicada al flujo de venta del a
   - Entrega ajena (example.com) -> `refund` (depósito al comprador).
 - Veredictos con evidencia: el juicio cita fragmentos del entregable y marca cada requisito del brief como MET o NOT MET.
 
-### Testnet Bradbury (chain 4221, modelos y web reales)
+### Testnet Bradbury (chain 4221)
+
+> **Phase 2 (21 oct 2026):** la red fue reseteada. El contrato, el estado y los saldos de abajo son del Bradbury anterior y no sobreviven. No desplegar ni probar hasta que abran Phase 2 (jueves 22 oct). Mientras tanto, usar Studio o Studio Next.
 
 - Contrato: `0xF0870e9775DEEc42389c7C30B865eC6c236e5F32`
 - `ord-0`: disputa sobre una entrega que sí cumplía el brief -> **RELEASED** con veredicto `release`.
@@ -33,7 +35,7 @@ Es el experimento de la "capa de adjudicación" aplicada al flujo de venta del a
 ```text
 contracts/composition_escrow.py   Contrato principal (Intelligent Contract, Python)
 tests/direct/                     Pruebas directas (8, corren en ~0.5s sin red)
-scripts/demo.mjs                  Flujo end-to-end para studionet (genlayer-js 1.1.8)
+scripts/demo.mjs                  Flujo end-to-end para Studio (genlayer-js 1.1.8 legacy)
 scripts/create-order.mjs          Crea la orden pagable en Bradbury (buyer)
 scripts/demo-bradbury.ps1         Flujo híbrido Bradbury: JS para la orden, CLI para el resto
 scripts/balances.mjs              Consulta balances GEN por RPC
@@ -70,8 +72,8 @@ $env:CONTRACT_ADDRESS = "0x..."; node scripts/demo.mjs
 # Balances GEN de las cuentas de la demo (default: Bradbury)
 node scripts/balances.mjs
 
-# Bradbury (flujo híbrido JS + CLI, ver sección de cuotas)
-$env:GL_PASSWORD = "..."; $env:CONTRACT_ADDRESS = "0xF0870e9775DEEc42389c7C30B865eC6c236e5F32"
+# Bradbury Phase 2 (cuando abra, RPC nuevo y fees)
+$env:GL_PASSWORD = "..."; $env:CONTRACT_ADDRESS = "0x..."
 .\scripts\demo-bradbury.ps1
 
 # Sonda de fetch (depurar qué ve la red en una URL)
@@ -82,17 +84,16 @@ genlayer call <addr> get_probe
 
 Las llaves de la demo viven en `.secrets/demo-keys.json` (gitignored). En Bradbury cada cuenta necesita GEN del faucet: https://testnet-faucet.genlayer.foundation/
 
-## Bradbury: cuotas y SDK (importante)
+## Bradbury Phase 2: cuotas y SDK (importante)
 
-Bradbury cobra cuota de protocolo y exige que la transacción incluya un depósito. El estado real de las herramientas:
+Bradbury Phase 2 exige fees de protocolo. El SDK `genlayer-js` `2.0.0-rc.2` ya trae `estimateTransactionFeesForWrite` y `fees`; `scripts/create-order.mjs` estima y adjunta las fees. `scripts/demo.mjs` se queda en Studio con el SDK legacy `1.1.8` porque el RPC de Studio no soporta `sim_getFeeConfig`. El CLI también calcula fees y es la vía recomendada para escrituras no pagables.
 
-| Herramienta | Resultado en Bradbury |
-|---|---|
-| CLI `genlayer write` | Funciona: calcula y adjunta la cuota. Es la vía confiable para métodos no pagables. |
-| `genlayer-js` 1.1.8 | `create_order` pagable funciona (con el depósito como valor). En métodos no pagables revierte el EVM porque no adjunta cuota. |
-| `genlayer-js` 2.0.0-rc.1 | Trae `estimateTransactionFeesForWrite` y `fees`, pero las lecturas de política de cuotas revierten en Bradbury (`messageFeeParamsBudgetFloor`, `quoteGasPrice`). |
-
-Por eso `scripts/demo-bradbury.ps1` usa JS solo para `create_order` y el CLI para `submit_delivery`, `dispute` y `resolve_dispute`. El CLI no puede enviar `value`, así que todavía no puede crear escrows con depósito por sí solo. Para valor real, usa el CLI o espera soporte de cuotas estable en el SDK.
+- RPC nuevo: `https://rpc.testnet-chain.genlayer.com/` (chain ID 4221).
+- El CLI 0.39.2 todavía muestra el RPC viejo; `demo-bradbury.ps1` pasa `--rpc` explícito.
+- Runner: el contrato mantiene `py-genlayer:1jb45...` hasta que el runner nuevo `py-genlayer:1zr6...` esté disponible en el bundle local de `genvm-linter`/`gltest`. El linter lo sugiere, pero la validación local todavía no lo carga.
+- Asimov está retirado. No usar `testnetAsimov`.
+- Bradbury Phase 2 está en Epoch Zero hasta el jueves 22 oct. Hasta entonces no se despliega ni se prueba en Bradbury.
+- El contrato `0xF087...` y los saldos de la demo son históricos. Hay que redeployar y actualizar el link del explorer en el Portal.
 
 Nota: el pago de un veredicto (`emit_transfer`) es un mensaje externo y se ejecuta cuando la transacción **finaliza**, no cuando se acepta. `genlayer finalize <tx>` puede revertir si la ventana de apelación sigue abierta; en ese caso hay que esperar.
 
@@ -119,7 +120,8 @@ Nota: el pago de un veredicto (`emit_transfer`) es un mensaje externo y se ejecu
 
 ## Siguiente paso
 
-- Esperar la finalización de `resolve_dispute` de `ord-1` para que se ejecute el reembolso de 0.5 GEN.
-- Reintentar `create_order` con valor cuando el SDK estable adjunte cuotas (hoy solo el CLI maneja cuotas bien, y no envía valor).
+- Esperar a que abra Bradbury Phase 2 (jueves 22 oct).
+- Redeplegar el contrato con el runner nuevo y el RPC nuevo; actualizar el link del explorer en el Portal.
+- Probar `create_order` pagable con fees y el flujo completo. El reembolso de `ord-1` del Bradbury viejo quedó ejecutado y es histórico.
 - Conectar el flujo al agente: orden desde el endpoint premium para montos mayores, y `dispute` visible para el comprador.
 - GenLayer sigue sin mainnet (roadmap: release candidate "Clarke", objetivo Q4 2026). Todo esto es testnet.
