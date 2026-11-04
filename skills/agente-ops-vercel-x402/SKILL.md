@@ -401,12 +401,19 @@ Es LA fuente de verdad para verificar mejoras, mas confiable que la UI.
 - **Webhooks (2026-10-15):** 8004scan tiene webhooks con eventos
   `feedback.received`, `star.received`, `star.removed`, `validation.requested`,
   `validation.completed`, `feedback.revoked`, firmados con HMAC-SHA256.
-  **HECHO para entropiav2:** webhook id `0f3fe0b3-267c-4dbe-8395-64bdfbf70b6f`
-  apuntando a `https://my-agent-tau.vercel.app/webhook` (funcion
-  `api/webhook-8004.ts`): verifica firma HMAC (secret que devuelve 8004scan al
-  registrar, guardado como `WEBHOOK_SECRET_8004` en Vercel y .env) y reenvia
-  correo a dfrmnc22@gmail.com via Brevo. Registro/renovacion:
+  **HECHO para entropiav2 (actualizado 2026-11-04):** webhook id
+  `4ec88979-fe81-492c-9b27-32458b0a3ecd` apuntando a
+  `https://entropia.petrasynthetic.com/webhook` (funcion `api/webhook-8004.ts`):
+  verifica firma HMAC (secret que devuelve 8004scan al registrar, guardado como
+  `WEBHOOK_SECRET_8004` en Vercel y .env) y reenvia correo a
+  dfrmnc22@gmail.com via Brevo. El webhook anterior
+  `0f3fe0b3-267c-4dbe-8395-64bdfbf70b6f` (my-agent-tau) se BORRO el 2026-11-04:
+  quedaba activo y sus entregas fallaban 401 porque el secret ya se habia
+  rotado. OJO: hay un solo `WEBHOOK_SECRET_8004`, asi que dos webhooks activos
+  con secrets distintos no pueden convivir. Registro/renovacion:
   `node scripts/register-webhook.mjs` (login owner nonce->firma->JWT).
+  Borrado: `node scripts/_delete-old-webhook.mjs`. Al borrar un webhook se va
+  tambien su historial de entregas (404 despues).
   OJO: el endpoint de registro (`POST /api/v1/webhooks/register`, campo
   `webhook_url`) pide **JWT de sesion**, NO la API key; y el secret lo genera
   el servidor (el skill `8004scan-webhooks` documenta un flujo distinto con
