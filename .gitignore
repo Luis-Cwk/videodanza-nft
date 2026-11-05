@@ -33,3 +33,21 @@ temp_abi.json
 *.log
 
 .vercel
+
+# --- Artefactos locales y basura de Windows (2026-11-05) ---
+nul
+8004/nul
+8004/my-agent/nul
+8004/forge.exe
+8004/%USERPROFILE%*
+oc.out
+front-logs.txt
+Manifold-Collectors-*.csv
+
+# Scripts de un solo uso: verificaciones de tx y volcados de diagnostico
+8004/my-agent/scripts/_verify-mainnet-tx*.mjs
+8004/my-agent/scripts/_pay-headers.mjs
+8004/my-agent/scripts/_pay-with-client-ext.mjs
+8004/my-agent/scripts/_balances-all.mjs
+8004/my-agent/scripts/_cert-full.mjs
+8004/my-agent/scripts/_check-mainnet-state.mjs

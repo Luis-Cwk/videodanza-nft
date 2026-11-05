@@ -1,0 +1,6 @@
+﻿.env
+node_modules/
+worker.out.log
+worker.err.log
+runtime.log
+watchdog.log

@@ -1,0 +1,31 @@
+{
+  "receipt": {
+    "network": "base",
+    "payer": "0x724A5326Fc6346BAa13a589A7Ec03A69CA8b5A8D",
+    "success": true,
+    "transaction": "0x925d27c753b28eed5a68aff4f6b18aba03f947ca0d11d90666523d49b9b076b3"
+  },
+  "body": {
+    "composition": {
+      "seed": "21c8a6c7c7b68a88",
+      "videoIds": [
+        44,
+        41,
+        55
+      ],
+      "musicTrack": 14,
+      "blendMode": "hard-light",
+      "opacity": 0.37,
+      "scale": 1.09,
+      "rotation": 71,
+      "description": "Composicion generativa: 3 capas de video, musica ambient, blend mode hard-light"
+    },
+    "poetic_description": "VideoDanza Generativa #1\n\nUna composicion unica nacida de la semilla \"21c8a6c7c7b68a88\".\nComposicion generativa: 3 capas de video, musica ambient, blend mode hard-light.\n\nParametros: 3 capas de video | Track musical 14 | Blend: hard-light | Opacidad: 37% | Escala: 1.09x | Rotacion: 71°\n\nCada parametro emerge deterministicamente de tu semilla.\nLa misma semilla siempre genera la misma composicion.\nImposible de duplicar. Verificable en blockchain.",
+    "curatorial_text": "El cuerpo se despliega en tres miradas simultaneas, tejido por la luz dura que revela sombras propias. La musica 14 canta bajo piel electrica, mientras el codigo danza con la carne. Una geografia corporal donde lo analogico y digital respiran juntos, en tension armoniosa. semilla: \"tres-miradas-luz-dura-2025\"",
+    "token_id": 1,
+    "deterministic": true,
+    "note": "Misma semilla, misma composicion. Verificable onchain.",
+    "feedback_hint": "Si esta pieza te sirvio, deja feedback onchain en el Reputation Registry (prueba de interaccion real): https://testnet.8004scan.io/agents/sepolia/2387",
+    "timestamp": "2026-10-23T04:33:22.520Z"
+  }
+}

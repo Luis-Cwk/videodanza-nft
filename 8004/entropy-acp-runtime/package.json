@@ -1,0 +1,12 @@
+{
+  "name": "entropy-acp-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runtime propio de Entropy para trabajos ACP de Virtuals.",
+  "scripts": {
+    "start": "node worker.mjs",
+    "once": "node worker.mjs --once",
+    "selftest": "node worker.mjs --selftest"
+  }
+}
