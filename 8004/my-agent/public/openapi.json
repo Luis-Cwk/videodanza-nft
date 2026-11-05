@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "entropiav2",
-    "version": "2.0.1",
+    "title": "entropiav2 - VideoDanza Generativa Agent",
+    "version": "2.0.2",
     "description": "Agente ERC-8004 de Petra Synthetic. Due diligence de agentes antes de pagarles y composiciones de videodanza generativa. Pago por llamada en USDC sobre Base, sin cuenta ni API key.",
     "contact": {
       "name": "Petra Synthetic",
@@ -17,12 +17,41 @@
       "get": {
         "summary": "Vista gratuita de due diligence de un agente ERC-8004",
         "operationId": "agentCheckPreview",
+        "tags": ["Due diligence"],
+        "security": [],
         "parameters": [
           { "name": "chain", "in": "query", "required": false, "schema": { "type": "string", "default": "8453" }, "description": "Chain id EVM del agente." },
           { "name": "agent_id", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Token id del agente en el Identity Registry de ERC-8004." }
         ],
         "responses": {
-          "200": { "description": "Veredicto, banda de score y codigos de banderas." },
+          "200": {
+            "description": "Veredicto, banda de score y codigos de banderas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "preview": { "type": "boolean" },
+                    "agent": {
+                      "type": "object",
+                      "properties": {
+                        "chain_id": { "type": "integer" },
+                        "token_id": { "type": "string" },
+                        "name": { "type": ["string", "null"] },
+                        "active": { "type": "boolean" }
+                      }
+                    },
+                    "verdict": { "type": "string", "enum": ["usable", "caution", "avoid"] },
+                    "score_band": { "type": "string", "enum": ["80-100", "60-79", "0-59"] },
+                    "flags": { "type": "array", "items": { "type": "string" } },
+                    "full_report": { "type": "string" },
+                    "checked_at": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
           "429": { "description": "Limite gratuito alcanzado (20 por IP y dia)." }
         }
       }
@@ -31,6 +60,7 @@
       "get": {
         "summary": "Due diligence completa de un agente ERC-8004",
         "operationId": "agentCheck",
+        "tags": ["Due diligence"],
         "parameters": [
           { "name": "chain", "in": "query", "required": false, "schema": { "type": "string", "default": "8453" }, "description": "Chain id EVM del agente." },
           { "name": "agent_id", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Token id del agente en el Identity Registry de ERC-8004." }
@@ -55,7 +85,62 @@
           "protocols": [{ "x402": {} }]
         },
         "responses": {
-          "200": { "description": "Reporte completo con veredicto y score." },
+          "200": {
+            "description": "Reporte completo con veredicto y score.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "agent": {
+                      "type": "object",
+                      "properties": {
+                        "chain_id": { "type": "integer" },
+                        "token_id": { "type": "string" },
+                        "name": { "type": ["string", "null"] },
+                        "owner": { "type": ["string", "null"] },
+                        "agent_wallet": { "type": ["string", "null"] },
+                        "active": { "type": "boolean" }
+                      }
+                    },
+                    "services": {
+                      "type": "object",
+                      "properties": {
+                        "healthy": { "type": "integer" },
+                        "total": { "type": "integer" },
+                        "declared": { "type": "array", "items": { "type": "object" } }
+                      }
+                    },
+                    "reputation": {
+                      "type": "object",
+                      "properties": {
+                        "feedbacks": { "type": "integer" },
+                        "average_score": { "type": "number" },
+                        "evidence_tier": { "type": ["string", "null"] },
+                        "validations": { "type": "integer" },
+                        "rank": { "type": ["integer", "null"] }
+                      }
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": { "type": "string" },
+                          "severity": { "type": "string", "enum": ["blocker", "warning", "info"] },
+                          "message": { "type": "string" }
+                        }
+                      }
+                    },
+                    "verdict": { "type": "string", "enum": ["usable", "caution", "avoid"] },
+                    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "checked_at": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
           "402": { "description": "Payment Required" }
         }
       }
@@ -64,6 +149,7 @@
       "get": {
         "summary": "Composicion premium de videodanza generativa",
         "operationId": "premiumComposition",
+        "tags": ["Creative"],
         "parameters": [
           { "name": "seed", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Semilla determinista." },
           { "name": "mood", "in": "query", "required": false, "schema": { "type": "string" } },
@@ -95,7 +181,31 @@
           "protocols": [{ "x402": {} }]
         },
         "responses": {
-          "200": { "description": "Composicion, descripcion poetica y texto curatorial." },
+          "200": {
+            "description": "Composicion, descripcion poetica y texto curatorial.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "composition": {
+                      "type": "object",
+                      "properties": {
+                        "seed": { "type": "string" },
+                        "videoIds": { "type": "array", "items": { "type": "integer" } },
+                        "musicTrack": { "type": "integer" },
+                        "blendMode": { "type": "string" }
+                      }
+                    },
+                    "poetic_description": { "type": "string" },
+                    "curatorial_text": { "type": "string" },
+                    "token_id": { "type": "integer" },
+                    "deterministic": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
           "402": { "description": "Payment Required" }
         }
       }
@@ -104,14 +214,44 @@
       "get": {
         "summary": "Contrato del servicio: rutas, precios, redes y changelog",
         "operationId": "contract",
-        "responses": { "200": { "description": "Documento con version, rutas y precios." } }
+        "tags": ["Utility"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Documento con version, rutas y precios.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "service": { "type": "string" },
+                    "version": { "type": "string" },
+                    "api_version": { "type": "string" },
+                    "updated_at": { "type": "string" },
+                    "routes": { "type": "array", "items": { "type": "object" } },
+                    "uptime": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/health": {
       "get": {
         "summary": "Estado del agente",
         "operationId": "health",
-        "responses": { "200": { "description": "Estado." } }
+        "tags": ["Utility"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Estado.",
+            "content": {
+              "application/json": { "schema": { "type": "object", "properties": { "status": { "type": "string" } } } }
+            }
+          }
+        }
       }
     }
   }
