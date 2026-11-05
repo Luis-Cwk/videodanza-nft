@@ -1,122 +1,101 @@
 /**
- * Vercel Serverless Function - Premium Composition (x402, estilo TIA)
+ * Vercel Serverless Function - Premium Composition (x402 v2)
  * GET /api/premium-composition -> GET /v1/premium-composition
  *
- * Pago por llamada en USDC sobre Base Sepolia via x402.
- * Sin cuenta, sin API key: cada llamada se paga individual.
- * Flujo 402: llamada -> PAYMENT-REQUIRED -> firma USDC -> reintento
- * con X-PAYMENT -> datos + recibo en X-PAYMENT-RESPONSE.
+ * Composicion determinista + descripcion poetica + texto curatorial.
+ * Pago por llamada en USDC sobre Base mainnet, sin cuenta ni API key.
  *
- * OJO (deadlock): x402-express llama next() tras verificar el pago y
- * despues ESPERA a que la respuesta termine (endPromise) para liquidar
- * (settle) y volcar el buffer. Por eso el cuerpo del handler DEBE correr
- * dentro del callback de next(). Si se corre despues de
- * `await middleware(...)` hay deadlock: el middleware espera res.end()
- * y el handler espera al middleware, hasta el timeout de 60s (504).
+ * v2 (2026-11-04): se migro de x402-express v1 a la misma pila que
+ * /v1/agent-check, con extension de descubrimiento del Bazaar y facilitador de
+ * CDP. Antes la ruta liquidaba por x402.org y no indexaba.
+ *
+ * OJO (deadlock): el handler debe correr DENTRO del callback de next(), porque
+ * el middleware espera res.end() para liquidar. Si se corre despues del await,
+ * el middleware espera la respuesta y el handler espera al middleware.
  */
-import { paymentMiddleware } from 'x402-express';
-import { createPrivateKey, sign as cryptoSign, randomBytes } from 'crypto';
+import { paymentMiddlewareFromHTTPServer } from '@x402/express';
+import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } from '@x402/core/server';
+import { registerExactEvmScheme } from '@x402/evm/exact/server';
+import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { generateComposition, generateNFTDescription, generateResponse } from '../src/agent.js';
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
+import { cdpAuthHeader } from '../src/cdp-auth.js';
 
-// Wallet del agente (duena del NFT 2387 desde la rotacion del 9 oct 2026;
-// la wallet anterior 0x6bce...faa quedo retirada por llave expuesta en git)
 const PAY_TO = (process.env.X402_PAY_TO || '0xD70ECAff906A739167EFD20275D0a1d518AC40cF') as `0x${string}`;
-
-// Red y facilitador configurables por entorno. Default: testnet (x402.org).
-// Mainnet: X402_NETWORK=base, X402_FACILITATOR_URL=https://api.cdp.coinbase.com/platform/v2/x402
-// + CDP_API_KEY_ID / CDP_API_KEY_SECRET (el facilitador de CDP pide JWT ES256).
-const X402_NETWORK = (process.env.X402_NETWORK || 'base-sepolia') as 'base-sepolia' | 'base';
-const X402_PRICE = process.env.X402_PRICE || '$0.10';
+const PRICE = process.env.PREMIUM_PRICE || '$0.10';
+const NETWORK = 'eip155:8453';
 const FACILITATOR_URL = process.env.X402_FACILITATOR_URL || 'https://x402.org/facilitator';
-const CDP_KEY_ID = process.env.CDP_API_KEY_ID || '';
-const CDP_KEY_SECRET = process.env.CDP_API_KEY_SECRET || '';
+const ROUTE = 'GET /v1/premium-composition';
 
-function base64url(input: Buffer | string): string {
-  return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
+const DESCRIPTION =
+  'Composicion premium de VideoDanza Generativa: pieza determinista a partir de una semilla, descripcion poetica lista para metadata NFT y texto curatorial. La misma semilla produce siempre la misma composicion.';
 
-/** JWT de CDP para el facilitador de Coinbase (soporta ES256 y Ed25519 segun la key). */
-function cdpAuthHeader(method: string, path: string): Record<string, string> {
-  if (!CDP_KEY_ID || !CDP_KEY_SECRET) return {};
-  let keyObj;
-  let alg: 'ES256' | 'EdDSA';
-  try {
-    keyObj = createPrivateKey(CDP_KEY_SECRET);
-    alg = keyObj.asymmetricKeyType === 'ed25519' ? 'EdDSA' : 'ES256';
-  } catch {
-    return {};
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg, kid: CDP_KEY_ID, nonce: randomBytes(16).toString('hex') };
-  const payload = {
-    sub: CDP_KEY_ID,
-    iss: 'cdp',
-    aud: ['cdp_service'],
-    nbf: now,
-    exp: now + 120,
-    uri: `${method} api.cdp.coinbase.com${path}`,
-  };
-  const signingInput = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
-  const signature = alg === 'EdDSA'
-    ? cryptoSign(null, Buffer.from(signingInput), keyObj)
-    : cryptoSign('sha256', Buffer.from(signingInput), { key: keyObj, dsaEncoding: 'ieee-p1363' });
-  return { Authorization: `Bearer ${signingInput}.${base64url(signature)}` };
-}
-
-const facilitator = FACILITATOR_URL.includes('cdp.coinbase.com')
-  ? {
-      url: FACILITATOR_URL,
-      createAuthHeaders: async () => ({
-        verify: cdpAuthHeader('POST', '/platform/v2/x402/verify'),
-        settle: cdpAuthHeader('POST', '/platform/v2/x402/settle'),
-      }),
-    }
-  : undefined;
-
-const middleware = paymentMiddleware(
-  PAY_TO,
-  {
-    'GET /v1/premium-composition': {
-      price: X402_PRICE,
-      network: X402_NETWORK,
-      config: {
-        description: 'Composicion premium de VideoDanza Generativa con descripcion poetica, parametros deterministas y texto curatorial listo para metadata NFT.',
-        discoverable: true,
-        inputSchema: {
-          properties: {
-            seed: { type: 'string', description: 'Semilla deterministica: la misma semilla produce la misma composicion.' },
-            mood: { type: 'string', description: 'Tono emocional (ej. melancolia, euforia, calma).' },
-            gender: { type: 'string', description: 'Perspectiva de genero del cuerpo (ej. femenino, masculino, hibrido).' },
-            energy: { type: 'string', description: 'Nivel de energia (baja, media, alta).' },
-            perspective: { type: 'string', description: 'Punto de vista de la danza (ej. bailarin, espectador).' },
-            token_id: { type: 'integer', description: 'ID de token para el texto poetico de metadata (default 1).' },
-          },
-        },
-        outputSchema: {
-          example: {
-            composition: {
-              seed: 'melancolia-espectador-7',
-              videoIds: [3, 8, 12],
-              musicTrack: 5,
-              blendMode: 'screen',
-            },
-            poetic_description: 'Texto poetico listo para metadata NFT.',
-            curatorial_text: 'Texto curatorial breve en espanol latinoamericano.',
-            token_id: 1,
-            deterministic: true,
-          },
-        },
-      },
-    },
+const EXAMPLE_OUTPUT = {
+  composition: {
+    seed: 'melancolia-espectador-7',
+    videoIds: [3, 8, 12],
+    musicTrack: 5,
+    blendMode: 'screen',
   },
-  facilitator as any
-);
+  poetic_description: 'Texto poetico listo para metadata NFT.',
+  curatorial_text: 'Texto curatorial breve en espanol latinoamericano.',
+  token_id: 1,
+  deterministic: true,
+};
 
-// Aviso de ventas: helper compartido en src/notify.ts (HTTP + MCP).
+let middlewarePromise: Promise<ReturnType<typeof paymentMiddlewareFromHTTPServer>> | null = null;
+
+function getMiddleware() {
+  if (!middlewarePromise) {
+    middlewarePromise = (async () => {
+      const facilitator = new HTTPFacilitatorClient({
+        url: FACILITATOR_URL,
+        createAuthHeaders: async () => ({
+          verify: cdpAuthHeader('POST', '/platform/v2/x402/verify'),
+          settle: cdpAuthHeader('POST', '/platform/v2/x402/settle'),
+          supported: cdpAuthHeader('GET', '/platform/v2/x402/supported'),
+          bazaar: cdpAuthHeader('GET', '/platform/v2/x402/discovery/resources'),
+        }),
+      });
+
+      const resourceServer = new x402ResourceServer(facilitator);
+      registerExactEvmScheme(resourceServer, { networks: [NETWORK] });
+      resourceServer.registerExtension(bazaarResourceServerExtension);
+
+      const httpServer = new x402HTTPResourceServer(resourceServer, {
+        [ROUTE]: {
+          accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
+          description: DESCRIPTION,
+          extensions: declareDiscoveryExtension({
+            input: { seed: 'melancolia-espectador-7', mood: 'melancolia' },
+            inputSchema: {
+              type: 'object',
+              properties: {
+                seed: { type: 'string', description: 'Semilla determinista: la misma semilla produce la misma composicion.' },
+                mood: { type: 'string', description: 'Tono emocional (ej. melancolia, euforia, calma).' },
+                gender: { type: 'string', description: 'Perspectiva de genero del cuerpo (ej. femenino, masculino, hibrido).' },
+                energy: { type: 'string', description: 'Nivel de energia (baja, media, alta).' },
+                perspective: { type: 'string', description: 'Punto de vista de la danza (ej. bailarin, espectador).' },
+                token_id: { type: 'integer', description: 'ID de token para el texto poetico de metadata (default 1).' },
+              },
+            },
+            output: { example: EXAMPLE_OUTPUT },
+          }),
+        },
+      });
+
+      return paymentMiddlewareFromHTTPServer(httpServer as any);
+    })().catch((error) => {
+      middlewarePromise = null;
+      throw error;
+    });
+  }
+  return middlewarePromise;
+}
+
 function getPayer(req: any): { from: string; value: string } | null {
   try {
-    const raw = req.headers?.['x-payment'];
+    const raw = req.headers?.['payment-signature'] || req.headers?.['x-payment'];
     if (!raw) return null;
     const decoded = JSON.parse(Buffer.from(String(raw), 'base64').toString('utf8'));
     const auth = decoded?.payload?.authorization;
@@ -128,23 +107,14 @@ function getPayer(req: any): { from: string; value: string } | null {
 }
 
 export default async function handler(req: any, res: any) {
-  // Vercel serverless no expone req.path, req.protocol, req.header ni
-  // req.originalUrl (son de Express). x402-express los necesita, asi que
-  // los polypilleamos antes de llamarlo.
+  // Vercel serverless no expone los helpers de Express que el middleware usa.
   if (!req.path) {
     const rawUrl = req.url || '/v1/premium-composition';
     req.path = rawUrl.split('?')[0];
-    // la rewrite de Vercel entrega /api/premium-composition; normalizamos
-    if (req.path === '/api/premium-composition') {
-      req.path = '/v1/premium-composition';
-    }
+    if (req.path === '/api/premium-composition') req.path = '/v1/premium-composition';
   }
-  if (!req.originalUrl) {
-    req.originalUrl = req.url || req.path;
-  }
-  if (!req.protocol) {
-    req.protocol = 'https';
-  }
+  if (!req.originalUrl) req.originalUrl = req.url || req.path;
+  if (!req.protocol) req.protocol = 'https';
   if (typeof req.header !== 'function') {
     req.header = (name: string) => {
       const v = req.headers?.[String(name).toLowerCase()];
@@ -154,40 +124,31 @@ export default async function handler(req: any, res: any) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-PAYMENT');
-  res.setHeader('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE, X-PAYMENT');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, PAYMENT-SIGNATURE, X-PAYMENT');
+  res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
+
+  let middleware: Awaited<ReturnType<typeof getMiddleware>>;
+  try {
+    middleware = await getMiddleware();
+  } catch (error: any) {
+    console.error('[premium] middleware no disponible:', error?.message || error);
+    return res.status(500).json({ error: 'Payment middleware unavailable' });
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed, usa GET' });
-  }
-
-  const tStart = Date.now();
-  const hasPayment = Boolean(req.headers?.['x-payment']);
-  console.log(`[premium] inicio, X-PAYMENT presente: ${hasPayment}`);
-
-  // Sin pago: el middleware responde 402 y NO llama next().
-  // Con pago valido: llama next() -> servimos la composicion -> al hacer
-  // res.end() el middleware liquida (settle) y agrega X-PAYMENT-RESPONSE.
   await middleware(req as any, res as any, () => {
-    console.log(`[premium] next() tras verify en ${Date.now() - tStart}ms`);
-    servePremium(req, res, tStart).catch((error: any) => {
+    servePremium(req, res).catch((error: any) => {
       console.error('[premium] error en servePremium:', error);
-      if (!res.writableEnded) {
-        res.status(500).json({ error: error.message || 'Internal error' });
-      }
+      if (!res.writableEnded) res.status(500).json({ error: error.message || 'Internal error' });
     });
   });
 }
 
-async function servePremium(req: any, res: any, tStart: number) {
-  const t0 = Date.now();
+async function servePremium(req: any, res: any) {
   const query: Record<string, string> =
-    req.query ||
-    Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
+    req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
 
   const seed = query.seed || undefined;
   const mood = query.mood || undefined;
@@ -199,9 +160,8 @@ async function servePremium(req: any, res: any, tStart: number) {
   const composition = generateComposition({ seed, mood, gender, energy, perspective });
   const poetic = generateNFTDescription(composition, token_id);
 
-  // Texto curatorial: LLM con timeout corto y fallback determinista.
-  // El settle de x402 corre despues de res.end(); si esto se pasa de
-  // ~60s la funcion muere (504) y el pago queda sin liquidar.
+  // El settle corre despues de res.end(); si esto se pasa de ~60s la funcion
+  // muere y el pago queda sin liquidar. Fallback determinista a los 12s.
   const curatorialFallback = `El cuerpo recuerda lo que el algoritmo apenas aprende. En "${composition.seed}", ${composition.videoIds.length} capas de movimiento se superponen como memorias que insisten, con blend ${composition.blendMode} y un pulso musical que cuenta hasta ${composition.musicTrack}. La danza no se genera: se revela, semilla a semilla, verificable en blockchain.`;
   const curatorial = await Promise.race([
     generateResponse(
@@ -213,12 +173,10 @@ async function servePremium(req: any, res: any, tStart: number) {
       if (typeof timer.unref === 'function') timer.unref();
     }),
   ]);
-  console.log(`[premium] composicion+curatorial en ${Date.now() - t0}ms, total ${Date.now() - tStart}ms`);
 
-  // Aviso de venta si el comprador es una wallet nueva (no tester/owner/agente).
   const payer = getPayer(req);
   if (payer && !KNOWN_WALLETS.has(payer.from.toLowerCase())) {
-    notifySale(payer.from, payer.value, composition.seed, 'http').catch((e) => console.error('[premium] notifySale:', e?.message));
+    notifySale(payer.from, payer.value, composition.seed, 'http', NETWORK).catch((e) => console.error('[premium] notifySale:', e?.message));
   }
 
   res.status(200).json({
@@ -229,7 +187,7 @@ async function servePremium(req: any, res: any, tStart: number) {
     deterministic: true,
     note: 'Misma semilla, misma composicion. Verificable onchain.',
     feedback_hint:
-      'Si esta pieza te sirvio, deja feedback onchain en el Reputation Registry (prueba de interaccion real): https://testnet.8004scan.io/agents/sepolia/2387',
+      'Si esta pieza te sirvio, deja feedback onchain en el Reputation Registry (prueba de interaccion real): https://8004scan.io/agents/base/356966',
     timestamp: new Date().toISOString(),
   });
 }

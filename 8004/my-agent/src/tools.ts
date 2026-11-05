@@ -20,6 +20,20 @@ const NEWSLETTER_FORM_URL = 'https://9953cc92.sibforms.com/serve/MUIFACYK-hb0Gor
 // Tool Definitions
 // ============================================================================
 
+/**
+ * El 402 de x402 v2 manda los requisitos en el header Payment-Required
+ * (base64 JSON) y deja el cuerpo vacio. Sin esto, la tool devuelve {}.
+ */
+function requisitosDe(r: Response): Record<string, unknown> {
+  const h = r.headers.get('payment-required');
+  if (!h) return {};
+  try {
+    return JSON.parse(Buffer.from(h, 'base64').toString('utf8'));
+  } catch {
+    return {};
+  }
+}
+
 export const tools = [
   {
     name: 'chat',
@@ -393,82 +407,39 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
             'descripcion poetica lista para metadata NFT',
             'texto curatorial breve (60 palabras)',
           ],
-          precio: '0.10 USDC (x402, Base Sepolia)',
+          precio: '0.10 USDC (x402, Base mainnet)',
           como_pagar: 'GET https://entropia.petrasynthetic.com/v1/premium-composition (responde 402; firma el pago USDC y reintenta), o llama la tool composicion_premium de este MCP con el parametro payment.',
         },
       };
     }
 
     case 'composicion_premium': {
-      const payTo = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as string;
-      const net = process.env.X402_NETWORK || 'base-sepolia';
-      const asset = net === 'base' ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' : '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
-      const extra = net === 'base' ? { name: 'USD Coin', version: '2' } : { name: 'USDC', version: '2' };
-      const requirements = {
-        scheme: 'exact',
-        network: net,
-        maxAmountRequired: '100000',
-        resource: 'mcp://tool/composicion_premium',
-        description: 'Composicion premium de VideoDanza Generativa via MCP (x402).',
-        mimeType: 'application/json',
-        payTo,
-        maxTimeoutSeconds: 600,
-        asset,
-        extra,
-      };
+      // Proxy al endpoint HTTP: hereda el facilitador de CDP y la extension del
+      // Bazaar. Antes esta tool cobraba contra x402.org y no indexaba.
+      const base = process.env.AGENT_BASE_URL || 'https://entropia.petrasynthetic.com';
+      const qs = new URLSearchParams();
+      for (const k of ['seed', 'mood', 'gender', 'energy', 'perspective']) {
+        if (args[k]) qs.set(k, String(args[k]));
+      }
+      if (args.token_id) qs.set('token_id', String(args.token_id));
+      const headers: Record<string, string> = {};
       const payment = args.payment as string | undefined;
-      if (!payment) {
+      if (payment) headers['X-PAYMENT'] = payment;
+      const r = await fetch(`${base}/v1/premium-composition?${qs.toString()}`, {
+        headers,
+        signal: AbortSignal.timeout(45000),
+      });
+      const body: any = await r.json().catch(() => ({ error: 'respuesta no JSON' }));
+      if (r.status === 402) {
         return {
           status: 402,
           error: 'X-PAYMENT requerido',
-          accepts: [requirements],
+          requisitos: requisitosDe(r),
           como_pagar:
-            'Firma un transferWithAuthorization (EIP-3009) de 0.10 USDC a payTo con tu wallet cliente y reintenta esta tool con payment = base64 del payload X-PAYMENT.',
+            'Paga 0.10 USDC en Base con tu cliente x402 y reintenta esta tool con payment = base64 del header X-PAYMENT.',
         };
       }
-      let paymentPayload: any;
-      try {
-        paymentPayload = JSON.parse(Buffer.from(payment, 'base64').toString('utf8'));
-      } catch {
-        return { status: 400, error: 'payment no es base64 JSON valido.' };
-      }
-      const verifyRes = await fetch('https://x402.org/facilitator/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentPayload, paymentRequirements: requirements }),
-      });
-      const verifyJson: any = await verifyRes.json();
-      if (!verifyJson.isValid) {
-        return { status: 402, error: 'pago invalido', detalle: verifyJson };
-      }
-      const composition = generateComposition({
-        seed: args.seed as string | undefined,
-        mood: args.mood as string | undefined,
-        gender: args.gender as string | undefined,
-        energy: args.energy as string | undefined,
-        perspective: args.perspective as string | undefined,
-      });
-      const tokenId = Number(args.token_id) || 1;
-      const poetic = generateNFTDescription(composition, tokenId);
-      const settleRes = await fetch('https://x402.org/facilitator/settle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentPayload, paymentRequirements: requirements }),
-      });
-      const settleJson: any = await settleRes.json();
-      const payerAddr = String(settleJson?.payer || paymentPayload?.payload?.authorization?.from || '');
-      if (payerAddr && !KNOWN_WALLETS.has(payerAddr.toLowerCase())) {
-        notifySale(payerAddr, requirements.maxAmountRequired, composition.seed, 'mcp', requirements.network).catch((e) => console.error('[mcp] notifySale:', e?.message));
-      }
-      return {
-        composition,
-        poetic_description: poetic,
-        token_id: tokenId,
-        deterministic: true,
-        pago: settleJson,
-        feedback_hint:
-          'Si esta pieza te sirvio, deja feedback onchain en el Reputation Registry (prueba de interaccion real): https://testnet.8004scan.io/agents/sepolia/2387',
-      };
+      return { status: r.status, ...body };
     }
 
     case 'agent_check_preview': {
@@ -491,7 +462,7 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
         return {
           status: 402,
           error: 'X-PAYMENT requerido',
-          requisitos: body,
+          requisitos: requisitosDe(r),
           como_pagar:
             'Paga 0.02 USDC en Base con tu cliente x402 y reintenta esta tool con payment = base64 del header X-PAYMENT.',
         };
