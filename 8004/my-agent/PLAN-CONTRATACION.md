@@ -61,9 +61,11 @@ un pago de prueba.
 ### 9. Registro en los cinco lugares — A MEDIAS
 
 1. Bazaar de CDP: **hecho**, las dos rutas.
-2. **Registro oficial de MCP: estamos dentro** desde el 2026-10-17, como
-   `io.github.Luis-Cwk/entropiav2` v2.0.0, remoto `streamable-http`. Pero apunta a
-   `my-agent-tau.vercel.app`: hay que republicarlo con el dominio bueno.
+2. **Registro oficial de MCP: estamos dentro y ya en el dominio propio.**
+   `io.github.Luis-Cwk/entropiav2` **v2.0.1**, remoto `streamable-http` en
+   `https://entropia.petrasynthetic.com/mcp`. La v2.0.0 (que apuntaba a
+   `my-agent-tau.vercel.app`) quedó **deprecada** el 2026-11-04. Las versiones
+   del registro son inmutables: para cambiar algo hay que subir de versión.
 3. Agentic.Market: sin verificar. Sus rutas de API (`/v1/services`,
    `/api/services`) devuelven 404 y `/api/markdown` es un índice de documentación.
 4. x402scan: sin verificar. `/api/resources` y `/api/v1/resources` devuelven 404.
@@ -72,10 +74,9 @@ un pago de prueba.
 6. Polygon Agentic Services: pendiente, y solo si se acepta USDC en Polygon.
 
 **Dominio canónico: `entropia.petrasynthetic.com`** (decisión de Petra). El agent
-card y el contrato ya lo usan. Quedan dos cosas apuntando al viejo:
-- El registro de MCP, que necesita republicación.
-- Las entradas del Bazaar, que se crearon con pagos contra el host de Vercel. Para
-  moverlas hay que pagar al menos una vez contra el dominio propio.
+card, el contrato, las tools del MCP y el registro oficial ya lo usan. En el
+Bazaar conviven la entrada del dominio propio y la vieja de `my-agent-tau`, que
+quedó sin tráfico y se irá hundiendo sola; no hay forma de borrarla desde fuera.
 
 ### 10. Contrato visible — HECHO (sin uptime)
 
