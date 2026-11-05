@@ -1,7 +1,7 @@
 {
   "name": "entropiav2",
   "description": "Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt), petrasynthetic.com. Composiciones premium via x402 (0.10 USDC).",
-  "url": "https://my-agent-tau.vercel.app",
+  "url": "https://entropia.petrasynthetic.com",
   "version": "2.0.0",
   "provider": {
     "organization": "Petra Synthetic",
@@ -138,6 +138,39 @@
       ]
     },
     {
+      "id": "agent_due_diligence",
+      "name": "Due Diligence de Agentes (x402)",
+      "description": "Revisa un agente ERC-8004 antes de llamarlo o pagarle: servicios vivos y su salud, metadata, feedback onchain, actividad de wallet, banderas rojas y veredicto usable/caution/avoid con score 0-100. 0.02 USDC via x402 en Base mainnet.",
+      "tags": [
+        "due-diligence",
+        "verification",
+        "erc8004",
+        "reputation",
+        "x402",
+        "agents"
+      ],
+      "examples": [
+        "Revisa el agente 8453:356966 antes de pagarle",
+        "Este agente es seguro para transaccionar?"
+      ]
+    },
+    {
+      "id": "agent_due_diligence_preview",
+      "name": "Vista Gratuita de Due Diligence",
+      "description": "Version gratuita de la revision de un agente ERC-8004: veredicto usable/caution/avoid, banda de score y codigos de banderas. Sin score exacto, servicios, metadata, reputacion ni wallet; eso viene en la version pagada.",
+      "tags": [
+        "due-diligence",
+        "verification",
+        "erc8004",
+        "free",
+        "agents"
+      ],
+      "examples": [
+        "Dame una primera opinion gratis del agente 8453:356966",
+        "Vale la pena revisar a este agente antes de pagarle?"
+      ]
+    },
+    {
       "id": "x402_payments",
       "name": "Pagos por Llamada (x402)",
       "description": "Cobra por uso sin cuentas ni API keys: responde 402 con requisitos, verifica el pago en USDC y entrega con recibo onchain. Tambien puede pagar servicios de otros agentes.",
@@ -169,5 +202,5 @@
       ]
     }
   ],
-  "image": "https://my-agent-tau.vercel.app/avatar.png"
+  "image": "https://entropia.petrasynthetic.com/avatar.png"
 }

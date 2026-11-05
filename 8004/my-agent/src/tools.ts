@@ -193,6 +193,34 @@ export const tools = [
       required: [],
     },
   },
+  {
+    name: 'agent_check_preview',
+    description: 'Vista GRATUITA de due diligence de un agente ERC-8004: veredicto usable/caution/avoid, banda de score y codigos de banderas. No trae score exacto, servicios, metadata, reputacion ni wallet. Para el reporte completo usa agent_check (0.02 USDC).',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        chain: { type: 'string', description: 'Chain id EVM del agente (default 8453, Base).' },
+        agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
+      },
+      required: ['agent_id'],
+    },
+  },
+  {
+    name: 'agent_check',
+    description: 'Due diligence completa de un agente ERC-8004 antes de pagarle o llamarlo: servicios vivos y su salud, metadata, feedback onchain, wallet, banderas rojas y veredicto con score 0-100. Es PAGADA via x402 (0.02 USDC en Base). Sin payment regresa los requisitos; con payment (base64 del header X-PAYMENT) entrega el reporte.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        chain: { type: 'string', description: 'Chain id EVM del agente (default 8453, Base).' },
+        agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
+        payment: {
+          type: 'string',
+          description: 'Header X-PAYMENT en base64 que produce tu cliente x402 despues de pagar. Sin esto, la tool responde con los requisitos de pago.',
+        },
+      },
+      required: ['agent_id'],
+    },
+  },
 ];
 
 // ============================================================================
@@ -366,24 +394,27 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
             'texto curatorial breve (60 palabras)',
           ],
           precio: '0.10 USDC (x402, Base Sepolia)',
-          como_pagar: 'GET https://my-agent-tau.vercel.app/v1/premium-composition (responde 402; firma el pago USDC y reintenta), o llama la tool composicion_premium de este MCP con el parametro payment.',
+          como_pagar: 'GET https://entropia.petrasynthetic.com/v1/premium-composition (responde 402; firma el pago USDC y reintenta), o llama la tool composicion_premium de este MCP con el parametro payment.',
         },
       };
     }
 
     case 'composicion_premium': {
       const payTo = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as string;
+      const net = process.env.X402_NETWORK || 'base-sepolia';
+      const asset = net === 'base' ? '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' : '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+      const extra = net === 'base' ? { name: 'USD Coin', version: '2' } : { name: 'USDC', version: '2' };
       const requirements = {
         scheme: 'exact',
-        network: 'base-sepolia',
+        network: net,
         maxAmountRequired: '100000',
         resource: 'mcp://tool/composicion_premium',
         description: 'Composicion premium de VideoDanza Generativa via MCP (x402).',
         mimeType: 'application/json',
         payTo,
         maxTimeoutSeconds: 600,
-        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-        extra: { name: 'USDC', version: '2' },
+        asset,
+        extra,
       };
       const payment = args.payment as string | undefined;
       if (!payment) {
@@ -427,7 +458,7 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
       const settleJson: any = await settleRes.json();
       const payerAddr = String(settleJson?.payer || paymentPayload?.payload?.authorization?.from || '');
       if (payerAddr && !KNOWN_WALLETS.has(payerAddr.toLowerCase())) {
-        notifySale(payerAddr, requirements.maxAmountRequired, composition.seed, 'mcp').catch((e) => console.error('[mcp] notifySale:', e?.message));
+        notifySale(payerAddr, requirements.maxAmountRequired, composition.seed, 'mcp', requirements.network).catch((e) => console.error('[mcp] notifySale:', e?.message));
       }
       return {
         composition,
@@ -438,6 +469,34 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
         feedback_hint:
           'Si esta pieza te sirvio, deja feedback onchain en el Reputation Registry (prueba de interaccion real): https://testnet.8004scan.io/agents/sepolia/2387',
       };
+    }
+
+    case 'agent_check_preview': {
+      const base = process.env.AGENT_BASE_URL || 'https://entropia.petrasynthetic.com';
+      const q = `chain=${encodeURIComponent(String(args.chain || '8453'))}&agent_id=${encodeURIComponent(String(args.agent_id || ''))}`;
+      const r = await fetch(`${base}/v1/agent-check/preview?${q}`, { signal: AbortSignal.timeout(15000) });
+      const body: any = await r.json().catch(() => ({ error: 'respuesta no JSON' }));
+      return { status: r.status, ...body };
+    }
+
+    case 'agent_check': {
+      const base = process.env.AGENT_BASE_URL || 'https://entropia.petrasynthetic.com';
+      const q = `chain=${encodeURIComponent(String(args.chain || '8453'))}&agent_id=${encodeURIComponent(String(args.agent_id || ''))}`;
+      const headers: Record<string, string> = {};
+      const payment = args.payment as string | undefined;
+      if (payment) headers['X-PAYMENT'] = payment;
+      const r = await fetch(`${base}/v1/agent-check?${q}`, { headers, signal: AbortSignal.timeout(20000) });
+      const body: any = await r.json().catch(() => ({ error: 'respuesta no JSON' }));
+      if (r.status === 402) {
+        return {
+          status: 402,
+          error: 'X-PAYMENT requerido',
+          requisitos: body,
+          como_pagar:
+            'Paga 0.02 USDC en Base con tu cliente x402 y reintenta esta tool con payment = base64 del header X-PAYMENT.',
+        };
+      }
+      return { status: r.status, ...body };
     }
 
     default:
