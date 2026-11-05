@@ -14,3 +14,5 @@ dist/
 .agent-wallet.json
 .buyer-test.json
 .cdp-keys.json
+.buyer-mainnet.json
+.buyer-emailtest.json

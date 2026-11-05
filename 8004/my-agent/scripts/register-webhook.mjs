@@ -41,7 +41,7 @@ const reg = await fetch(`${API}/webhooks/register`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'X-Access-Token': token },
   body: JSON.stringify({
-    webhook_url: 'https://my-agent-tau.vercel.app/webhook',
+    webhook_url: 'https://entropia.petrasynthetic.com/webhook',
     events: ['feedback.received', 'feedback.revoked', 'star.received', 'star.removed', 'validation.requested', 'validation.completed'],
   }),
 });

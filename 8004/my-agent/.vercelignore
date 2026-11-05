@@ -5,7 +5,12 @@
 .env
 .env.*
 .owner-wallet.json
+.agent-wallet.json
 .feedback-wallet*.json
+.buyer-*.json
+.cdp-keys.json
+*.receipt*.json
+.x402-receipt*.json
 dist/
 node_modules/
 .vercel

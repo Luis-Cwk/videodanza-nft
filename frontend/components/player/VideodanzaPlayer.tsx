@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { CompositionElement } from '@/lib/hooks/useGenerativeComposition'
+import { GlitchShader, getGlitchCSS } from '@/components/shader/GlitchShader'
+
+type GlitchMode = 'low' | 'medium' | 'high'
 
 interface VideodanzaPlayerProps {
   elements: CompositionElement[]
@@ -9,6 +12,9 @@ interface VideodanzaPlayerProps {
   autoPlay?: boolean
   muted?: boolean
   hoverSound?: boolean
+  glitchMode?: GlitchMode
+  glitchIntensity?: number
+  onEvolutionEvent?: (type: 'human' | 'agent', action: string, description: string) => void
 }
 
 const getVideoUrl = (ipfsUri: string): string => {
@@ -46,7 +52,10 @@ export const VideodanzaPlayer = ({
   style,
   autoPlay = true,
   muted = true,
-  hoverSound = false
+  hoverSound = false,
+  glitchMode = 'low',
+  glitchIntensity = 0,
+  onEvolutionEvent,
 }: VideodanzaPlayerProps) => {
   const vidARef = useRef<HTMLVideoElement>(null)
   const vidBRef = useRef<HTMLVideoElement>(null)
@@ -54,6 +63,7 @@ export const VideodanzaPlayer = ({
   const [audioUnlocked, setAudioUnlocked] = useState(hoverSound ? false : !muted)
   const [needsInteraction, setNeedsInteraction] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [activeVideoRef, setActiveVideoRef] = useState<HTMLVideoElement | null>(null)
   
   const queueRef = useRef<string[]>([])
   const activeRef = useRef<'a' | 'b'>('a')
@@ -79,6 +89,11 @@ export const VideodanzaPlayer = ({
 
   const getActiveVideo = () => activeRef.current === 'a' ? vidARef.current : vidBRef.current
   const getInactiveVideo = () => activeRef.current === 'a' ? vidBRef.current : vidARef.current
+
+  useEffect(() => {
+    const active = getActiveVideo()
+    setActiveVideoRef(active)
+  }, [isPlaying, activeRef.current])
 
   const preloadNext = useCallback(() => {
     const inactive = getInactiveVideo()
@@ -187,6 +202,8 @@ export const VideodanzaPlayer = ({
     }
   }, [elements, autoPlay, startPlayback])
 
+  const glitchCSS = getGlitchCSS(glitchMode, glitchIntensity)
+
   const handleMouseEnter = () => {
     if (hoverSound) {
       setIsHovered(true)
@@ -195,6 +212,9 @@ export const VideodanzaPlayer = ({
       if (active && active.paused) {
         active.play().catch(() => {})
       }
+    }
+    if (onEvolutionEvent && glitchIntensity > 0) {
+      onEvolutionEvent('human', 'hover', 'Usuario interactuó con la pieza')
     }
   }
 
@@ -225,6 +245,7 @@ export const VideodanzaPlayer = ({
           opacity: 1,
           transition: 'opacity 600ms ease',
           zIndex: 1,
+          ...glitchCSS,
         }}
         playsInline
         muted={!shouldPlaySound}
@@ -241,11 +262,20 @@ export const VideodanzaPlayer = ({
           opacity: 0,
           transition: 'opacity 600ms ease',
           zIndex: 2,
+          ...glitchCSS,
         }}
         playsInline
         muted={!shouldPlaySound}
         onEnded={handleClipEnd}
       />
+      
+      {glitchIntensity > 0 && activeVideoRef && (
+        <GlitchShader
+          videoRef={activeVideoRef}
+          intensity={glitchIntensity}
+          mode={glitchMode}
+        />
+      )}
       
       {needsInteraction && !hoverSound && (
         <button

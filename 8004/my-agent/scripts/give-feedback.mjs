@@ -7,7 +7,7 @@ const PRIVATE_KEY = process.env.FEEDBACK_PRIVATE_KEY || process.env.PRIVATE_KEY;
 const VALUE = Number(process.env.FEEDBACK_VALUE || 5);
 const TAG1 = process.env.FEEDBACK_TAG1 || 'studio';
 const TAG2 = process.env.FEEDBACK_TAG2 || 'videodanza';
-const ENDPOINT = process.env.FEEDBACK_ENDPOINT || 'https://my-agent-tau.vercel.app/.well-known/agent-card.json';
+const ENDPOINT = process.env.FEEDBACK_ENDPOINT || 'https://entropia.petrasynthetic.com/.well-known/agent-card.json';
 
 function assertEnv() {
   if (!PRIVATE_KEY) {

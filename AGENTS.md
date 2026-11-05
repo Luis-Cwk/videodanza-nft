@@ -8,6 +8,10 @@ When you need to search docs, use `context7` tools.
 
 Si vas a contruir o estas contruyendo nft, siempre tienes que checar esta pagina para revisar cual skill es la que mejor se adapta a lo que quieres hacer: https://ethskills.com/ 
 
+## 1.2 Rutina obligatoria al arrancar (agentes 8004scan)
+
+Antes de cualquier otra tarea, revisar el estado de los agentes y empujar su ranking y reputacion (pedido explicito de Petra, 2026-10-20). Checklist completo en `C:\Users\petra\agenteX\AGENTS.md` (seccion "Rutina obligatoria de agentes") y detalle tecnico en `skills/agente-ops-vercel-x402/SKILL.md` de este repo. Agentes: `8453:356966` (mainnet) y `11155111:2387` (testnet).
+
 # Reglas para convocatorias
 
 CRITICAL:

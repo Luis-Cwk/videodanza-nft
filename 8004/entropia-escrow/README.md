@@ -17,9 +17,24 @@ Es el experimento de la "capa de adjudicación" aplicada al flujo de venta del a
   - Entrega ajena (example.com) -> `refund` (depósito al comprador).
 - Veredictos con evidencia: el juicio cita fragmentos del entregable y marca cada requisito del brief como MET o NOT MET.
 
-### Testnet Bradbury (chain 4221)
+### Testnet Bradbury Phase 2 (chain 4221)
 
-> **Phase 2 (21 oct 2026):** la red fue reseteada. El contrato, el estado y los saldos de abajo son del Bradbury anterior y no sobreviven. No desplegar ni probar hasta que abran Phase 2 (jueves 22 oct). Mientras tanto, usar Studio o Studio Next.
+Phase 2 ya está abierta. La red anterior fue reseteada, así que el contrato y los saldos de abajo son históricos y no sobreviven.
+
+**Red Phase 2:**
+
+- Chain ID: `4221`
+- RPC: `https://rpc.testnet-chain.genlayer.com/`
+- WebSocket: `wss://rpc.testnet-chain.genlayer.com` (requiere API key de Conduit)
+- Explorer: `https://scan.bradbury.genlayer.com`
+- Explorer general: `https://explorer.chain.genlayer.com`
+- Bridge: `rollbridge`
+- GEN en Sepolia: `0x424242424b68330CcFb022881d25a6acC29852ea`
+- Faucet: `https://testnet-faucet.genlayer.foundation/` (100 GEN por semana; GitHub con más de 3 meses y al menos 1 repo público; 0.01 ETH en mainnet)
+
+**Estado actual (1 nov 2026):** el faucet ya entregó 100 GEN al seller (`0x7123...571f`). El deploy nuevo existe en la chain (`0x326344afC9C346559cF105b5AA3Aa203eD0b1243`), pero la ejecución del contrato falla en la VM: ver "Siguiente paso". El Buyer tiene 10 GEN.
+
+**Histórico (red anterior):**
 
 - Contrato: `0xF0870e9775DEEc42389c7C30B865eC6c236e5F32`
 - `ord-0`: disputa sobre una entrega que sí cumplía el brief -> **RELEASED** con veredicto `release`.
@@ -39,6 +54,10 @@ scripts/demo.mjs                  Flujo end-to-end para Studio (genlayer-js 1.1.
 scripts/create-order.mjs          Crea la orden pagable en Bradbury (buyer)
 scripts/demo-bradbury.ps1         Flujo híbrido Bradbury: JS para la orden, CLI para el resto
 scripts/balances.mjs              Consulta balances GEN por RPC
+scripts/serve-demo.mjs            Servidor local del demo web; las llaves quedan fuera del navegador
+web/                              Demo mínimo: crear, entregar, disputar y resolver
+docs/tutorial-adjudicacion-consenso.md  Tutorial largo del escrow y del juicio
+docs/hilo-x-adjudicacion.md       Hilo de 10 posts para publicar en X
 tools/web_probe.py                Sonda de depuración: descarga una URL por consenso y guarda el fragmento
 ```
 
@@ -58,13 +77,18 @@ tools/web_probe.py                Sonda de depuración: descarga una URL por con
 
 ```powershell
 # Linter (obligatorio antes de tocar el contrato)
-.venv\Scripts\genvm-lint.exe check contracts\composition_escrow.py
+$env:PYTHONIOENCODING='utf-8'; .venv\Scripts\genvm-lint.exe check contracts\composition_escrow.py
+# Si falla con "Failed to load SDK ... runners/...tar not found", el lint de 3 checks ya pasó; falta el bundle local del runner.
 
 # Pruebas directas (rápidas, sin red)
 .venv\Scripts\python.exe -m pytest tests/direct -v
 
 # Demo end-to-end en studionet (despliega y corre los dos casos)
 node scripts/demo.mjs
+
+# Demo web contra el contrato de Studio (gasless)
+node scripts/serve-demo.mjs
+# Abrir http://localhost:4317
 
 # Reusar un contrato ya desplegado
 $env:CONTRACT_ADDRESS = "0x..."; node scripts/demo.mjs
@@ -92,8 +116,9 @@ Bradbury Phase 2 exige fees de protocolo. El SDK `genlayer-js` `2.0.0-rc.2` ya t
 - El CLI 0.39.2 todavía muestra el RPC viejo; `demo-bradbury.ps1` pasa `--rpc` explícito.
 - Runner: el contrato mantiene `py-genlayer:1jb45...` hasta que el runner nuevo `py-genlayer:1zr6...` esté disponible en el bundle local de `genvm-linter`/`gltest`. El linter lo sugiere, pero la validación local todavía no lo carga.
 - Asimov está retirado. No usar `testnetAsimov`.
-- Bradbury Phase 2 está en Epoch Zero hasta el jueves 22 oct. Hasta entonces no se despliega ni se prueba en Bradbury.
-- El contrato `0xF087...` y los saldos de la demo son históricos. Hay que redeployar y actualizar el link del explorer en el Portal.
+- Phase 2 ya está abierta. El bloqueo actual es el faucet: 100 GEN por semana, GitHub con más de 3 meses y un repo público, y 0.01 ETH en mainnet. La cuenta de Luis-Cwk ya reclamó y libera en aproximadamente 55 horas.
+- El contrato `0xF087...` y los saldos de la demo son históricos. Hay que redeployar y actualizar el link del explorer en el Portal a `https://scan.bradbury.genlayer.com`.
+- `genlayer-js` `2.0.0-rc.2` es el RC actual. El CLI estable `0.39.2` funciona con `--rpc` explícito; si se actualiza a `0.40.0-rc.5`, repetir lint y pruebas antes de desplegar.
 
 Nota: el pago de un veredicto (`emit_transfer`) es un mensaje externo y se ejecuta cuando la transacción **finaliza**, no cuando se acepta. `genlayer finalize <tx>` puede revertir si la ventana de apelación sigue abierta; en ese caso hay que esperar.
 
@@ -120,8 +145,8 @@ Nota: el pago de un veredicto (`emit_transfer`) es un mensaje externo y se ejecu
 
 ## Siguiente paso
 
-- Esperar a que abra Bradbury Phase 2 (jueves 22 oct).
-- Redeplegar el contrato con el runner nuevo y el RPC nuevo; actualizar el link del explorer en el Portal.
-- Probar `create_order` pagable con fees y el flujo completo. El reembolso de `ord-1` del Bradbury viejo quedó ejecutado y es histórico.
-- Conectar el flujo al agente: orden desde el endpoint premium para montos mayores, y `dispute` visible para el comprador.
+- **Bloqueado por Phase 2 (1 nov 2026).** El deploy finaliza con `MAJORITY_AGREE` pero la ejecución termina en `FINISHED_WITH_ERROR`, incluso con un contrato mínimo de 12 líneas y el runner oficial. Detalle y tx hashes en el issue [Luis-Cwk/entropia-escrow#1](https://github.com/Luis-Cwk/entropia-escrow/issues/1).
+- **El RPC público de Phase 2 no sirve `gen_*`.** `https://rpc.testnet-chain.genlayer.com` responde `eth_*` y devuelve `-32601` para `gen_call` y `gen_syncing`, por HTTP y por WSS, con y sin llave de Conduit. Sin `gen_call` no se puede leer el error real de la VM.
+- **El CLI 0.39.2 apunta al ConsensusMain viejo** (`0x0112...`) y produce transacciones que no emiten evento. Usar `genlayer@0.40.0-rc.5`, que resuelve `0x2E2766...` y el FeeManager `0x7678587A...`.
+- **Pendiente cuando se desbloquee:** correr `create_order`, entrega, disputa y `resolve_dispute`; actualizar el link del contrato en el Portal a la chain nueva; conectar el flujo al agente (orden desde el endpoint premium y `dispute` visible para el comprador).
 - GenLayer sigue sin mainnet (roadmap: release candidate "Clarke", objetivo Q4 2026). Todo esto es testnet.

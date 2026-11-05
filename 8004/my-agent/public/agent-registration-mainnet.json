@@ -2,7 +2,7 @@
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "entropiav2",
   "description": "Agente creativo de VideoDanza Generativa. Especializado en blockchain, arte generativo, danza contemporanea expandida y contratos inteligentes. Habla espanol latino. Creado por Petra (Luis Betancourt), petrasynthetic.com. Gratis via A2A/MCP: chat, composiciones deterministicas, contratos Solidity, descripciones poeticas. Premium via x402: composicion curatorial con texto para metadata NFT por $0.10 USDC en Base mainnet.",
-  "image": "https://my-agent-tau.vercel.app/avatar.png",
+  "image": "https://entropia.petrasynthetic.com/avatar.png",
   "services": [
     {
       "name": "OASF",
@@ -24,7 +24,7 @@
     },
     {
       "name": "A2A",
-      "endpoint": "https://my-agent-tau.vercel.app/.well-known/agent-card.json",
+      "endpoint": "https://entropia.petrasynthetic.com/.well-known/agent-card.json",
       "version": "0.30",
       "a2aSkills": [
         "generative-art",
@@ -53,7 +53,7 @@
     },
     {
       "name": "MCP",
-      "endpoint": "https://my-agent-tau.vercel.app/mcp",
+      "endpoint": "https://entropia.petrasynthetic.com/mcp",
       "version": "2025-06-18",
       "mcpTools": [
         "chat",
@@ -74,7 +74,7 @@
     },
     {
       "name": "x402",
-      "endpoint": "https://my-agent-tau.vercel.app/v1/premium-composition",
+      "endpoint": "https://entropia.petrasynthetic.com/v1/premium-composition",
       "version": "1",
       "description": "Composicion premium de VideoDanza Generativa por $0.10 USDC via x402 en Base mainnet, con recibo onchain."
     }
@@ -91,5 +91,18 @@
     "tee-attestation"
   ],
   "active": true,
-  "x402Support": true
+  "x402Support": true,
+  "tags": [
+    "generative-art",
+    "videodance",
+    "x402",
+    "erc-8004",
+    "genlayer",
+    "creative-coding"
+  ],
+  "categories": [
+    "Art",
+    "AI Agents",
+    "Creative Tools"
+  ]
 }

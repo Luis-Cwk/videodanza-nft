@@ -11,7 +11,7 @@ const IDENTITY = '0x8004A818BFB912233c491871b3d84c89A494BD9e';
 const REPUTATION = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
 const AGENT_ID = 2387n;
 const RPC_URL = process.env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
-const ENDPOINT = 'https://my-agent-tau.vercel.app/.well-known/agent-card.json';
+const ENDPOINT = 'https://entropia.petrasynthetic.com/.well-known/agent-card.json';
 
 const REP_ABI = [
   { type: 'function', name: 'getLastIndex', stateMutability: 'view', inputs: [{ name: 'agentId', type: 'uint256' }, { name: 'clientAddress', type: 'address' }], outputs: [{ type: 'uint64' }] },

@@ -6,9 +6,9 @@ Agente creativo para VideoDanza Generativa. Soporta A2A y MCP sobre Sepolia, con
 
 - Agent ID: `11155111:2387`
 - Explorer: `https://www.8004scan.io/agents/sepolia/2387`
-- Agent card: `https://my-agent-tau.vercel.app/.well-known/agent-card.json`
-- A2A endpoint: `https://my-agent-tau.vercel.app/a2a`
-- MCP endpoint: `https://my-agent-tau.vercel.app/mcp`
+- Agent card: `https://entropia.petrasynthetic.com/.well-known/agent-card.json`
+- A2A endpoint: `https://entropia.petrasynthetic.com/a2a`
+- MCP endpoint: `https://entropia.petrasynthetic.com/mcp`
 
 ## Requisitos
 
@@ -28,7 +28,7 @@ OPENROUTER_API_KEY=...
 
 # Opcional
 AGENT_ID=11155111:2387
-AGENT_BASE_URL=https://my-agent-tau.vercel.app
+AGENT_BASE_URL=https://entropia.petrasynthetic.com
 ```
 
 ## Scripts
@@ -45,7 +45,7 @@ npm run give-feedback
 ## Probar MCP rápido
 
 ```bash
-curl -X POST https://my-agent-tau.vercel.app/mcp \
+curl -X POST https://entropia.petrasynthetic.com/mcp \
   -H "Content-Type: application/json" \
   -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}"
 ```
@@ -56,7 +56,7 @@ curl -X POST https://my-agent-tau.vercel.app/mcp \
 
 ```bash
 # Sin pago regresa 402 con los requisitos en el body
-curl -i "https://my-agent-tau.vercel.app/v1/premium-composition?seed=cuerpo-en-orbita&token_id=42"
+curl -i "https://entropia.petrasynthetic.com/v1/premium-composition?seed=cuerpo-en-orbita&token_id=42"
 
 # Con pago: cliente x402 firma USDC y reintenta con header X-PAYMENT
 # (x402-fetch en TypeScript)
@@ -87,7 +87,7 @@ FEEDBACK_PRIVATE_KEY=0x...
 FEEDBACK_VALUE=5
 FEEDBACK_TAG1=studio
 FEEDBACK_TAG2=videodanza
-FEEDBACK_ENDPOINT=https://my-agent-tau.vercel.app/.well-known/agent-card.json
+FEEDBACK_ENDPOINT=https://entropia.petrasynthetic.com/.well-known/agent-card.json
 FEEDBACK_REASON=Probado flujo A2A/MCP + estudio creativo. Buena experiencia.
 ```
 
