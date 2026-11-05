@@ -66,6 +66,9 @@ function getMiddleware() {
         [ROUTE]: {
           accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
           description: DESCRIPTION,
+          serviceName: 'entropiav2',
+          tags: ['videodanza', 'composition', 'generative-art', 'nft'],
+          iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
           extensions: declareDiscoveryExtension({
             input: { seed: 'melancolia-espectador-7', mood: 'melancolia' },
             inputSchema: {

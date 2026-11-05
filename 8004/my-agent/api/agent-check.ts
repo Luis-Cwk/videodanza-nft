@@ -62,6 +62,9 @@ function getMiddleware() {
         [ROUTE]: {
           accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
           description: DESCRIPTION,
+          serviceName: 'entropiav2',
+          tags: ['agent-check', 'due-diligence', 'erc8004', 'reputation'],
+          iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
           extensions: declareDiscoveryExtension({
             input: { chain: '8453', agent_id: '356966' },
             inputSchema: {
