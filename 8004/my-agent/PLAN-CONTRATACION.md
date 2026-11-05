@@ -66,12 +66,22 @@ un pago de prueba.
    `https://entropia.petrasynthetic.com/mcp`. La v2.0.0 (que apuntaba a
    `my-agent-tau.vercel.app`) quedó **deprecada** el 2026-11-04. Las versiones
    del registro son inmutables: para cambiar algo hay que subir de versión.
-3. Agentic.Market: sin verificar. Sus rutas de API (`/v1/services`,
-   `/api/services`) devuelven 404 y `/api/markdown` es un índice de documentación.
-4. x402scan: sin verificar. `/api/resources` y `/api/v1/resources` devuelven 404.
+3. **x402scan: registrado el 2026-11-05.** Se publicó `/openapi.json` con
+   `x-payment-info` en las dos rutas pagadas y el 402 ahora manda
+   `WWW-Authenticate: x402`. El registro leyó el OpenAPI y dio de alta 2 de 2
+   recursos pagados. Ficha: `x402scan.com/server/53a50333-c4f9-4eb0-ae5b-e45162cb47b9`.
+   Escaparate: `tryponcho.com/m/entropia.petrasynthetic.com`.
+4. **Agentic.Market:** depende del `serviceName` del Bazaar, que ya está
+   (`entropiav2`). Falta confirmar que cree la página.
 5. Glama y PulseMCP: Glama devuelve la búsqueda vacía (la coincidencia era el
    cuadro de texto) y PulseMCP responde 403. No estamos o no se puede comprobar.
 6. Polygon Agentic Services: pendiente, y solo si se acepta USDC en Polygon.
+
+**MCPTRY (2026-11-05):** estamos listados y `Working`, puesto 410 de 2650 en
+Diseño y Creatividad con 84/100. Da +4 por icono (hecho, v2.0.2) y +2 por
+anotaciones `readOnlyHint` (hecho, en las 11 tools). El "reclamo" con GitHub no
+se hizo: el dominio se registró el 2026-10-23 y no vale un OAuth a un sitio de
+dos semanas por 5 puntos y una insignia.
 
 **Dominio canónico: `entropia.petrasynthetic.com`** (decisión de Petra). El agent
 card, el contrato, las tools del MCP y el registro oficial ya lo usan. En el
