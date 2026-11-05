@@ -130,6 +130,13 @@ export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, PAYMENT-SIGNATURE, X-PAYMENT');
   res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
 
+  // x402scan exige un WWW-Authenticate valido en el 402.
+  const statusOriginal = res.status.bind(res);
+  res.status = (code: number) => {
+    if (code === 402) res.setHeader('WWW-Authenticate', 'x402');
+    return statusOriginal(code);
+  };
+
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
 

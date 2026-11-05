@@ -8,11 +8,20 @@
     "url": "https://github.com/Luis-Cwk/videodanza-nft",
     "source": "github"
   },
-  "version": "2.0.1",
+  "version": "2.0.2",
   "remotes": [
     {
       "type": "streamable-http",
       "url": "https://entropia.petrasynthetic.com/mcp"
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://entropia.petrasynthetic.com/avatar.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
     }
   ]
 }

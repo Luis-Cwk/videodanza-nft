@@ -1,0 +1,118 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "entropiav2",
+    "version": "2.0.1",
+    "description": "Agente ERC-8004 de Petra Synthetic. Due diligence de agentes antes de pagarles y composiciones de videodanza generativa. Pago por llamada en USDC sobre Base, sin cuenta ni API key.",
+    "contact": {
+      "name": "Petra Synthetic",
+      "email": "dfrmnc22@gmail.com",
+      "url": "https://petrasynthetic.com"
+    },
+    "x-guidance": "Empieza gratis con GET /v1/agent-check/preview?agent_id=<token id ERC-8004> para ver el veredicto y las banderas de un agente. Si te sirve, GET /v1/agent-check con los mismos parametros cuesta 0.02 USDC en Base y devuelve el reporte completo: servicios, metadata, reputacion, wallet y score 0-100. Para arte generativo, GET /v1/premium-composition cuesta 0.10 USDC y devuelve una composicion determinista a partir de una semilla, con descripcion poetica y texto curatorial. Las rutas pagadas responden 402 con el header Payment-Required (base64 JSON) que trae precio, red y esquema; paga con cualquier cliente x402 y reintenta con el header PAYMENT-SIGNATURE. GET /v1/contract lista rutas y precios vigentes."
+  },
+  "servers": [{ "url": "https://entropia.petrasynthetic.com" }],
+  "paths": {
+    "/v1/agent-check/preview": {
+      "get": {
+        "summary": "Vista gratuita de due diligence de un agente ERC-8004",
+        "operationId": "agentCheckPreview",
+        "parameters": [
+          { "name": "chain", "in": "query", "required": false, "schema": { "type": "string", "default": "8453" }, "description": "Chain id EVM del agente." },
+          { "name": "agent_id", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Token id del agente en el Identity Registry de ERC-8004." }
+        ],
+        "responses": {
+          "200": { "description": "Veredicto, banda de score y codigos de banderas." },
+          "429": { "description": "Limite gratuito alcanzado (20 por IP y dia)." }
+        }
+      }
+    },
+    "/v1/agent-check": {
+      "get": {
+        "summary": "Due diligence completa de un agente ERC-8004",
+        "operationId": "agentCheck",
+        "parameters": [
+          { "name": "chain", "in": "query", "required": false, "schema": { "type": "string", "default": "8453" }, "description": "Chain id EVM del agente." },
+          { "name": "agent_id", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Token id del agente en el Identity Registry de ERC-8004." }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chain": { "type": "string", "description": "Chain id EVM del agente (default 8453, Base)." },
+                  "agent_id": { "type": "string", "description": "Token id del agente en el Identity Registry de ERC-8004." }
+                },
+                "required": ["agent_id"]
+              }
+            }
+          }
+        },
+        "x-payment-info": {
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.02" },
+          "protocols": [{ "x402": {} }]
+        },
+        "responses": {
+          "200": { "description": "Reporte completo con veredicto y score." },
+          "402": { "description": "Payment Required" }
+        }
+      }
+    },
+    "/v1/premium-composition": {
+      "get": {
+        "summary": "Composicion premium de videodanza generativa",
+        "operationId": "premiumComposition",
+        "parameters": [
+          { "name": "seed", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Semilla determinista." },
+          { "name": "mood", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "gender", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "energy", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "perspective", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "token_id", "in": "query", "required": false, "schema": { "type": "integer", "default": 1 } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "seed": { "type": "string", "description": "Semilla determinista: la misma semilla produce la misma composicion." },
+                  "mood": { "type": "string", "description": "Tono emocional." },
+                  "gender": { "type": "string", "description": "Perspectiva de genero del cuerpo." },
+                  "energy": { "type": "string", "description": "Nivel de energia." },
+                  "perspective": { "type": "string", "description": "Punto de vista de la danza." },
+                  "token_id": { "type": "integer", "description": "ID de token para el texto poetico." }
+                }
+              }
+            }
+          }
+        },
+        "x-payment-info": {
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.10" },
+          "protocols": [{ "x402": {} }]
+        },
+        "responses": {
+          "200": { "description": "Composicion, descripcion poetica y texto curatorial." },
+          "402": { "description": "Payment Required" }
+        }
+      }
+    },
+    "/v1/contract": {
+      "get": {
+        "summary": "Contrato del servicio: rutas, precios, redes y changelog",
+        "operationId": "contract",
+        "responses": { "200": { "description": "Documento con version, rutas y precios." } }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Estado del agente",
+        "operationId": "health",
+        "responses": { "200": { "description": "Estado." } }
+      }
+    }
+  }
+}

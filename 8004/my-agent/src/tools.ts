@@ -237,6 +237,17 @@ export const tools = [
   },
 ];
 
+// Anotaciones MCP: los agentes eligen herramientas por estas pistas, y los
+// directorios valoran la documentacion por ellas (readOnlyHint suma en MCPTRY).
+const NO_LECTURA = new Set(['subscribe_newsletter', 'composicion_premium', 'agent_check']);
+for (const t of tools) {
+  (t as any).annotations = {
+    readOnlyHint: !NO_LECTURA.has(t.name),
+    destructiveHint: false,
+    openWorldHint: true,
+  };
+}
+
 // ============================================================================
 // Tool Implementations
 // ============================================================================
