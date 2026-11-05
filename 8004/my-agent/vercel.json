@@ -9,7 +9,10 @@
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/health", "destination": "/api/health" },
     { "source": "/webhook", "destination": "/api/webhook-8004" },
-    { "source": "/v1/premium-composition", "destination": "/api/premium-composition" }
+    { "source": "/v1/premium-composition", "destination": "/api/premium-composition" },
+    { "source": "/v1/agent-check/preview", "destination": "/api/agent-check-preview" },
+    { "source": "/v1/agent-check", "destination": "/api/agent-check" },
+    { "source": "/v1/contract", "destination": "/api/contract" }
   ],
   "headers": [
     {
@@ -29,6 +32,15 @@
     },
     "api/premium-composition.ts": {
       "maxDuration": 60
+    },
+    "api/agent-check.ts": {
+      "maxDuration": 30
+    },
+    "api/agent-check-preview.ts": {
+      "maxDuration": 30
+    },
+    "api/contract.ts": {
+      "maxDuration": 10
     },
     "api/health.ts": {
       "maxDuration": 10
