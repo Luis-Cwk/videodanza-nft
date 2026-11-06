@@ -111,12 +111,21 @@ Prueba de humo: `npx tsx scripts/_smoke-mcp.ts`.
 
 No se empieza hasta que la fase 1 esté medida.
 
-1. Movimiento a estructura tipada.
+1. **Movimiento a estructura tipada: DESCARTADA el 2026-11-05.** Se midió antes de
+   construir. MediaPipe pose lite sobre tres clips reales: 0.95x, 1.99x y 1.74x
+   respecto a tiempo real en CPU, y solo 33-40% de frames con pose detectada. Dos
+   problemas: no cabe en serverless y la cobertura es demasiado baja, incluso con
+   material propio renderizado. El contrato queda en `CONTRATO-MOVIMIENTO.md` como
+   registro de la medición, no como trabajo pendiente.
 2. Pose como servicio con esquema versionado.
 3. Coreografía determinista por semilla.
 4. Retargeting entre rigs.
 5. Atestación de medios sintéticos (necesita verificador público antes de cobrar).
 6. Lote con manifiesto.
+
+Antes de elegir la siguiente: mirar qué se vende de verdad en el ecosistema (top de
+x402scan y del ranking de MCPTRY en Diseño y Creatividad) en vez de inventar una
+capacidad y esperar demanda.
 
 ## Cómo se mide
 
