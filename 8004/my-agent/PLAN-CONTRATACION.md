@@ -139,3 +139,19 @@ La rama `feat/entropia-escrow` de `videodanza-nft` está divergida del remoto y
 tiene ~90 archivos sin commitear de otras sesiones. Además, `api/agent-check.ts`,
 `src/agent-check.ts` y `src/cdp-auth.ts` **nunca se han commiteado**: viven solo en
 el árbol local. Cualquier clon del remoto no tiene el endpoint pagado.
+
+## Siguiente paso acordado: ruta del prompt (2026-11-06)
+
+Todo lo caro ya esta probado. No volver a medirlo.
+
+**Mercado.** La pregunta de la industria es 'cual es el prompt'. En MCPTRY hay 5 servidores de prompts y solo 1 funciona como servicio remoto (GPT Image Hub, que es una biblioteca, no imagen a prompt). El hueco existe.
+
+**Metadatos.** 0 de 120 imagenes propias traen el prompt embebido. Nunca prometer recuperacion exacta.
+
+**Vision.** Qwen3-VL-235B describe bien encuadre, gesto, luz, medio y camara. Cuesta \.0012 por llamada. Gemini 2.5 flash lite falla en el encuadre: dice 'centrado' cuando el sujeto esta a la derecha.
+
+**Reproduccion.** Falla, y no por el prompt: con el prompt correcto el generador derrite la pose. La promesa viable es 'el prompt que describe esta imagen', no 'la copia'.
+
+**Precio.** 2 centavos, igual que el lider del mercado.
+
+**A construir:** POST /v1/prompt/analyze con image_url; salida estructurada (framing, gesture, light, palette, medium, camera, prompt, negative, confidence); modelo qwen/qwen3-vl-235b-a22b-instruct; gratis con tope y pagado arriba.
