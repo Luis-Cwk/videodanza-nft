@@ -51,3 +51,13 @@ Manifold-Collectors-*.csv
 8004/my-agent/scripts/_balances-all.mjs
 8004/my-agent/scripts/_cert-full.mjs
 8004/my-agent/scripts/_check-mainnet-state.mjs
+
+# === Proteccion de credenciales (agregado 2026-11) ===
+.env
+.env.*
+!.env.example
+.env.bak*
+.env.pre-*
+*.bak-*
+*.pem
+*.key
