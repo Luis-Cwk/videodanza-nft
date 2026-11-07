@@ -20,6 +20,7 @@ import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/
 import { generateComposition, generateNFTDescription, generateResponse } from '../src/agent.js';
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
+import { ensure402Body } from '../src/x402-body.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xD70ECAff906A739167EFD20275D0a1d518AC40cF') as `0x${string}`;
 const PRICE = process.env.PREMIUM_PRICE || '$0.10';
@@ -131,6 +132,8 @@ export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
 
   // x402scan exige un WWW-Authenticate valido en el 402.
+  ensure402Body(req, res);
+
   const statusOriginal = res.status.bind(res);
   res.status = (code: number) => {
     if (code === 402) res.setHeader('WWW-Authenticate', 'x402');

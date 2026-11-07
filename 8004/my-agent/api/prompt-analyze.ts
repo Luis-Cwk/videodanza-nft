@@ -17,6 +17,7 @@ import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } fro
 import { registerExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
+import { ensure402Body } from '../src/x402-body.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as `0x${string}`;
 const PRICE = process.env.PROMPT_PRICE || '$0.02';
@@ -127,6 +128,8 @@ export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, PAYMENT-SIGNATURE, X-PAYMENT');
   res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
+
+  ensure402Body(req, res);
 
   const statusOriginal = res.status.bind(res);
   res.status = (code: number) => {
