@@ -71,8 +71,14 @@ un pago de prueba.
    `WWW-Authenticate: x402`. El registro leyó el OpenAPI y dio de alta 2 de 2
    recursos pagados. Ficha: `x402scan.com/server/53a50333-c4f9-4eb0-ae5b-e45162cb47b9`.
    Escaparate: `tryponcho.com/m/entropia.petrasynthetic.com`.
-4. **Agentic.Market:** depende del `serviceName` del Bazaar, que ya está
-   (`entropiav2`). Falta confirmar que cree la página.
+4. **Agentic.Market: SÍ estamos listados**, con las tres rutas. Verificado el
+   2026-11-06 contra su API real (`https://api.agentic.market/v1/services/search?q=entropia`),
+   que devuelve el servicio `entropia.petrasynthetic.com` en `eip155:8453` con
+   `agent-check` 0.02, `premium-composition` 0.1 y `prompt/analyze` 0.02. Ficha:
+   `agentic.market/services/entropia-petrasynthetic-com`.
+   OJO, para no repetir el error: la API vive en el subdominio `api.`, no en el
+   dominio raíz, y el slug de la ficha es el dominio con guiones, no el
+   `serviceName`. Leer `agentic.market/SKILL.md` antes de comprobar nada.
 5. Glama y PulseMCP: Glama devuelve la búsqueda vacía (la coincidencia era el
    cuadro de texto) y PulseMCP responde 403. No estamos o no se puede comprobar.
 6. Polygon Agentic Services: pendiente, y solo si se acepta USDC en Polygon.
