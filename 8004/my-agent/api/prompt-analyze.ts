@@ -18,6 +18,7 @@ import { registerExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
+import { logHit } from '../src/call-log.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as `0x${string}`;
 const PRICE = process.env.PROMPT_PRICE || '$0.02';
@@ -141,6 +142,8 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed, usa POST' });
+
+  await logHit('/v1/prompt/analyze', req);
 
   let middleware: Awaited<ReturnType<typeof getMiddleware>>;
   try {

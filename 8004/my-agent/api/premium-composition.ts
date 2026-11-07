@@ -21,6 +21,7 @@ import { generateComposition, generateNFTDescription, generateResponse } from '.
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
+import { logHit } from '../src/call-log.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xD70ECAff906A739167EFD20275D0a1d518AC40cF') as `0x${string}`;
 const PRICE = process.env.PREMIUM_PRICE || '$0.10';
@@ -142,6 +143,8 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
+
+  await logHit('/v1/premium-composition', req);
 
   let middleware: Awaited<ReturnType<typeof getMiddleware>>;
   try {

@@ -19,6 +19,7 @@ import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
 import { scoreAgent } from '../src/agent-check.js';
+import { logHit } from '../src/call-log.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as `0x${string}`;
 const PRICE = process.env.AGENT_CHECK_PRICE || '$0.02';
@@ -122,6 +123,8 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
+
+  await logHit('/v1/agent-check', req);
 
   let middleware: Awaited<ReturnType<typeof getMiddleware>>;
   try {
