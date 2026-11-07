@@ -87,6 +87,8 @@ function getMiddleware() {
           tags: ['prompt', 'image', 'creative', 'vision'],
           iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
           extensions: declareDiscoveryExtension({
+            method: 'POST',
+            bodyType: 'json',
             input: { image_url: 'https://example.com/photo.jpg' },
             inputSchema: {
               type: 'object',
