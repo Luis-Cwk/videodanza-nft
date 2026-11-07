@@ -235,6 +235,21 @@ export const tools = [
       required: ['agent_id'],
     },
   },
+  {
+    name: 'prompt_from_image',
+    description: 'Devuelve el prompt que describe una imagen: encuadre y proporcion, gesto y contacto, direccion de luz, paleta, medio y camara, mas el prompt final y el negativo. Util para describir, remezclar o extender una imagen que no hiciste tu. Describe; NO recupera el prompt original ni regenera la imagen. Es PAGADA via x402 (0.02 USDC en Base). Sin payment regresa los requisitos; con payment (base64 del header X-PAYMENT) entrega el analisis.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        image_url: { type: 'string', description: 'URL HTTPS publica de la imagen (jpg, png o webp, maximo 8 MB).' },
+        payment: {
+          type: 'string',
+          description: 'Header X-PAYMENT en base64 que produce tu cliente x402 despues de pagar. Sin esto, la tool responde con los requisitos de pago.',
+        },
+      },
+      required: ['image_url'],
+    },
+  },
 ];
 
 // Anotaciones MCP: los agentes eligen herramientas por estas pistas, y los
@@ -469,6 +484,30 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
       if (payment) headers['X-PAYMENT'] = payment;
       const r = await fetch(`${base}/v1/agent-check?${q}`, { headers, signal: AbortSignal.timeout(20000) });
       const body: any = await r.json().catch(() => ({ error: 'respuesta no JSON' }));
+      if (r.status === 402) {
+        return {
+          status: 402,
+          error: 'X-PAYMENT requerido',
+          requisitos: requisitosDe(r),
+          como_pagar:
+            'Paga 0.02 USDC en Base con tu cliente x402 y reintenta esta tool con payment = base64 del header X-PAYMENT.',
+        };
+      }
+      return { status: r.status, ...body };
+    }
+
+    case 'prompt_from_image': {
+      const base = process.env.AGENT_BASE_URL || 'https://entropia.petrasynthetic.com';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const payment = args.payment as string | undefined;
+      if (payment) headers['X-PAYMENT'] = payment;
+      const r = await fetch(`${base}/v1/prompt/analyze`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ image_url: String(args.image_url || '') }),
+        signal: AbortSignal.timeout(55000),
+      });
+      const body: any = await r.json().catch(() => ({}));
       if (r.status === 402) {
         return {
           status: 402,

@@ -210,6 +210,65 @@
         }
       }
     },
+    "/v1/prompt/analyze": {
+      "post": {
+        "summary": "Prompt que describe una imagen",
+        "operationId": "promptFromImage",
+        "tags": ["Creative"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": { "type": "string", "format": "uri", "description": "URL HTTPS publica de la imagen (jpg, png, webp)." }
+                },
+                "required": ["image_url"]
+              }
+            }
+          }
+        },
+        "x-payment-info": {
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.02" },
+          "protocols": [{ "x402": {} }]
+        },
+        "responses": {
+          "200": {
+            "description": "Prompt, negativo y los seis campos estructurados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schema_version": { "type": "string" },
+                    "ok": { "type": "boolean" },
+                    "analysis": {
+                      "type": "object",
+                      "properties": {
+                        "framing": { "type": "string" },
+                        "gesture": { "type": "string" },
+                        "light": { "type": "string" },
+                        "palette": { "type": "string" },
+                        "medium": { "type": "string" },
+                        "camera": { "type": "string" }
+                      }
+                    },
+                    "prompt": { "type": "string" },
+                    "negative": { "type": "string" },
+                    "fields_completed": { "type": "integer" },
+                    "model": { "type": "string" },
+                    "elapsed_ms": { "type": "integer" },
+                    "note": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "402": { "description": "Payment Required" }
+        }
+      }
+    },
     "/v1/contract": {
       "get": {
         "summary": "Contrato del servicio: rutas, precios, redes y changelog",

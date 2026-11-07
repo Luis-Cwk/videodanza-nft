@@ -12,6 +12,7 @@
     { "source": "/v1/premium-composition", "destination": "/api/premium-composition" },
     { "source": "/v1/agent-check/preview", "destination": "/api/agent-check-preview" },
     { "source": "/v1/agent-check", "destination": "/api/agent-check" },
+    { "source": "/v1/prompt/analyze", "destination": "/api/prompt-analyze" },
     { "source": "/v1/contract", "destination": "/api/contract" }
   ],
   "headers": [
@@ -38,6 +39,9 @@
     },
     "api/agent-check-preview.ts": {
       "maxDuration": 30
+    },
+    "api/prompt-analyze.ts": {
+      "maxDuration": 60
     },
     "api/contract.ts": {
       "maxDuration": 10

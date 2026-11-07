@@ -52,6 +52,15 @@ export default function handler(req: any, res: any) {
         returns: ['composition', 'poetic_description', 'curatorial_text', 'token_id', 'deterministic'],
       },
       {
+        method: 'POST',
+        path: '/v1/prompt/analyze',
+        price: '$0.02 USDC',
+        network: 'eip155:8453 (Base)',
+        payment: 'x402 v2, scheme exact, facilitador de CDP',
+        params: { image_url: 'string (URL HTTPS publica, jpg/png/webp, maximo 8 MB)' },
+        returns: ['analysis (framing, gesture, light, palette, medium, camera)', 'prompt', 'negative', 'fields_completed'],
+      },
+      {
         method: 'GET',
         path: '/mcp',
         price: 'gratis',
@@ -90,6 +99,7 @@ export default function handler(req: any, res: any) {
       note: 'No hay monitor externo todavia. No se publica un numero que no se mide.',
     },
     changelog: [
+      { date: '2026-11-06', change: 'Nueva ruta POST /v1/prompt/analyze: prompt que describe una imagen, 0.02 USDC.' },
       { date: '2026-11-04', change: 'premium-composition migra a x402 v2 en Base mainnet, con facilitador de CDP y extension del Bazaar.' },
       { date: '2026-11-04', change: 'agent_check y agent_check_preview se exponen por MCP; el pago por MCP ahora delega en la ruta HTTP.' },
       { date: '2026-11-04', change: 'Se agrega /v1/agent-check/preview (gratis) y /v1/contract.' },
