@@ -1,0 +1,41 @@
+{
+  "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
+  "name": "entropia-prompt-analyze",
+  "description": "Reads a picture and returns the prompt that describes it: framing and aspect ratio, gesture and contact between bodies, light direction and hardness, palette, medium and camera, plus a ready prompt and a negative prompt.",
+  "endpoint": "https://entropia.petrasynthetic.com/v1/prompt/analyze",
+  "version": "1.0.0",
+  "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
+  "featuredImage": "https://entropia.petrasynthetic.com/featured-agent-check.jpg",
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "image_url": {
+        "type": "string",
+        "description": "Public HTTPS URL of the image to describe (jpg, png or webp, max 8 MB)."
+      }
+    },
+    "required": ["image_url"]
+  },
+  "outputs": {
+    "type": "object",
+    "properties": {
+      "framing": { "type": "string", "description": "Framing and aspect ratio." },
+      "gesture": { "type": "string", "description": "Gesture and contact between bodies." },
+      "light": { "type": "string", "description": "Light direction and hardness." },
+      "palette": { "type": "string", "description": "Dominant colours and their relations." },
+      "medium": { "type": "string", "description": "Medium: photograph, render, painting, photogram." },
+      "camera": { "type": "string", "description": "Camera, lens and distance." },
+      "prompt": { "type": "string", "description": "Ready to paste prompt for an image model." },
+      "negative_prompt": { "type": "string", "description": "What to avoid." }
+    }
+  },
+  "pricing": [
+    {
+      "amount": "20000",
+      "asset": "eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "recipient": "eip155:8453:0xfc4f1119794dead15502afadb8c0069092e54e5f",
+      "protocol": "x402"
+    }
+  ],
+  "tags": ["ai", "image", "prompt", "vision", "x402", "base"]
+}

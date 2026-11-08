@@ -64,29 +64,34 @@ function getMiddleware() {
       registerExactEvmScheme(resourceServer, { networks: [NETWORK] });
       resourceServer.registerExtension(bazaarResourceServerExtension);
 
-      const httpServer = new x402HTTPResourceServer(resourceServer, {
-        [ROUTE]: {
-          accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
-          description: DESCRIPTION,
-          serviceName: 'entropiav2',
-          tags: ['videodanza', 'composition', 'generative-art', 'nft'],
-          iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
-          extensions: declareDiscoveryExtension({
-            input: { seed: 'melancolia-espectador-7', mood: 'melancolia' },
-            inputSchema: {
-              type: 'object',
-              properties: {
-                seed: { type: 'string', description: 'Semilla determinista: la misma semilla produce la misma composicion.' },
-                mood: { type: 'string', description: 'Tono emocional (ej. melancolia, euforia, calma).' },
-                gender: { type: 'string', description: 'Perspectiva de genero del cuerpo (ej. femenino, masculino, hibrido).' },
-                energy: { type: 'string', description: 'Nivel de energia (baja, media, alta).' },
-                perspective: { type: 'string', description: 'Punto de vista de la danza (ej. bailarin, espectador).' },
-                token_id: { type: 'integer', description: 'ID de token para el texto poetico de metadata (default 1).' },
-              },
+      // El candado se indexa por "METODO ruta": con solo GET habilitado, el POST
+      // de ERC-8257 se serviria sin cobrar. Se declaran las dos.
+      const rutaConfig = {
+        accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
+        description: DESCRIPTION,
+        serviceName: 'entropiav2',
+        tags: ['videodanza', 'composition', 'generative-art', 'nft'],
+        iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
+        extensions: declareDiscoveryExtension({
+          input: { seed: 'melancolia-espectador-7', mood: 'melancolia' },
+          inputSchema: {
+            type: 'object',
+            properties: {
+              seed: { type: 'string', description: 'Semilla determinista: la misma semilla produce la misma composicion.' },
+              mood: { type: 'string', description: 'Tono emocional (ej. melancolia, euforia, calma).' },
+              gender: { type: 'string', description: 'Perspectiva de genero del cuerpo (ej. femenino, masculino, hibrido).' },
+              energy: { type: 'string', description: 'Nivel de energia (baja, media, alta).' },
+              perspective: { type: 'string', description: 'Punto de vista de la danza (ej. bailarin, espectador).' },
+              token_id: { type: 'integer', description: 'ID de token para el texto poetico de metadata (default 1).' },
             },
-            output: { example: EXAMPLE_OUTPUT },
-          }),
-        },
+          },
+          output: { example: EXAMPLE_OUTPUT },
+        }),
+      };
+
+      const httpServer = new x402HTTPResourceServer(resourceServer, {
+        [ROUTE]: rutaConfig,
+        ['POST /v1/premium-composition']: rutaConfig,
       });
 
       return paymentMiddlewareFromHTTPServer(httpServer as any);
@@ -128,7 +133,7 @@ export default async function handler(req: any, res: any) {
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, PAYMENT-SIGNATURE, X-PAYMENT');
   res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
 
@@ -142,7 +147,13 @@ export default async function handler(req: any, res: any) {
   };
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed: usa GET o POST' });
+  }
+
+  // ERC-8257 invoca con POST y cuerpo JSON; GET se queda para x402scan y curl.
+  const query = req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
+  req.query = { ...(req.body && typeof req.body === 'object' ? req.body : {}), ...query };
 
   await logHit('/v1/premium-composition', req);
 

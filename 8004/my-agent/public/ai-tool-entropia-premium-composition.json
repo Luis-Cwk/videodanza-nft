@@ -1,0 +1,68 @@
+{
+  "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
+  "name": "entropia-premium-composition",
+  "description": "Premium generative videodance composition: a deterministic piece from a seed, with a poetic description ready for NFT metadata and a short curatorial text. Same seed, same composition, verifiable onchain.",
+  "endpoint": "https://entropia.petrasynthetic.com/v1/premium-composition",
+  "version": "1.0.0",
+  "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
+  "featuredImage": "https://entropia.petrasynthetic.com/featured-agent-check.jpg",
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "seed": {
+        "type": "string",
+        "description": "Deterministic seed: the same seed produces the same composition."
+      },
+      "mood": {
+        "type": "string",
+        "description": "Emotional tone, for example melancolia, euforia or calma."
+      },
+      "gender": {
+        "type": "string",
+        "description": "Gender perspective of the body, for example femenino, masculino or hibrido."
+      },
+      "energy": {
+        "type": "string",
+        "description": "Energy level: baja, media or alta."
+      },
+      "perspective": {
+        "type": "string",
+        "description": "Point of view of the dance, for example bailarin or espectador."
+      },
+      "token_id": {
+        "type": "integer",
+        "description": "Token id used in the poetic metadata text. Default 1."
+      }
+    }
+  },
+  "outputs": {
+    "type": "object",
+    "properties": {
+      "composition": {
+        "type": "object",
+        "description": "Seed, video layers, music track, blend mode and opacity."
+      },
+      "poetic_description": {
+        "type": "string",
+        "description": "Poetic text ready to paste into NFT metadata."
+      },
+      "curatorial_text": {
+        "type": "string",
+        "description": "Short curatorial paragraph about the piece."
+      },
+      "deterministic": {
+        "type": "boolean",
+        "description": "Always true: the same seed reproduces the same piece."
+      }
+    }
+  },
+  "pricing": [
+    {
+      "amount": "100000",
+      "asset": "eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "recipient": "eip155:8453:0xfc4f1119794dead15502afadb8c0069092e54e5f",
+      "protocol": "x402"
+    }
+  ],
+  "tags": ["ai", "nft", "image", "videodanza", "generative-art", "x402", "base"]
+}

@@ -4,7 +4,8 @@
   "description": "Due diligence on an ERC-8004 agent before you pay it or call it: live services and their health, metadata completeness, onchain feedback count and score, wallet activity and flags.",
   "endpoint": "https://entropia.petrasynthetic.com/v1/agent-check",
   "version": "1.0.0",
-  "image": "https://entropia.petrasynthetic.com/avatar.png",
+  "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
+  "featuredImage": "https://entropia.petrasynthetic.com/featured-agent-check.jpg",
   "creatorAddress": "0xd70ecaff906a739167efd20275d0a1d518ac40cf",
   "inputs": {
     "type": "object",

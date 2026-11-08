@@ -86,7 +86,7 @@ function getMiddleware() {
           description: DESCRIPTION,
           serviceName: 'entropiav2',
           tags: ['prompt', 'image', 'creative', 'vision'],
-          iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
+          iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
           extensions: declareDiscoveryExtension({
             method: 'POST',
             bodyType: 'json',

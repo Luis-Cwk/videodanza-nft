@@ -4,7 +4,10 @@
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const MANIFIESTO = 'https://entropia.petrasynthetic.com/.well-known/ai-tool/entropia-agent-check.json';
+const MANIFIESTO =
+  process.argv[2]?.startsWith('http')
+    ? process.argv[2]
+    : 'https://entropia.petrasynthetic.com/.well-known/ai-tool/entropia-agent-check.json';
 
 const env = {};
 for (const linea of readFileSync('.env', 'utf8').split(/\r?\n/)) {
@@ -19,11 +22,17 @@ if (!env.PRIVATE_KEY) {
   process.exit(1);
 }
 
-const extra = process.argv.slice(2);
-const r = spawnSync(
-  'npx',
-  ['@opensea/tool-sdk', 'register', '--metadata', MANIFIESTO, '--network', 'base', '-y', ...extra],
-  {
+const extra = process.argv.slice(2).filter((a) => !a.startsWith('http'));
+const indiceId = extra.indexOf('--tool-id');
+const toolId = indiceId >= 0 ? extra[indiceId + 1] : null;
+const banderas = indiceId >= 0 ? extra.filter((_, n) => n !== indiceId && n !== indiceId + 1) : extra;
+
+const comando = toolId ? 'update-metadata' : 'register';
+const args = toolId
+  ? ['@opensea/tool-sdk', comando, '--tool-id', toolId, '--metadata', MANIFIESTO, '--network', 'base', '-y', ...banderas]
+  : ['@opensea/tool-sdk', comando, '--metadata', MANIFIESTO, '--network', 'base', '-y', ...banderas];
+
+const r = spawnSync('npx', args, {
     stdio: 'inherit',
     shell: true,
     env: {

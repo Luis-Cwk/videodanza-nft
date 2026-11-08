@@ -67,7 +67,7 @@ function getMiddleware() {
         description: DESCRIPTION,
         serviceName: 'entropiav2',
         tags: ['agent-check', 'due-diligence', 'erc8004', 'reputation'],
-        iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
+        iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
         extensions: declareDiscoveryExtension({
           input: { chain: '8453', agent_id: '356966' },
           inputSchema: {
