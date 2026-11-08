@@ -271,6 +271,9 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
   switch (name) {
     case 'chat': {
       const message = args.message as string;
+      if (typeof message !== 'string' || !message.trim()) {
+        return { error: 'message debe ser un string con texto. Ejemplo: {"message":"Genera una composicion melancolica"}' };
+      }
       const response = await generateResponse(message);
       return { response };
     }
