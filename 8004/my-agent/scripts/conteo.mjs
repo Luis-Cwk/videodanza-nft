@@ -17,14 +17,19 @@ const lineas = [];
 let antes = '';
 for (let i = 0; i < PAGINAS; i++) {
   const url = `https://discord.com/api/v10/channels/${CANAL}/messages?limit=100${antes ? `&before=${antes}` : ''}`;
-  const r = await fetch(url, { headers: { Authorization: `Bot ${TOKEN}` } });
+  let r = await fetch(url, { headers: { Authorization: `Bot ${TOKEN}` } });
+  for (let intento = 0; r.status === 429 && intento < 2; intento++) {
+    const espera = (await r.json().catch(() => ({}))).retry_after || 1;
+    await new Promise((ok) => setTimeout(ok, espera * 1000));
+    r = await fetch(url, { headers: { Authorization: `Bot ${TOKEN}` } });
+  }
   if (!r.ok) {
     console.error(`Discord ${r.status}: ${(await r.text()).slice(0, 200)}`);
     process.exit(1);
   }
   const lote = await r.json();
   if (!Array.isArray(lote) || !lote.length) break;
-  for (const m of lote) if (m.content && m.content.includes(' | ')) lineas.push(m.content);
+  for (const m of lote) if (m.content && m.content.includes(' | ')) lineas.push({ texto: m.content, fecha: String(m.timestamp || '').slice(0, 10) });
   antes = lote[lote.length - 1].id;
   if (lote.length < 100) break;
 }
@@ -40,9 +45,9 @@ const cuenta = (arr) => {
   return [...m.entries()].sort((a, b) => b[1] - a[1]);
 };
 
-const filas = lineas.map((l) => {
-  const p = l.split(' | ').map((s) => s.trim());
-  return { ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: p.slice(5).join(' ') };
+const filas = lineas.map(({ texto, fecha }) => {
+  const p = texto.split(' | ').map((s) => s.trim());
+  return { fecha, ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: p.slice(5).join(' ') };
 });
 
 const top = (pares, n = 5) => pares.slice(0, n).map(([k, v]) => `  ${v.toString().padStart(3)}  ${k}`).join('\n') || '  sin datos';
@@ -56,6 +61,7 @@ const huellas = cuenta(conHuella.map((f) => f.huella));
 console.log(`Registros: ${filas.length}`);
 console.log(`Pagos: ${pagos}  |  sin pago: ${filas.length - pagos}  |  con bandera: ${sospechosas.length}`);
 console.log(`\nPor ruta:\n${top(cuenta(filas.map((f) => f.ruta)))}`);
+console.log(`\nPor dia:\n${top(cuenta(filas.map((f) => f.fecha)))}`);
 console.log(`\nPaises:\n${top(cuenta(filas.map((f) => f.pais)))}`);
 console.log(`\nUser agents:\n${top(cuenta(filas.map((f) => f.ua.slice(0, 60))), 8)}`);
 if (conHuella.length) {
