@@ -494,7 +494,7 @@ async function callLLM(messages: AgentMessage[], stream: boolean = false): Promi
 
 // Los clientes MCP mandan content como partes; los proveedores exigen texto plano
 // y responden 400 si una parte llega con text undefined (paso 2026-11-08 en /mcp).
-function contenidoTexto(content: unknown): string {
+export function contenidoTexto(content: unknown): string {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
     return content

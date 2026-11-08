@@ -10,7 +10,7 @@
  * - subscribe_newsletter: Suscribe un correo a la newsletter de Petra
  */
 
-import { generateResponse, generateContract, generateComposition, generateNFTDescription, type CompositionParams } from './agent.js';
+import { generateResponse, generateContract, generateComposition, generateNFTDescription, contenidoTexto, type CompositionParams } from './agent.js';
 import { KNOWN_WALLETS, notifySale } from './notify.js';
 
 // Formulario hospedado de Brevo que usa el sitio: misma lista y doble opt-in.
@@ -270,8 +270,8 @@ for (const t of tools) {
 export async function handleToolCall(name: string, args: Record<string, unknown>): Promise<unknown> {
   switch (name) {
     case 'chat': {
-      const message = args.message as string;
-      if (typeof message !== 'string' || !message.trim()) {
+      const message = contenidoTexto(args.message);
+      if (!message.trim()) {
         return { error: 'message debe ser un string con texto. Ejemplo: {"message":"Genera una composicion melancolica"}' };
       }
       const response = await generateResponse(message);
