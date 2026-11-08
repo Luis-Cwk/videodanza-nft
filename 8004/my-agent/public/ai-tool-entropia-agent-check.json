@@ -5,7 +5,7 @@
   "endpoint": "https://entropia.petrasynthetic.com/v1/agent-check",
   "version": "1.0.0",
   "image": "https://entropia.petrasynthetic.com/avatar.png",
-  "creatorAddress": "0xfc4f1119794dead15502afadb8c0069092e54e5f",
+  "creatorAddress": "0xd70ecaff906a739167efd20275d0a1d518ac40cf",
   "inputs": {
     "type": "object",
     "properties": {
