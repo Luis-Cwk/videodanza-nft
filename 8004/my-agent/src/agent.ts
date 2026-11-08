@@ -492,9 +492,26 @@ async function callLLM(messages: AgentMessage[], stream: boolean = false): Promi
 // Core Functions
 // ============================================================================
 
+// Los clientes MCP mandan content como partes; los proveedores exigen texto plano
+// y responden 400 si una parte llega con text undefined (paso 2026-11-08 en /mcp).
+function contenidoTexto(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((parte: any) => (typeof parte?.text === 'string' ? parte.text : ''))
+      .filter(Boolean)
+      .join('\n');
+  }
+  return '';
+}
+
 export async function chat(messages: AgentMessage[]): Promise<string> {
+  const limpias = messages.map((m) => ({ ...m, content: contenidoTexto(m.content) }));
+  if (!limpias.some((m) => m.content.trim())) {
+    throw new Error('La llamada llego sin texto: la tool chat espera un string en "message"');
+  }
   try {
-    const response = await callLLM(messages);
+    const response = await callLLM(limpias);
     if (!response.ok) {
       const error = await response.text();
       throw new Error(`LLM error (${LLM_PROVIDER}): ${error}`);
