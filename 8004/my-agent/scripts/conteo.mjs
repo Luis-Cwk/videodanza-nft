@@ -49,44 +49,43 @@ const filas = lineas.map(({ texto, fecha, ts }) => {
   const p = texto.split(' | ').map((s) => s.trim());
   const extra = p.slice(5);
   const detalle = extra.find((x) => x.startsWith('agente ')) || '';
-  return { fecha, ts, ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: extra.filter((x) => x !== detalle).join(' '), detalle };
+  const cobro = p[1] === 'COBRO';
+  return {
+    fecha, ts, ruta: p[0], cobro, tx: cobro ? p[2] : '', pago: p[1] === 'PAGO',
+    pais: p[2], ua: p[3], huella: p[4] || '',
+    notas: extra.filter((x) => x !== detalle).join(' '), detalle,
+  };
 });
 
 const top = (pares, n = 5) => pares.slice(0, n).map(([k, v]) => `  ${v.toString().padStart(3)}  ${k}`).join('\n') || '  sin datos';
 const repetidas = (pares, minimo = 3) => pares.filter(([, v]) => v >= minimo);
 
 const PRECIO = { '/v1/agent-check': 0.02, '/v1/premium-composition': 0.1, '/v1/prompt/analyze': 0.02 };
-// El cliente x402 reintenta con firma antes de que el facilitador liquide: dos
-// lineas PAGO del mismo llamante y ruta en menos de 2 minutos son un solo cobro.
-const pagados = filas.filter((f) => f.pago).sort((a, b) => new Date(a.ts) - new Date(b.ts));
-const cobros = [];
-for (const f of pagados) {
-  const previo = cobros.find(
-    (c) => c.huella === f.huella && c.ruta === f.ruta && Math.abs(new Date(f.ts) - new Date(c.ts)) < 120000,
-  );
-  if (!previo) cobros.push(f);
-}
+// Cada liquidacion deja una linea COBRO con su hash de transaccion. Los PAGO son
+// intentos firmados que pueden repetirse por reintentos: no cuentan dinero.
+const visitas = filas.filter((f) => !f.cobro);
+const cobros = filas.filter((f) => f.cobro);
 const pagos = cobros.length;
-const repetidos = pagados.length - pagos;
+const intentos = visitas.filter((f) => f.pago).length;
 const ingreso = cobros.reduce((s, f) => s + (PRECIO[f.ruta] || 0), 0);
-const sospechosas = filas.filter((f) => f.notas);
-const conHuella = filas.filter((f) => f.huella);
-const huellas = cuenta(conHuella.map((f) => f.huella));
+const sospechosas = visitas.filter((f) => f.notas);
+const huellas = cuenta(visitas.filter((f) => f.huella).map((f) => f.huella));
 
 console.log(`Registros: ${filas.length}`);
-console.log(`Pagos: ${pagos}${repetidos ? ` (${repetidos} repetidos descartados)` : ''}  |  sin pago: ${filas.length - pagados.length}  |  con bandera: ${sospechosas.length}  |  ingreso: ${ingreso.toFixed(2)} USDC`);
-console.log(`\nPor ruta:\n${top(cuenta(filas.map((f) => f.ruta)))}`);
-console.log(`\nPor dia:\n${top(cuenta(filas.map((f) => f.fecha)))}`);
+console.log(`Cobros: ${pagos}  |  intentos pagados: ${intentos}  |  con bandera: ${sospechosas.length}  |  ingreso: ${ingreso.toFixed(2)} USDC`);
+if (pagos) console.log(`Transacciones:\n${top(cuenta(cobros.map((f) => f.tx.slice(0, 14))), 5)}`);
+console.log(`\nPor ruta:\n${top(cuenta(visitas.map((f) => f.ruta)))}`);
+console.log(`\nPor dia:\n${top(cuenta(visitas.map((f) => f.fecha)))}`);
 const agentes = cuenta(
-  filas
+  visitas
     .filter((f) => f.ruta === '/v1/agent-check')
     .map((f) => f.detalle.replace(/^agente /, ''))
     .filter((x) => x && !x.includes('?')),
 );
 console.log(`\nAgentes consultados (${agentes.length} distintos):\n${top(agentes, 8)}`);
-console.log(`\nPaises:\n${top(cuenta(filas.map((f) => f.pais)))}`);
-console.log(`\nUser agents:\n${top(cuenta(filas.map((f) => f.ua.slice(0, 60))), 8)}`);
-if (conHuella.length) {
+console.log(`\nPaises:\n${top(cuenta(visitas.map((f) => f.pais)))}`);
+console.log(`\nUser agents:\n${top(cuenta(visitas.map((f) => f.ua.slice(0, 60))), 8)}`);
+if (huellas.length) {
   const repes = repetidas(huellas, 3);
   console.log(`\nLlamantes distintos: ${huellas.length}`);
   console.log(repes.length ? `Huellas con 3+ llamadas:\n${top(repes, 8)}` : 'Ninguna huella repite 3 o mas veces.');

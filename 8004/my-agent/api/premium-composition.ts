@@ -21,7 +21,7 @@ import { generateComposition, generateNFTDescription, generateResponse } from '.
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
-import { logHit } from '../src/call-log.js';
+import { cobroAlTerminar, logHit } from '../src/call-log.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xD70ECAff906A739167EFD20275D0a1d518AC40cF') as `0x${string}`;
 const PRICE = process.env.PREMIUM_PRICE || '$0.10';
@@ -139,6 +139,7 @@ export default async function handler(req: any, res: any) {
 
   // x402scan exige un WWW-Authenticate valido en el 402.
   ensure402Body(req, res);
+  cobroAlTerminar('/v1/premium-composition', req, res);
 
   const statusOriginal = res.status.bind(res);
   res.status = (code: number) => {
