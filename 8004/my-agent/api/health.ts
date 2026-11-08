@@ -24,9 +24,9 @@ export default function handler(req: any, res: any) {
   return res.status(200).json({
     status: 'ok',
     name: 'entropiav2',
-    version: '2.0.0',
-    chain: 'eip155:11155111',
-    agentId: '11155111:2387',
+    version: '2.0.2',
+    chain: 'eip155:8453',
+    agentId: '8453:356966',
     protocol: {
       a2a: '0.30',
       mcp: '2025-06-18',
@@ -40,13 +40,27 @@ export default function handler(req: any, res: any) {
     tools: tools.map((t) => t.name),
     toolsCount: tools.length,
     pricing: {
-      free: ['agent-card', 'a2a', 'mcp', 'health'],
+      free: ['agent-card', 'a2a', 'mcp', 'health', 'GET /v1/agent-check/preview'],
       x402: [
+        {
+          endpoint: 'GET /v1/agent-check',
+          price: '$0.02',
+          asset: 'USDC',
+          network: 'eip155:8453',
+          scheme: 'exact',
+        },
         {
           endpoint: 'GET /v1/premium-composition',
           price: '$0.10',
           asset: 'USDC',
-          network: 'eip155:84532',
+          network: 'eip155:8453',
+          scheme: 'exact',
+        },
+        {
+          endpoint: 'POST /v1/prompt/analyze',
+          price: '$0.02',
+          asset: 'USDC',
+          network: 'eip155:8453',
           scheme: 'exact',
         },
       ],
