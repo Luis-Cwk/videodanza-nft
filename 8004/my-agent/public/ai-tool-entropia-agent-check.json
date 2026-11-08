@@ -1,0 +1,59 @@
+{
+  "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
+  "name": "entropia-agent-check",
+  "description": "Due diligence on an ERC-8004 agent before you pay it or call it: live services and their health, metadata completeness, onchain feedback count and score, wallet activity and flags.",
+  "endpoint": "https://entropia.petrasynthetic.com/v1/agent-check",
+  "creatorAddress": "0xfc4f1119794dead15502afadb8c0069092e54e5f",
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "chain": {
+        "type": "string",
+        "description": "EVM chain id where the agent is registered. Default 8453 (Base)."
+      },
+      "agent_id": {
+        "type": "string",
+        "description": "Token id of the agent in the ERC-8004 Identity Registry."
+      }
+    },
+    "required": ["agent_id"]
+  },
+  "outputs": {
+    "type": "object",
+    "properties": {
+      "agent": {
+        "type": "object",
+        "description": "Chain id, token id, name and active flag of the agent under review."
+      },
+      "verdict": {
+        "type": "string",
+        "description": "One word judgement: usable, caution or avoid."
+      },
+      "score": {
+        "type": "number",
+        "description": "Reputation score from 0 to 100, combining health, metadata, feedback and wallet activity."
+      },
+      "services": {
+        "type": "array",
+        "description": "Declared services with their health status and latency."
+      },
+      "feedback": {
+        "type": "object",
+        "description": "Onchain feedback count and average score."
+      },
+      "flags": {
+        "type": "array",
+        "description": "Reasons behind the verdict, one line each."
+      }
+    }
+  },
+  "pricing": [
+    {
+      "amount": "20000",
+      "asset": "eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "recipient": "eip155:8453:0xfc4f1119794dead15502afadb8c0069092e54e5f",
+      "protocol": "x402"
+    }
+  ],
+  "tags": ["erc8004", "due-diligence", "reputation", "agent-check", "x402", "base"]
+}

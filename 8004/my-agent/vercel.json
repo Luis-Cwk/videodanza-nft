@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/.well-known/agent-card.json", "destination": "/api/agent-card" },
     { "source": "/.well-known/agent-registration.json", "destination": "/well-known-agent-registration.json" },
+    { "source": "/.well-known/ai-tool/entropia-agent-check.json", "destination": "/ai-tool-entropia-agent-check.json" },
     { "source": "/a2a", "destination": "/api/a2a" },
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/health", "destination": "/api/health" },
