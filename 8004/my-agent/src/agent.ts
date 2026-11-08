@@ -23,6 +23,10 @@ const MODEL = process.env.LLM_MODEL || 'moonshotai/kimi-k2.6';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
+// Sin tope, un proveedor rate-limitado cuelga hasta el limite de Vercel (60s) y el
+// llamante se queda sin respuesta (paso 2026-11-08 con OpenRouter 429/504).
+const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS || 25000);
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -414,6 +418,7 @@ async function callOllama(messages: AgentMessage[], stream: boolean = false): Pr
         num_predict: 2048,
       }
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 }
 
@@ -434,6 +439,7 @@ async function callOpenRouter(messages: AgentMessage[]): Promise<Response> {
       temperature: 0.7,
       max_tokens: 2048,
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 }
 
@@ -452,6 +458,7 @@ async function callOpenAI(messages: AgentMessage[]): Promise<Response> {
       temperature: 0.7,
       max_tokens: 2048,
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 }
 
@@ -470,6 +477,7 @@ async function callNVIDIA(messages: AgentMessage[]): Promise<Response> {
       temperature: 0.7,
       max_tokens: 2048,
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 }
 
@@ -520,6 +528,9 @@ export async function chat(messages: AgentMessage[]): Promise<string> {
     return data.message?.content ?? data.choices?.[0]?.message?.content ?? 'No response';
   } catch (error: any) {
     console.error('LLM connection error:', error);
+    if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+      throw new Error(`El modelo no respondio en ${Math.round(LLM_TIMEOUT_MS / 1000)}s (${LLM_PROVIDER}, ${MODEL})`);
+    }
     throw new Error(`Failed to connect to LLM (${LLM_PROVIDER}): ${error.message}`);
   }
 }
