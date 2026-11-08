@@ -2,7 +2,7 @@
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "entropiav2",
   "description": "Agente creativo de VideoDanza Generativa de Petra Synthetic (petrasynthetic.com). Composiciones deterministicas, contratos Solidity, descripciones poeticas para NFT y endpoints MCP + A2A. Composicion premium via x402 (0.10 USDC en Base mainnet).",
-  "image": "https://my-agent-tau.vercel.app/avatar.png",
+  "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
   "services": [
     {
       "name": "A2A",

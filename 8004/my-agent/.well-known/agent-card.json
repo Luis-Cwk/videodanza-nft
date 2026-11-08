@@ -202,5 +202,7 @@
       ]
     }
   ],
-  "image": "https://entropia.petrasynthetic.com/avatar.png"
+  "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
+  "iconUrl": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
+  "featuredImage": "https://entropia.petrasynthetic.com/featured-agent-check.jpg"
 }
