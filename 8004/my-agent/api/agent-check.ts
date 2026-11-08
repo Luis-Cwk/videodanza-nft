@@ -108,7 +108,7 @@ export default async function handler(req: any, res: any) {
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, PAYMENT-SIGNATURE, X-PAYMENT');
   res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
 
@@ -122,10 +122,16 @@ export default async function handler(req: any, res: any) {
   };
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed: usa GET o POST' });
+  }
+
+  // ERC-8257 invoca con POST y cuerpo JSON; GET se queda para x402scan y curl.
+  const query = req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
+  const q = { ...(req.body && typeof req.body === 'object' ? req.body : {}), ...query };
+  req.query = q;
 
   // Que agente preguntan es la senal de demanda real; el monto lo da la ruta.
-  const q = req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
   const pedido = `${q.chain || '?'}:${q.agent_id || q.token_id || '?'}`;
   await logHit('/v1/agent-check', req, '', `agente ${pedido}`);
 

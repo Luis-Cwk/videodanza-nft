@@ -3,6 +3,8 @@
   "name": "entropia-agent-check",
   "description": "Due diligence on an ERC-8004 agent before you pay it or call it: live services and their health, metadata completeness, onchain feedback count and score, wallet activity and flags.",
   "endpoint": "https://entropia.petrasynthetic.com/v1/agent-check",
+  "version": "1.0.0",
+  "image": "https://entropia.petrasynthetic.com/avatar.png",
   "creatorAddress": "0xfc4f1119794dead15502afadb8c0069092e54e5f",
   "inputs": {
     "type": "object",
@@ -55,5 +57,5 @@
       "protocol": "x402"
     }
   ],
-  "tags": ["erc8004", "due-diligence", "reputation", "agent-check", "x402", "base"]
+  "tags": ["ai", "security", "erc8004", "due-diligence", "reputation", "agent-check", "x402", "base"]
 }
