@@ -3,6 +3,7 @@
   "name": "entropia-premium-composition",
   "description": "Premium generative videodance composition: a deterministic piece from a seed, with a poetic description ready for NFT metadata and a short curatorial text. Same seed, same composition, verifiable onchain.",
   "endpoint": "https://entropia.petrasynthetic.com/v1/premium-composition",
+  "creatorAddress": "0xd70ecaff906a739167efd20275d0a1d518ac40cf",
   "version": "1.0.0",
   "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
   "featuredImage": "https://entropia.petrasynthetic.com/featured-agent-check.jpg",

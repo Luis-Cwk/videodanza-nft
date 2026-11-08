@@ -3,6 +3,7 @@
   "name": "entropia-prompt-analyze",
   "description": "Reads a picture and returns the prompt that describes it: framing and aspect ratio, gesture and contact between bodies, light direction and hardness, palette, medium and camera, plus a ready prompt and a negative prompt.",
   "endpoint": "https://entropia.petrasynthetic.com/v1/prompt/analyze",
+  "creatorAddress": "0xd70ecaff906a739167efd20275d0a1d518ac40cf",
   "version": "1.0.0",
   "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
   "featuredImage": "https://entropia.petrasynthetic.com/featured-agent-check.jpg",
