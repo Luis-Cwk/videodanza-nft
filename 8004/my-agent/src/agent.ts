@@ -25,7 +25,8 @@ const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
 // Sin tope, un proveedor rate-limitado cuelga hasta el limite de Vercel (60s) y el
 // llamante se queda sin respuesta (paso 2026-11-08 con OpenRouter 429/504).
-const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS || 25000);
+// 45s: con OpenRouter barato una respuesta tarda hasta 25s por los reintentos.
+const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS || 45000);
 
 // ============================================================================
 // Types
