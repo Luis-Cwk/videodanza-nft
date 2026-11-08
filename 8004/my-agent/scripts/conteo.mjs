@@ -29,7 +29,7 @@ for (let i = 0; i < PAGINAS; i++) {
   }
   const lote = await r.json();
   if (!Array.isArray(lote) || !lote.length) break;
-  for (const m of lote) if (m.content && m.content.includes(' | ')) lineas.push({ texto: m.content, fecha: String(m.timestamp || '').slice(0, 10) });
+  for (const m of lote) if (m.content && m.content.includes(' | ')) lineas.push({ texto: m.content, fecha: String(m.timestamp || '').slice(0, 10), ts: m.timestamp });
   antes = lote[lote.length - 1].id;
   if (lote.length < 100) break;
 }
@@ -45,25 +45,36 @@ const cuenta = (arr) => {
   return [...m.entries()].sort((a, b) => b[1] - a[1]);
 };
 
-const filas = lineas.map(({ texto, fecha }) => {
+const filas = lineas.map(({ texto, fecha, ts }) => {
   const p = texto.split(' | ').map((s) => s.trim());
   const extra = p.slice(5);
   const detalle = extra.find((x) => x.startsWith('agente ')) || '';
-  return { fecha, ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: extra.filter((x) => x !== detalle).join(' '), detalle };
+  return { fecha, ts, ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: extra.filter((x) => x !== detalle).join(' '), detalle };
 });
 
 const top = (pares, n = 5) => pares.slice(0, n).map(([k, v]) => `  ${v.toString().padStart(3)}  ${k}`).join('\n') || '  sin datos';
 const repetidas = (pares, minimo = 3) => pares.filter(([, v]) => v >= minimo);
 
-const pagos = filas.filter((f) => f.pago).length;
 const PRECIO = { '/v1/agent-check': 0.02, '/v1/premium-composition': 0.1, '/v1/prompt/analyze': 0.02 };
-const ingreso = filas.filter((f) => f.pago).reduce((s, f) => s + (PRECIO[f.ruta] || 0), 0);
+// El cliente x402 reintenta con firma antes de que el facilitador liquide: dos
+// lineas PAGO del mismo llamante y ruta en menos de 2 minutos son un solo cobro.
+const pagados = filas.filter((f) => f.pago).sort((a, b) => new Date(a.ts) - new Date(b.ts));
+const cobros = [];
+for (const f of pagados) {
+  const previo = cobros.find(
+    (c) => c.huella === f.huella && c.ruta === f.ruta && Math.abs(new Date(f.ts) - new Date(c.ts)) < 120000,
+  );
+  if (!previo) cobros.push(f);
+}
+const pagos = cobros.length;
+const repetidos = pagados.length - pagos;
+const ingreso = cobros.reduce((s, f) => s + (PRECIO[f.ruta] || 0), 0);
 const sospechosas = filas.filter((f) => f.notas);
 const conHuella = filas.filter((f) => f.huella);
 const huellas = cuenta(conHuella.map((f) => f.huella));
 
 console.log(`Registros: ${filas.length}`);
-console.log(`Pagos: ${pagos}  |  sin pago: ${filas.length - pagos}  |  con bandera: ${sospechosas.length}  |  ingreso: ${ingreso.toFixed(2)} USDC`);
+console.log(`Pagos: ${pagos}${repetidos ? ` (${repetidos} repetidos descartados)` : ''}  |  sin pago: ${filas.length - pagados.length}  |  con bandera: ${sospechosas.length}  |  ingreso: ${ingreso.toFixed(2)} USDC`);
 console.log(`\nPor ruta:\n${top(cuenta(filas.map((f) => f.ruta)))}`);
 console.log(`\nPor dia:\n${top(cuenta(filas.map((f) => f.fecha)))}`);
 const agentes = cuenta(
