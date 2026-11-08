@@ -10,7 +10,6 @@ const UA_ESCANEO = /nmap|nikto|sqlmap|masscan|zgrab|nuclei|acunetix|dirbuster|go
 
 export function banderaUA(ua: string): string {
   if (!ua || ua === '-') return 'sin-ua';
-  if (ua.length < 5) return 'ua-corto';
   if (UA_ESCANEO.test(ua)) return 'ua-escaneo';
   return '';
 }
