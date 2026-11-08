@@ -11,29 +11,10 @@
  * es para que un bucle no nos queme la cuota de 8004scan.
  */
 import { scoreAgent } from '../src/agent-check.js';
+import { ipDe, limite, permitido } from '../src/limite.js';
 
 const SCAN_API = 'https://api.8004scan.io/api/v1/agents';
-const LIMITE_DIA = 20;
-
-const contador = new Map<string, { dia: string; n: number }>();
-
-function ipDe(req: any): string {
-  const f = req.headers?.['x-forwarded-for'];
-  const raw = Array.isArray(f) ? f[0] : String(f || '');
-  return raw.split(',')[0].trim() || 'desconocida';
-}
-
-function permitido(ip: string): { ok: boolean; usados: number } {
-  const dia = new Date().toISOString().slice(0, 10);
-  const actual = contador.get(ip);
-  if (!actual || actual.dia !== dia) {
-    contador.set(ip, { dia, n: 1 });
-    return { ok: true, usados: 1 };
-  }
-  if (actual.n >= LIMITE_DIA) return { ok: false, usados: actual.n };
-  actual.n += 1;
-  return { ok: true, usados: actual.n };
-}
+const LIMITE_DIA = limite('LIMITE_PREVIEW_DIA', 20);
 
 function banda(score: number): string {
   if (score >= 80) return '80-100';
@@ -51,7 +32,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
 
   const ip = ipDe(req);
-  const cupo = permitido(ip);
+  const cupo = permitido(ip, 'preview', LIMITE_DIA, 20);
   if (!cupo.ok) {
     return res.status(429).json({
       error: `Limite gratuito alcanzado (${LIMITE_DIA}/dia por IP)`,

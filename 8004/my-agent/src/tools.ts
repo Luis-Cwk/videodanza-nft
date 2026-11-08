@@ -274,6 +274,9 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
       if (!message.trim()) {
         return { error: 'message debe ser un string con texto. Ejemplo: {"message":"Genera una composicion melancolica"}' };
       }
+      if (message.length > 4000) {
+        return { error: `message demasiado largo (${message.length} caracteres, tope 4000)` };
+      }
       const response = await generateResponse(message);
       return { response };
     }

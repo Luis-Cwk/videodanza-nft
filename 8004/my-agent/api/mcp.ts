@@ -6,6 +6,8 @@
  * instead of stdio (which only works locally).
  */
 import { tools, handleToolCall } from '../src/tools.js';
+import { ipDe, limite, permitido } from '../src/limite.js';
+import { logHit } from '../src/call-log.js';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -68,6 +70,25 @@ export default async function handler(req: any, res: any) {
     }
 
     if (method === 'tools/call') {
+      // chat gasta el modelo y es gratis: limite por IP, y queda registrado.
+      if (params?.name === 'chat') {
+        const topeDia = limite('LIMITE_CHAT_DIA', 40);
+        const cupo = permitido(ipDe(req), 'mcp-chat', topeDia, 6);
+        if (!cupo.ok) {
+          await logHit('/mcp:chat', req, cupo.rafaga ? 'rafaga' : 'limite-dia');
+          return res.status(429).json({
+            jsonrpc: '2.0',
+            error: {
+              code: -32000,
+              message: cupo.rafaga
+                ? 'Demasiadas llamadas seguidas. Espera un minuto.'
+                : `Limite de chat alcanzado (${topeDia}/dia por IP). Manana se renueva.`,
+            },
+            id,
+          });
+        }
+        await logHit('/mcp:chat', req);
+      }
       const result = await handleToolCall(params?.name, params?.arguments ?? {});
       return res.json({
         jsonrpc: '2.0',

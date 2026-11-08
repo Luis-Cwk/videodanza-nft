@@ -9,6 +9,8 @@
  */
 import { v4 as uuidv4 } from 'uuid';
 import { generateResponse, generateContract, type AgentMessage } from '../src/agent.js';
+import { ipDe, limite, permitido } from '../src/limite.js';
+import { logHit } from '../src/call-log.js';
 
 // ============================================================================
 // In-Memory Storage (Vercel serverless - resets per cold start)
@@ -47,6 +49,26 @@ export default async function handler(req: any, res: any) {
 
   if (jsonrpc !== '2.0') {
     return res.json({ jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' }, id });
+  }
+
+  // message/send gasta el modelo y es gratis: limite por IP, y queda registrado.
+  if (method === 'message/send') {
+    const topeDia = limite('LIMITE_A2A_DIA', 40);
+    const cupo = permitido(ipDe(req), 'a2a', topeDia, 6);
+    if (!cupo.ok) {
+      await logHit('/a2a', req, cupo.rafaga ? 'rafaga' : 'limite-dia');
+      return res.status(429).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32000,
+          message: cupo.rafaga
+            ? 'Demasiadas llamadas seguidas. Espera un minuto.'
+            : `Limite alcanzado (${topeDia}/dia por IP). Manana se renueva.`,
+        },
+        id,
+      });
+    }
+    await logHit('/a2a', req);
   }
 
   try {
