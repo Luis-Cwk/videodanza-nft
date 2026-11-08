@@ -29,7 +29,8 @@ const r = spawnSync(
     env: {
       ...process.env,
       PRIVATE_KEY: env.PRIVATE_KEY,
-      RPC_URL: env.RPC_URL || 'https://mainnet.base.org',
+      // El .env apunta a Sepolia; el registro va en Base mainnet.
+      RPC_URL: env.BASE_RPC_URL || 'https://mainnet.base.org',
     },
   },
 );
