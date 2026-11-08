@@ -60,26 +60,31 @@ function getMiddleware() {
       registerExactEvmScheme(resourceServer, { networks: [NETWORK] });
       resourceServer.registerExtension(bazaarResourceServerExtension);
 
-      const httpServer = new x402HTTPResourceServer(resourceServer, {
-        [ROUTE]: {
-          accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
-          description: DESCRIPTION,
-          serviceName: 'entropiav2',
-          tags: ['agent-check', 'due-diligence', 'erc8004', 'reputation'],
-          iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
-          extensions: declareDiscoveryExtension({
-            input: { chain: '8453', agent_id: '356966' },
-            inputSchema: {
-              type: 'object',
-              properties: {
-                chain: { type: 'string', description: 'EVM chain id del agente (default 8453, Base).' },
-                agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
-              },
-              required: ['agent_id'],
+      // El candado se indexa por "METODO ruta": sin el POST, el flujo ERC-8257
+      // (que invoca con POST) entregaba el reporte sin cobrar. Paso 2026-11-08.
+      const rutaConfig = {
+        accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
+        description: DESCRIPTION,
+        serviceName: 'entropiav2',
+        tags: ['agent-check', 'due-diligence', 'erc8004', 'reputation'],
+        iconUrl: 'https://entropia.petrasynthetic.com/avatar.png',
+        extensions: declareDiscoveryExtension({
+          input: { chain: '8453', agent_id: '356966' },
+          inputSchema: {
+            type: 'object',
+            properties: {
+              chain: { type: 'string', description: 'EVM chain id del agente (default 8453, Base).' },
+              agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
             },
-            output: { example: EXAMPLE_OUTPUT },
-          }),
-        },
+            required: ['agent_id'],
+          },
+          output: { example: EXAMPLE_OUTPUT },
+        }),
+      };
+
+      const httpServer = new x402HTTPResourceServer(resourceServer, {
+        [ROUTE]: rutaConfig,
+        ['POST /v1/agent-check']: rutaConfig,
       });
 
       return paymentMiddlewareFromHTTPServer(httpServer as any);
