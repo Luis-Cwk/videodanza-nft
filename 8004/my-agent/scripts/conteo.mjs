@@ -47,21 +47,32 @@ const cuenta = (arr) => {
 
 const filas = lineas.map(({ texto, fecha }) => {
   const p = texto.split(' | ').map((s) => s.trim());
-  return { fecha, ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: p.slice(5).join(' ') };
+  const extra = p.slice(5);
+  const detalle = extra.find((x) => x.startsWith('agente ')) || '';
+  return { fecha, ruta: p[0], pago: p[1] === 'PAGO', pais: p[2], ua: p[3], huella: p[4] || '', notas: extra.filter((x) => x !== detalle).join(' '), detalle };
 });
 
 const top = (pares, n = 5) => pares.slice(0, n).map(([k, v]) => `  ${v.toString().padStart(3)}  ${k}`).join('\n') || '  sin datos';
 const repetidas = (pares, minimo = 3) => pares.filter(([, v]) => v >= minimo);
 
 const pagos = filas.filter((f) => f.pago).length;
+const PRECIO = { '/v1/agent-check': 0.02, '/v1/premium-composition': 0.1, '/v1/prompt/analyze': 0.02 };
+const ingreso = filas.filter((f) => f.pago).reduce((s, f) => s + (PRECIO[f.ruta] || 0), 0);
 const sospechosas = filas.filter((f) => f.notas);
 const conHuella = filas.filter((f) => f.huella);
 const huellas = cuenta(conHuella.map((f) => f.huella));
 
 console.log(`Registros: ${filas.length}`);
-console.log(`Pagos: ${pagos}  |  sin pago: ${filas.length - pagos}  |  con bandera: ${sospechosas.length}`);
+console.log(`Pagos: ${pagos}  |  sin pago: ${filas.length - pagos}  |  con bandera: ${sospechosas.length}  |  ingreso: ${ingreso.toFixed(2)} USDC`);
 console.log(`\nPor ruta:\n${top(cuenta(filas.map((f) => f.ruta)))}`);
 console.log(`\nPor dia:\n${top(cuenta(filas.map((f) => f.fecha)))}`);
+const agentes = cuenta(
+  filas
+    .filter((f) => f.ruta === '/v1/agent-check')
+    .map((f) => f.detalle.replace(/^agente /, ''))
+    .filter((x) => x && !x.includes('?')),
+);
+console.log(`\nAgentes consultados (${agentes.length} distintos):\n${top(agentes, 8)}`);
 console.log(`\nPaises:\n${top(cuenta(filas.map((f) => f.pais)))}`);
 console.log(`\nUser agents:\n${top(cuenta(filas.map((f) => f.ua.slice(0, 60))), 8)}`);
 if (conHuella.length) {

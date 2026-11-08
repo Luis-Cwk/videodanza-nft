@@ -124,7 +124,10 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed, usa GET' });
 
-  await logHit('/v1/agent-check', req);
+  // Que agente preguntan es la senal de demanda real; el monto lo da la ruta.
+  const q = req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
+  const pedido = `${q.chain || '?'}:${q.agent_id || q.token_id || '?'}`;
+  await logHit('/v1/agent-check', req, '', `agente ${pedido}`);
 
   let middleware: Awaited<ReturnType<typeof getMiddleware>>;
   try {

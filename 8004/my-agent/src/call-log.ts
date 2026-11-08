@@ -15,14 +15,14 @@ export function banderaUA(ua: string): string {
   return '';
 }
 
-export async function logHit(ruta: string, req: any, nota = ''): Promise<void> {
+export async function logHit(ruta: string, req: any, nota = '', detalle = ''): Promise<void> {
   if (!TOKEN || !CHANNEL) return;
   const h = req.headers || {};
   const pago = h['payment-signature'] || h['x-payment'] ? 'PAGO' : 'sin pago';
   const pais = String(h['x-vercel-ip-country'] || '??');
   const ua = String(h['user-agent'] || '-').slice(0, 100);
-  const marcas = [banderaUA(ua), nota].filter(Boolean).join(',');
-  const texto = `${ruta} | ${pago} | ${pais} | ${ua} | ${huella(ipDe(req))}${marcas ? ' | ' + marcas : ''}`;
+  const extras = [[banderaUA(ua), nota].filter(Boolean).join(','), detalle].filter(Boolean).join(' | ');
+  const texto = `${ruta} | ${pago} | ${pais} | ${ua} | ${huella(ipDe(req))}${extras ? ' | ' + extras : ''}`;
   try {
     await fetch(`https://discord.com/api/v10/channels/${CHANNEL}/messages`, {
       method: 'POST',
