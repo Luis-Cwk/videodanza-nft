@@ -7,11 +7,16 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 loadEnvFile(join(ROOT, '.env'));
 loadEnvFile(join(ROOT, '..', 'my-agent', '.env'));
 
-const LOG_FILE = join(ROOT, 'runtime.log');
+const LOG_FILE = join(process.env.ACP_LOG_DIR ?? ROOT, 'runtime.log');
 const CHAIN_ID = process.env.ACP_CHAIN_ID ?? '8453';
-const ACP_SCRIPT =
+// En Linux (contenedor) la CLI viene del PATH; en Windows se apunta al .js global.
+const ACP_CLI =
   process.env.ACP_CLI_SCRIPT ??
-  'C:/Program Files/nodejs/node_modules/@virtuals-protocol/acp-cli/dist/bin/acp.js';
+  (process.platform === 'win32'
+    ? 'C:/Program Files/nodejs/node_modules/@virtuals-protocol/acp-cli/dist/bin/acp.js'
+    : 'acp');
+const ACP_CMD = ACP_CLI.endsWith('.js') ? process.execPath : ACP_CLI;
+const ACP_PREFIX = ACP_CLI.endsWith('.js') ? [ACP_CLI] : [];
 const LLM_PROVIDER = String(process.env.LLM_PROVIDER ?? 'groq').toLowerCase();
 const DEFAULT_LLM_MODEL = LLM_PROVIDER === 'groq' ? 'openai/gpt-oss-120b' : 'meta/llama-3.2-90b-vision-instruct';
 const LLM_MODEL = process.env.ACP_LLM_MODEL ?? DEFAULT_LLM_MODEL;
@@ -37,7 +42,7 @@ const OFFERINGS = new Map([
   ['first_critique_free', { priceType: 'fixed', priceValue: 0.01 }]
 ]);
 
-mkdirSync(ROOT, { recursive: true });
+mkdirSync(dirname(LOG_FILE), { recursive: true });
 
 function loadEnvFile(file) {
   if (!existsSync(file)) return;
@@ -64,13 +69,13 @@ function log(message) {
   appendFileSync(LOG_FILE, `${line}\n`);
 }
 
-function runAcp(args) {
+function runAcp(args, timeout = 60000) {
   return new Promise((resolve, reject) => {
-    // timeout de 60s: si la CLI se cuelga (API de Virtuals caida), el ciclo sigue.
+    // timeout de 60s por defecto: si la CLI se cuelga (API de Virtuals caida), el ciclo sigue.
     execFile(
-      process.execPath,
-      [ACP_SCRIPT, ...args],
-      { windowsHide: true, timeout: 60000, killSignal: 'SIGKILL', maxBuffer: 20 * 1024 * 1024 },
+      ACP_CMD,
+      [...ACP_PREFIX, ...args],
+      { windowsHide: true, timeout, killSignal: 'SIGKILL', maxBuffer: 20 * 1024 * 1024 },
       (error, stdout, stderr) => {
         const output = `${stdout ?? ''}\n${stderr ?? ''}`.trim();
         if (error) {
@@ -518,6 +523,25 @@ async function handleJob(job, offerings) {
 }
 
 async function main() {
+  // Servidor nuevo: no hay sesión de ACP en el keychain. Se usa el flujo split de la
+  // CLI (imprime una URL y espera la aprobación) para no necesitar shell interactiva.
+  try {
+    parseJson(await runAcp(['agent', 'whoami', '--json']));
+  } catch (error) {
+    log(`whoami fallo (${error.message}); se inicia sesion ACP.`);
+    const start = parseJson(await runAcp(['configure', 'start', '--json']));
+    log(`Abre esta URL y aprueba la sesion de ACP: ${start.url}`);
+    await runAcp(
+      ['configure', 'complete', '--request-id', start.requestId, '--wait', '--timeout', '900'],
+      960000
+    );
+    log('Sesion ACP guardada en el keychain.');
+  }
+
+  if (process.env.ACP_AGENT_ID) {
+    await runAcp(['agent', 'use', '--agent-id', process.env.ACP_AGENT_ID]);
+  }
+
   const whoami = parseJson(await runAcp(['agent', 'whoami', '--json']));
   const wallet = String(whoami.walletAddress ?? '').toLowerCase();
   if (wallet !== EXPECTED_WALLET) {
