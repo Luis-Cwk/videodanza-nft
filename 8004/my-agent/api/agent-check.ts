@@ -133,12 +133,16 @@ export default async function handler(req: any, res: any) {
   }
 
   // ERC-8257 invoca con POST y cuerpo JSON; GET se queda para x402scan y curl.
+  // Se aceptan las variantes camelCase: un cliente que manda agentId no debe
+  // quedarse sin cobrar por el nombre del campo (paso 2026-11-10, 8 intentos).
   const query = req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
-  const q = { ...(req.body && typeof req.body === 'object' ? req.body : {}), ...query };
+  const q: Record<string, any> = { ...(req.body && typeof req.body === 'object' ? req.body : {}), ...query };
+  q.agent_id = q.agent_id ?? q.agentId ?? q.token_id ?? q.tokenId;
+  q.chain = q.chain ?? q.chainId;
   req.query = q;
 
   // Que agente preguntan es la senal de demanda real; el monto lo da la ruta.
-  const pedido = `${q.chain || '?'}:${q.agent_id || q.token_id || '?'}`;
+  const pedido = `${q.chain || '?'}:${q.agent_id || '?'}`;
   await logHit('/v1/agent-check', req, '', `agente ${pedido}`);
 
   let middleware: Awaited<ReturnType<typeof getMiddleware>>;
@@ -162,12 +166,15 @@ async function serveCheck(req: any, res: any) {
     req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
 
   const chain = String(query.chain || '8453');
-  const agentId = String(query.agent_id || query.token_id || '');
+  const agentId = String(query.agent_id || '');
 
   if (!/^\d+$/.test(chain) || !/^\d+$/.test(agentId)) {
     return res.status(400).json({
-      error: 'Parametros invalidos: chain y agent_id deben ser numericos',
-      example: '/v1/agent-check?chain=8453&agent_id=356966',
+      error: 'Falta agent_id (token id del agente en ERC-8004) o no es numerico.',
+      recibido: { chain: query.chain ?? null, agent_id: query.agent_id ?? null },
+      ejemplo_get: '/v1/agent-check?chain=8453&agent_id=356966',
+      ejemplo_post: { chain: '8453', agent_id: '356966' },
+      nota: 'Se aceptan agent_id, agentId, token_id y tokenId.',
     });
   }
 
