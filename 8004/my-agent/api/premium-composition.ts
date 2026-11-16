@@ -16,7 +16,8 @@
 import { paymentMiddlewareFromHTTPServer } from '@x402/express';
 import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } from '@x402/core/server';
 import { registerExactEvmScheme } from '@x402/evm/exact/server';
-import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
+import { bazaarResourceServerExtension } from '@x402/extensions/bazaar';
+import { declararDescubrimiento } from '../src/bazaar.js';
 import { generateComposition, generateNFTDescription, generateResponse } from '../src/agent.js';
 import { KNOWN_WALLETS, notifySale } from '../src/notify.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
@@ -66,13 +67,50 @@ function getMiddleware() {
 
       // El candado se indexa por "METODO ruta": con solo GET habilitado, el POST
       // de ERC-8257 se serviria sin cobrar. Se declaran las dos.
-      const rutaConfig = {
-        accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
+      //
+      // La extension del Bazaar valida el metodo contra la ruta. La variante
+      // query solo acepta GET/HEAD/DELETE; para POST hay que declarar
+      // bodyType y body (createBodyDiscoveryExtension). Si se comparte una
+      // sola config, una de las dos rutas queda invalida y el Bazaar de CDP
+      // indexa la ficha incompleta. Por eso van separadas.
+      const baseConfig = {
+        accepts: {
+          scheme: 'exact' as const,
+          price: PRICE,
+          network: NETWORK as `${string}:${string}`,
+          payTo: PAY_TO,
+        },
         description: DESCRIPTION,
         serviceName: 'entropiav2',
         tags: ['videodanza', 'composition', 'generative-art', 'nft'],
         iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
-        extensions: declareDiscoveryExtension({
+      };
+
+      const queryConfig = {
+        ...baseConfig,
+        extensions: declararDescubrimiento({
+          method: 'GET',
+          input: { seed: 'melancolia-espectador-7', mood: 'melancolia' },
+          inputSchema: {
+            type: 'object',
+            properties: {
+              seed: { type: 'string', description: 'Semilla determinista: la misma semilla produce la misma composicion.' },
+              mood: { type: 'string', description: 'Tono emocional (ej. melancolia, euforia, calma).' },
+              gender: { type: 'string', description: 'Perspectiva de genero del cuerpo (ej. femenino, masculino, hibrido).' },
+              energy: { type: 'string', description: 'Nivel de energia (baja, media, alta).' },
+              perspective: { type: 'string', description: 'Punto de vista de la danza (ej. bailarin, espectador).' },
+              token_id: { type: 'integer', description: 'ID de token para el texto poetico de metadata (default 1).' },
+            },
+          },
+          output: { example: EXAMPLE_OUTPUT },
+        }),
+      };
+
+      const bodyConfig = {
+        ...baseConfig,
+        extensions: declararDescubrimiento({
+          method: 'POST',
+          bodyType: 'json',
           input: { seed: 'melancolia-espectador-7', mood: 'melancolia' },
           inputSchema: {
             type: 'object',
@@ -90,8 +128,8 @@ function getMiddleware() {
       };
 
       const httpServer = new x402HTTPResourceServer(resourceServer, {
-        [ROUTE]: rutaConfig,
-        ['POST /v1/premium-composition']: rutaConfig,
+        [ROUTE]: queryConfig,
+        ['POST /v1/premium-composition']: bodyConfig,
       });
 
       return paymentMiddlewareFromHTTPServer(httpServer as any);

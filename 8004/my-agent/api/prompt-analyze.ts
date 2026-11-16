@@ -15,7 +15,8 @@
 import { paymentMiddlewareFromHTTPServer } from '@x402/express';
 import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } from '@x402/core/server';
 import { registerExactEvmScheme } from '@x402/evm/exact/server';
-import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
+import { bazaarResourceServerExtension } from '@x402/extensions/bazaar';
+import { declararDescubrimiento } from '../src/bazaar.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
 import { cobroAlTerminar, logHit } from '../src/call-log.js';
@@ -87,7 +88,7 @@ function getMiddleware() {
           serviceName: 'entropiav2',
           tags: ['prompt', 'image', 'creative', 'vision'],
           iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
-          extensions: declareDiscoveryExtension({
+          extensions: declararDescubrimiento({
             method: 'POST',
             bodyType: 'json',
             input: { image_url: 'https://example.com/photo.jpg' },

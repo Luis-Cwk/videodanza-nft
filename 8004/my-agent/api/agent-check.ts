@@ -15,7 +15,8 @@
 import { paymentMiddlewareFromHTTPServer } from '@x402/express';
 import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } from '@x402/core/server';
 import { registerExactEvmScheme } from '@x402/evm/exact/server';
-import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
+import { bazaarResourceServerExtension } from '@x402/extensions/bazaar';
+import { declararDescubrimiento } from '../src/bazaar.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
 import { scoreAgent } from '../src/agent-check.js';
@@ -62,13 +63,45 @@ function getMiddleware() {
 
       // El candado se indexa por "METODO ruta": sin el POST, el flujo ERC-8257
       // (que invoca con POST) entregaba el reporte sin cobrar. Paso 2026-11-08.
-      const rutaConfig = {
-        accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
+      //
+      // La extension del Bazaar valida el metodo contra la ruta. Query solo
+      // acepta GET/HEAD/DELETE; POST necesita bodyType y body. Van separadas
+      // para que ninguna de las dos rutas quede con ficha invalida en CDP.
+      const baseConfig = {
+        accepts: {
+          scheme: 'exact' as const,
+          price: PRICE,
+          network: NETWORK as `${string}:${string}`,
+          payTo: PAY_TO,
+        },
         description: DESCRIPTION,
         serviceName: 'entropiav2',
         tags: ['agent-check', 'due-diligence', 'erc8004', 'reputation'],
         iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
-        extensions: declareDiscoveryExtension({
+      };
+
+      const queryConfig = {
+        ...baseConfig,
+        extensions: declararDescubrimiento({
+          method: 'GET',
+          input: { chain: '8453', agent_id: '356966' },
+          inputSchema: {
+            type: 'object',
+            properties: {
+              chain: { type: 'string', description: 'EVM chain id del agente (default 8453, Base).' },
+              agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
+            },
+            required: ['agent_id'],
+          },
+          output: { example: EXAMPLE_OUTPUT },
+        }),
+      };
+
+      const bodyConfig = {
+        ...baseConfig,
+        extensions: declararDescubrimiento({
+          method: 'POST',
+          bodyType: 'json',
           input: { chain: '8453', agent_id: '356966' },
           inputSchema: {
             type: 'object',
@@ -83,8 +116,8 @@ function getMiddleware() {
       };
 
       const httpServer = new x402HTTPResourceServer(resourceServer, {
-        [ROUTE]: rutaConfig,
-        ['POST /v1/agent-check']: rutaConfig,
+        [ROUTE]: queryConfig,
+        ['POST /v1/agent-check']: bodyConfig,
       });
 
       return paymentMiddlewareFromHTTPServer(httpServer as any);
