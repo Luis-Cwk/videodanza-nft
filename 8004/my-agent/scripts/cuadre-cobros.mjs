@@ -119,7 +119,10 @@ async function cobrosDiscord(desdeIso) {
     if (!pagina.length) break;
     for (const m of pagina) {
       const match = m.content.match(/\| COBRO \| (0x[0-9a-fA-F]{64})/);
-      if (match) lineas.push({ tx: match[1].toLowerCase(), fecha: m.timestamp, texto: m.content });
+      // Solo lineas dentro de la ventana: la pagina puede traer mensajes mas viejos.
+      if (match && m.timestamp >= desdeIso) {
+        lineas.push({ tx: match[1].toLowerCase(), fecha: m.timestamp, texto: m.content });
+      }
     }
     cursor = pagina[pagina.length - 1].id;
     const masViejo = pagina[pagina.length - 1].timestamp;
