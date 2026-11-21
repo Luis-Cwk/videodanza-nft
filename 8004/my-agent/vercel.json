@@ -16,6 +16,7 @@
     { "source": "/v1/agent-check/preview", "destination": "/api/agent-check-preview" },
     { "source": "/v1/agent-check", "destination": "/api/agent-check" },
     { "source": "/v1/prompt/analyze", "destination": "/api/prompt-analyze" },
+    { "source": "/v1/video/preview", "destination": "/api/video-preview" },
     { "source": "/v1/contract", "destination": "/api/contract" }
   ],
   "headers": [
@@ -48,6 +49,9 @@
     },
     "api/contract.ts": {
       "maxDuration": 10
+    },
+    "api/video-preview.ts": {
+      "maxDuration": 15
     },
     "api/health.ts": {
       "maxDuration": 10

@@ -186,6 +186,25 @@
       ]
     },
     {
+      "id": "video_sequence",
+      "name": "Secuencia de Video Encadenada",
+      "description": "Arma y valida una secuencia de tres clips de 8 s que empalman por un objeto fisico que llena el cuadro, con el mismo canon de camara, luz, grano y movimiento en los tres. Devuelve los tres prompts, el negativo y el frame exacto de empalme, listos para frames-to-video. No genera el render. Vista gratuita en /v1/video/preview.",
+      "tags": [
+        "video",
+        "sequence",
+        "continuity",
+        "gemini",
+        "veo",
+        "prompting",
+        "creative-direction"
+      ],
+      "examples": [
+        "Armame una secuencia de tres clips que empalmen, en 9:16",
+        "Revisa este brief antes de pagar el render",
+        "Dame el frame exacto para encadenar el clip 2 con el 3"
+      ]
+    },
+    {
       "id": "erc8004_identity",
       "name": "Identidad Onchain ERC-8004",
       "description": "Registro y metadatos de agente en ERC-8004: identidad, agent card, estandares de descubrimiento y verificacion de interoperabilidad entre agentes.",

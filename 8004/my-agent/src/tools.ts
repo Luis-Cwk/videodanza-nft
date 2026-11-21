@@ -250,6 +250,26 @@ export const tools = [
       required: ['image_url'],
     },
   },
+  {
+    name: 'video_preview',
+    description:
+      'Arma y valida una secuencia de video: tres clips de 8 s que empalman por un objeto fisico que llena el cuadro, con el mismo CANON (camara, luz, grano y movimiento) en los tres. Devuelve los tres prompts, el negativo, el frame exacto de empalme y los ajustes. Es GRATIS y no genera video: sirve para revisar el encargo antes de pagar el render. No acepta contenido sexual, menores, violencia grafica, marcas ni personajes con derechos.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        brief: {
+          type: 'string',
+          description: 'Que debe pasar en la secuencia: sujeto, accion, materia. Minimo 10 caracteres, tope 1200.',
+        },
+        aspect: {
+          type: 'string',
+          description: 'Relacion de aspecto: 16:9 (default) o 9:16.',
+          enum: ['16:9', '9:16'],
+        },
+      },
+      required: ['brief'],
+    },
+  },
 ];
 
 // Anotaciones MCP: los agentes eligen herramientas por estas pistas, y los
@@ -523,6 +543,18 @@ export async function handleToolCall(name: string, args: Record<string, unknown>
             'Paga 0.02 USDC en Base con tu cliente x402 y reintenta esta tool con payment = base64 del header X-PAYMENT.',
         };
       }
+      return { status: r.status, ...body };
+    }
+
+    case 'video_preview': {
+      const base = process.env.AGENT_BASE_URL || 'https://entropia.petrasynthetic.com';
+      const qs = new URLSearchParams();
+      qs.set('brief', String(args.brief ?? ''));
+      if (args.aspect) qs.set('aspect', String(args.aspect));
+      const r = await fetch(`${base}/v1/video/preview?${qs.toString()}`, {
+        signal: AbortSignal.timeout(15000),
+      });
+      const body: any = await r.json().catch(() => ({ error: 'respuesta no JSON' }));
       return { status: r.status, ...body };
     }
 
