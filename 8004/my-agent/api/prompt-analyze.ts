@@ -20,17 +20,15 @@ import { declararDescubrimiento } from '../src/bazaar.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
 import { cobroAlTerminar, logHit } from '../src/call-log.js';
+import { analizarImagen } from '../src/prompt-vision.js';
+import { ipDe, limite, permitido } from '../src/limite.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as `0x${string}`;
 const PRICE = process.env.PROMPT_PRICE || '$0.02';
 const NETWORK = 'eip155:8453';
 const FACILITATOR_URL = process.env.X402_FACILITATOR_URL || 'https://x402.org/facilitator';
 const ROUTE = 'POST /v1/prompt/analyze';
-const MODEL = process.env.PROMPT_VISION_MODEL || 'google/gemini-3.1-flash-lite';
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MAX_BYTES = 8 * 1024 * 1024;
-const FETCH_TIMEOUT_MS = 15000;
-const MODEL_TIMEOUT_MS = 40000;
+const LIMITE_PREVIEW_DIA = limite('LIMITE_PROMPT_PREVIEW_DIA', 10);
 
 const DESCRIPTION =
   'Read a picture and hand back the prompt that describes it: framing and aspect ratio, the gesture and contact between bodies, light direction and hardness, palette, medium, and camera. Returns a ready prompt plus a negative prompt and the six structured fields. Use it when you need to describe, remix or extend an image you did not make. It describes the image; it does not recover the original prompt and does not regenerate the picture.';
@@ -53,14 +51,6 @@ const EXAMPLE_OUTPUT = {
   model: 'qwen/qwen3-vl-235b-a22b-instruct',
   elapsed_ms: 2700,
 };
-
-const INSTRUCCION = `You are a cinematographer writing prompts for image generation models. Describe the image with exact, checkable observations. No adjective you cannot defend by pointing at the picture.
-
-Answer ONLY with a JSON object, no prose, with exactly these keys:
-
-{"framing":"shot size, aspect ratio, where the subject sits, how much empty space and on which side","gesture":"what each body is doing, relative positions, orientation, contact, and whether one is lifted or held","light":"direction, hardness, what is lit and what falls to shadow","palette":"values and colours, how many tones","medium":"photograph, render, painting or other, and what gives it away","camera":"lens feel, distance, depth of field","prompt":"45 to 70 words in English, built only from the fields above, starting with framing and gesture and ending with medium and light, no mood words","negative":"what must not appear"}
-
-If a field cannot be determined from the image, use an empty string for it. Never guess.`;
 
 let middlewarePromise: Promise<ReturnType<typeof paymentMiddlewareFromHTTPServer>> | null = null;
 
@@ -85,6 +75,7 @@ function getMiddleware() {
         [ROUTE]: {
           accepts: { scheme: 'exact', price: PRICE, network: NETWORK, payTo: PAY_TO },
           description: DESCRIPTION,
+          resource: 'https://entropia.petrasynthetic.com/v1/prompt/analyze',
           serviceName: 'entropiav2',
           tags: ['prompt', 'image', 'creative', 'vision'],
           iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
@@ -129,9 +120,12 @@ export default async function handler(req: any, res: any) {
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, PAYMENT-SIGNATURE, X-PAYMENT');
   res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE, EXTENSION-RESPONSES');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'GET') return servePreview(req, res);
 
   ensure402Body(req, res);
   cobroAlTerminar('/v1/prompt/analyze', req, res);
@@ -142,7 +136,6 @@ export default async function handler(req: any, res: any) {
     return statusOriginal(code);
   };
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed, usa POST' });
 
   await logHit('/v1/prompt/analyze', req);
@@ -163,20 +156,7 @@ export default async function handler(req: any, res: any) {
   });
 }
 
-function jsonFromText(text: string): any | null {
-  const limpio = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
-  const ini = limpio.indexOf('{');
-  const fin = limpio.lastIndexOf('}');
-  if (ini < 0 || fin <= ini) return null;
-  try {
-    return JSON.parse(limpio.slice(ini, fin + 1));
-  } catch {
-    return null;
-  }
-}
-
 async function servePrompt(req: any, res: any) {
-  const t0 = Date.now();
   const body = req.body || {};
   const imageUrl = String(body.image_url || '').trim();
 
@@ -184,81 +164,76 @@ async function servePrompt(req: any, res: any) {
     return res.status(400).json({ error: 'image_url debe ser una URL HTTPS publica' });
   }
 
-  // Descargar la imagen con tope de bytes y de tiempo.
-  let imgRes: Response;
-  try {
-    imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), redirect: 'follow' });
-  } catch (e: any) {
-    return res.status(422).json({ error: 'no se pudo descargar la imagen', detail: e?.name || 'fetch error' });
-  }
-  if (!imgRes.ok) {
-    return res.status(422).json({ error: `la imagen respondio ${imgRes.status}` });
-  }
-  const tipo = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-  if (!tipo.startsWith('image/')) {
-    return res.status(422).json({ error: `content-type no es imagen: ${tipo || 'vacio'}` });
-  }
-
-  const buf = Buffer.from(await imgRes.arrayBuffer());
-  if (buf.length > MAX_BYTES) {
-    return res.status(413).json({ error: `imagen de ${Math.round(buf.length / 1024 / 1024)} MB, tope 8 MB` });
-  }
-
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    console.error('[prompt] falta OPENROUTER_API_KEY');
-    return res.status(500).json({ error: 'vision no configurada' });
-  }
-
-  const dataUrl = `data:${tipo};base64,${buf.toString('base64')}`;
-  let modelo: any;
-  try {
-    const r = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: 'user', content: [{ type: 'text', text: INSTRUCCION }, { type: 'image_url', image_url: { url: dataUrl } }] }],
-        max_tokens: 800,
-        temperature: 0,
-      }),
-      signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
-    });
-    modelo = await r.json();
-    if (!r.ok || modelo?.error) {
-      console.error('[prompt] openrouter:', r.status, JSON.stringify(modelo?.error || {}).slice(0, 200));
-      return res.status(502).json({ error: 'el modelo de vision fallo', status: r.status });
-    }
-  } catch (e: any) {
-    return res.status(504).json({ error: 'el modelo de vision no respondio a tiempo' });
-  }
-
-  const texto = modelo?.choices?.[0]?.message?.content || '';
-  const parsed = jsonFromText(texto);
-  if (!parsed) {
-    console.error('[prompt] respuesta no parseable:', String(texto).slice(0, 200));
-    return res.status(502).json({ error: 'el modelo no devolvio JSON valido' });
-  }
-
-  const campos = ['framing', 'gesture', 'light', 'palette', 'medium', 'camera'] as const;
-  const analysis: Record<string, string> = {};
-  let completos = 0;
-  for (const c of campos) {
-    const v = typeof parsed[c] === 'string' ? parsed[c].trim() : '';
-    analysis[c] = v;
-    if (v) completos++;
+  const resultado = await analizarImagen(imageUrl);
+  if (!resultado.ok) {
+    return res.status(resultado.status).json(resultado.body);
   }
 
   res.status(200).json({
     schema_version: '1.0.0',
     ok: true,
-    image: { content_type: tipo, bytes: buf.length },
-    analysis,
-    prompt: typeof parsed.prompt === 'string' ? parsed.prompt.trim() : '',
-    negative: typeof parsed.negative === 'string' ? parsed.negative.trim() : '',
-    fields_completed: completos,
-    model: MODEL,
-    elapsed_ms: Date.now() - t0,
+    ...resultado.data,
     note: 'Describe la imagen; no recupera el prompt original ni la reproduce.',
+  });
+}
+
+function recorte(texto: string, max: number): string {
+  const limpio = String(texto).trim();
+  if (limpio.length <= max) return limpio;
+  const corte = limpio.slice(0, max);
+  const espacio = corte.lastIndexOf(' ');
+  return (espacio > 40 ? corte.slice(0, espacio) : corte).trim() + '…';
+}
+
+/**
+ * GET gratis: dos de los seis campos y un recorte del prompt. Corre el mismo
+ * modelo que la ruta pagada. Limite best-effort por IP porque la vision cuesta
+ * ~$0.0012 por llamada.
+ */
+async function servePreview(req: any, res: any) {
+  res.setHeader('Cache-Control', 'no-store');
+
+  const cupo = permitido(ipDe(req), 'prompt-preview', LIMITE_PREVIEW_DIA, 2);
+  if (!cupo.ok) {
+    return res.status(429).json({
+      error: `Limite gratuito alcanzado (${LIMITE_PREVIEW_DIA}/dia por IP)`,
+      full_report: 'POST /v1/prompt/analyze ($0.02 USDC en Base, sin cuenta)',
+    });
+  }
+  res.setHeader('X-Preview-Remaining', String(Math.max(0, LIMITE_PREVIEW_DIA - cupo.usados)));
+
+  const query: Record<string, string> =
+    req.query || Object.fromEntries(new URL(req.url || '/', 'https://agent.local').searchParams);
+  const imageUrl = String(query.image_url || '').trim();
+
+  if (!/^https:\/\/\S+$/i.test(imageUrl)) {
+    return res.status(400).json({
+      error: 'image_url debe ser una URL HTTPS publica',
+      example: '/v1/prompt/preview?image_url=https://example.com/photo.jpg',
+    });
+  }
+
+  const resultado = await analizarImagen(imageUrl);
+  if (!resultado.ok) {
+    return res.status(resultado.status).json(resultado.body);
+  }
+
+  const { analysis, image, prompt, fields_completed, model, elapsed_ms } = resultado.data;
+
+  res.status(200).json({
+    ok: true,
+    preview: true,
+    image,
+    analysis: {
+      framing: analysis.framing,
+      palette: analysis.palette,
+    },
+    prompt_short: recorte(prompt, 180),
+    fields_completed,
+    withheld: ['gesture', 'light', 'medium', 'camera', 'prompt completo', 'negative'],
+    full_report: 'POST /v1/prompt/analyze ($0.02 USDC en Base, sin cuenta)',
+    model,
+    elapsed_ms,
+    note: 'Vista gratuita y best-effort: dos de seis campos. El reporte completo tambien entrega el negativo.',
   });
 }

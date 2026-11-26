@@ -81,6 +81,7 @@ function getMiddleware() {
           payTo: PAY_TO,
         },
         description: DESCRIPTION,
+        resource: 'https://entropia.petrasynthetic.com/v1/premium-composition',
         serviceName: 'entropiav2',
         tags: ['videodanza', 'composition', 'generative-art', 'nft'],
         iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',

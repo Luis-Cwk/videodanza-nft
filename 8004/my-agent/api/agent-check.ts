@@ -20,6 +20,7 @@ import { declararDescubrimiento } from '../src/bazaar.js';
 import { cdpAuthHeader } from '../src/cdp-auth.js';
 import { ensure402Body } from '../src/x402-body.js';
 import { scoreAgent } from '../src/agent-check.js';
+import { cardUrl } from '../src/card.js';
 import { cobroAlTerminar, logHit } from '../src/call-log.js';
 
 const PAY_TO = (process.env.X402_PAY_TO || '0xFc4f1119794DeAD15502AfAdb8c0069092e54e5f') as `0x${string}`;
@@ -75,8 +76,9 @@ function getMiddleware() {
           payTo: PAY_TO,
         },
         description: DESCRIPTION,
+        resource: 'https://entropia.petrasynthetic.com/v1/agent-check',
         serviceName: 'entropiav2',
-        tags: ['agent-check', 'due-diligence', 'erc8004', 'reputation'],
+        tags: ['agent-check', 'due-diligence', 'erc8004', 'erc-8004', 'reputation', 'agent-trust', 'agent-verification'],
         iconUrl: 'https://entropia.petrasynthetic.com/avatar-agent.jpg',
       };
 
@@ -233,5 +235,5 @@ async function serveCheck(req: any, res: any) {
 
   const raw = await upstream.json();
   const report = scoreAgent(raw, Number(chain), agentId);
-  res.status(200).json({ ok: true, ...report });
+  res.status(200).json({ ok: true, ...report, card_url: cardUrl(chain, agentId) });
 }
