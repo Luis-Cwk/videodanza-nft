@@ -1,18 +1,33 @@
 {
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "entropiav2",
-  "description": "Agente creativo de VideoDanza Generativa de Petra Synthetic (petrasynthetic.com). Composiciones deterministicas, contratos Solidity, descripciones poeticas para NFT y endpoints MCP + A2A. Composicion premium via x402 (0.10 USDC en Base mainnet).",
+  "description": "Agente de due diligence para agentes ERC-8004 y agente creativo de VideoDanza Generativa de Petra Synthetic (petrasynthetic.com). Vista gratis y reporte completo por 0.02 USDC en Base mainnet. También composiciones deterministas, contratos Solidity, descripciones poéticas para NFT y endpoints MCP + A2A.",
   "image": "https://entropia.petrasynthetic.com/avatar-agent.jpg",
   "services": [
     {
       "name": "A2A",
-      "endpoint": "https://my-agent-tau.vercel.app/.well-known/agent-card.json",
+      "endpoint": "https://entropia.petrasynthetic.com/.well-known/agent-card.json",
       "version": "0.30"
     },
     {
       "name": "MCP",
-      "endpoint": "https://my-agent-tau.vercel.app/mcp",
-      "version": "2025-06-18"
+      "endpoint": "https://entropia.petrasynthetic.com/mcp",
+      "version": "2025-06-18",
+      "mcpTools": [
+        "agent_check_preview",
+        "agent_check",
+        "chat",
+        "generate_composition",
+        "generate_contract",
+        "describe_nft",
+        "get_agent_info",
+        "subscribe_newsletter",
+        "variaciones_estilo",
+        "commission_brief",
+        "composicion_premium",
+        "prompt_from_image",
+        "video_preview"
+      ]
     },
     {
       "name": "web",
@@ -21,8 +36,9 @@
     },
     {
       "name": "x402",
-      "endpoint": "https://my-agent-tau.vercel.app/v1/premium-composition",
-      "version": "1"
+      "endpoint": "https://entropia.petrasynthetic.com/v1/agent-check",
+      "version": "1",
+      "description": "Due diligence de agentes ERC-8004 por $0.02 USDC via x402 en Base mainnet: servicios vivos y su salud, metadata, feedback onchain, wallet, banderas rojas y veredicto usable/caution/avoid con score 0-100. Vista gratis en /v1/agent-check/preview. También composición premium de VideoDanza Generativa por $0.10 USDC."
     }
   ],
   "registrations": [

@@ -36,6 +36,34 @@ function requisitosDe(r: Response): Record<string, unknown> {
 
 export const tools = [
   {
+    name: 'agent_check_preview',
+    description: 'Vista GRATUITA de due diligence de un agente ERC-8004: veredicto usable/caution/avoid, banda de score y codigos de banderas. No trae score exacto, servicios, metadata, reputacion ni wallet. Para el reporte completo usa agent_check (0.02 USDC).',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        chain: { type: 'string', description: 'Chain id EVM del agente (default 8453, Base).' },
+        agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
+      },
+      required: ['agent_id'],
+    },
+  },
+  {
+    name: 'agent_check',
+    description: 'Due diligence completa de un agente ERC-8004 antes de pagarle o llamarlo: servicios vivos y su salud, metadata, feedback onchain, wallet, banderas rojas y veredicto con score 0-100. Es PAGADA via x402 (0.02 USDC en Base). Sin payment regresa los requisitos; con payment (base64 del header X-PAYMENT) entrega el reporte.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        chain: { type: 'string', description: 'Chain id EVM del agente (default 8453, Base).' },
+        agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
+        payment: {
+          type: 'string',
+          description: 'Header X-PAYMENT en base64 que produce tu cliente x402 despues de pagar. Sin esto, la tool responde con los requisitos de pago.',
+        },
+      },
+      required: ['agent_id'],
+    },
+  },
+  {
     name: 'chat',
     description: 'Conversacion con el agente creativo entropiav2. Especializado en blockchain, arte generativo, danza y contratos inteligentes.',
     inputSchema: {
@@ -189,7 +217,7 @@ export const tools = [
   },
   {
     name: 'composicion_premium',
-    description: 'Composicion premium de videodanza: pieza determinista + descripcion poetica para metadata NFT + texto curatorial. Es PAGADA via x402 (0.10 USDC en Base Sepolia). Sin el parametro payment regresa los requisitos de pago; con payment (base64 del header X-PAYMENT) verifica, entrega y liquida onchain.',
+    description: 'Composicion premium de videodanza: pieza determinista + descripcion poetica para metadata NFT + texto curatorial. Es PAGADA via x402 (0.10 USDC en Base mainnet). Sin el parametro payment regresa los requisitos de pago; con payment (base64 del header X-PAYMENT) verifica, entrega y liquida onchain.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -205,34 +233,6 @@ export const tools = [
         },
       },
       required: [],
-    },
-  },
-  {
-    name: 'agent_check_preview',
-    description: 'Vista GRATUITA de due diligence de un agente ERC-8004: veredicto usable/caution/avoid, banda de score y codigos de banderas. No trae score exacto, servicios, metadata, reputacion ni wallet. Para el reporte completo usa agent_check (0.02 USDC).',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        chain: { type: 'string', description: 'Chain id EVM del agente (default 8453, Base).' },
-        agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
-      },
-      required: ['agent_id'],
-    },
-  },
-  {
-    name: 'agent_check',
-    description: 'Due diligence completa de un agente ERC-8004 antes de pagarle o llamarlo: servicios vivos y su salud, metadata, feedback onchain, wallet, banderas rojas y veredicto con score 0-100. Es PAGADA via x402 (0.02 USDC en Base). Sin payment regresa los requisitos; con payment (base64 del header X-PAYMENT) entrega el reporte.',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        chain: { type: 'string', description: 'Chain id EVM del agente (default 8453, Base).' },
-        agent_id: { type: 'string', description: 'Token id del agente en el Identity Registry de ERC-8004.' },
-        payment: {
-          type: 'string',
-          description: 'Header X-PAYMENT en base64 que produce tu cliente x402 despues de pagar. Sin esto, la tool responde con los requisitos de pago.',
-        },
-      },
-      required: ['agent_id'],
     },
   },
   {
